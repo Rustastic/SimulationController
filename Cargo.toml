@@ -10,3 +10,5 @@ toml = "0.8.19"
 rand = "0.8.0"
 colored = "3"
 log = "0.4"
+eframe = { version = "0.30.0", features = ["default", "__screenshot"] }
+egui_extras = { version = "0.30.0", features = ["default", "image"] }
