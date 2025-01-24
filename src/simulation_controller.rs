@@ -10,22 +10,23 @@ use wg_2024::{
     packet::{Packet, PacketType},
 };
 
+#[derive(Clone)]
 pub struct SimulationController {
     drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
     receiver: Receiver<DroneEvent>,
-    neighbor: HashMap<NodeId, Vec<NodeId>>
+    neighbor: HashMap<NodeId, Vec<NodeId>>,
 }
 
 impl SimulationController {
     pub fn new(
         drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
         receiver: Receiver<DroneEvent>,
-        neighbor: HashMap<NodeId, Vec<NodeId>>
+        neighbor: HashMap<NodeId, Vec<NodeId>>,
     ) -> Self {
         return Self {
             drones,
             receiver,
-            neighbor
+            neighbor,
         };
     }
 
@@ -34,6 +35,17 @@ impl SimulationController {
             Ok(drone_event) => self.handle_event(drone_event),
             Err(_) => error!("{} Channel is closed", "✗".red()),
         }
+
+        let options = eframe::NativeOptions::default();
+        let _ = eframe::run_native(
+            "Simulation Controller",
+            options,
+            Box::new(|_cc| {
+                Ok(Box::<SimulationControllerInstance>::new(
+                    SimulationControllerInstance::new(self.clone()),
+                ))
+            }),
+        );
     }
 
     fn spawn() {}
@@ -46,13 +58,13 @@ impl SimulationController {
                     .hops
                     .get(packet.routing_header.hop_index)
                     .unwrap();
-                
+
                 let dest = packet
                     .routing_header
                     .hops
                     .get(packet.routing_header.hop_index + 1)
                     .unwrap();
-                
+
                 let pakcet_type = packet.pack_type;
 
                 // GUI
@@ -102,6 +114,16 @@ impl SimulationController {
                         .unwrap();
                 }
                 DroneCommand::Crash => {
+                    let neighbors = self.neighbor.get(drone).unwrap();
+
+                    for neighbor in neighbors {
+                        let (neighbor_channel, _) = self.drones.get(neighbor).unwrap();
+
+                        neighbor_channel
+                            .send(DroneCommand::RemoveSender(*drone))
+                            .unwrap();
+                    }
+
                     command_channel.send(DroneCommand::Crash).unwrap();
                 }
             }
@@ -116,19 +138,64 @@ impl SimulationController {
 //-----
 use eframe::egui;
 
-#[derive(Clone)]
+#[derive(Eq, Hash, PartialEq, Clone)]
 struct DroneInstance {
     id: NodeId,           // Id of the Drone
-    x: f32,               // X-coordinate for display
-    y: f32,               // Y-coordinate for display
+    x: i32,               // X-coordinate for display
+    y: i32,               // Y-coordinate for display
     selected: bool,       // Boolean to track if the drone is selected by the user
     color: egui::Color32, // Color used for visual representation of the drone
 }
 
+impl DroneInstance {
+    fn new(id: NodeId) -> Self {
+        Self {
+            id,
+            x: 0,
+            y: 0,
+            selected: false,
+            color: egui::Color32::BLUE,
+        }
+    }
+}
+
 struct SimulationControllerInstance {
     nodes: Vec<DroneInstance>,
-    edges: Vec<(usize, usize)>,
+    edges: HashMap<DroneInstance, Vec<DroneInstance>>,
     edge_color: egui::Color32,
+}
+
+impl SimulationControllerInstance {
+    fn new(simulation_controller: SimulationController) -> Self {
+        let nodes: Vec<DroneInstance> = simulation_controller
+            .drones
+            .keys()
+            .map(|id| DroneInstance::new(id.clone()))
+            .collect();
+
+        let mut edges = HashMap::<DroneInstance, Vec<DroneInstance>>::new();
+
+        for (drone_id, neighbor) in simulation_controller.neighbor {
+            let start = nodes.iter().find(|drone| drone.id == drone_id).unwrap();
+            for dest in neighbor {
+                let end = nodes.iter().find(|drone| drone.id == dest).unwrap();
+                if edges.contains_key(start) {
+                    let vec = edges.get_mut(start).unwrap();
+                    vec.push(end.clone());
+                } else {
+                    let mut vec: Vec<DroneInstance> = Vec::new();
+                    vec.push(end.clone());
+                    edges.insert(start.clone(), vec);
+                }
+            }
+        }
+
+        Self {
+            nodes,
+            edges,
+            edge_color: egui::Color32::GRAY,
+        }
+    }
 }
 
 // Implementation for updating the simulation UI in the eframe application (the main loop)
@@ -142,19 +209,9 @@ impl eframe::App for SimulationControllerInstance {
             let (_response, painter) =
                 ui.allocate_painter(egui::Vec2::new(400.0, 400.0), egui::Sense::hover());
 
-            // Drawing edges (connections) between drones
-            for &(start_idx, end_idx) in &self.edges {
-                let start = self.nodes[start_idx].clone();
-                let end = self.nodes[end_idx].clone();
-                painter.line_segment(
-                    [egui::pos2(start.x, start.y), egui::pos2(end.x, end.y)],
-                    egui::Stroke::new(2.0, self.edge_color),
-                );
-            }
-
             // Drawing the nodes (drones) and handling user interaction for selection
             for pos in self.nodes.iter_mut() {
-                let screen_pos = egui::pos2(pos.x, pos.y);
+                let screen_pos = egui::pos2(pos.x as f32, pos.y as f32);
                 let radius = 10.0;
 
                 // Allocating space for each drone's graphical representation
@@ -170,6 +227,21 @@ impl eframe::App for SimulationControllerInstance {
 
                 // Drawing the drone as a filled circle
                 painter.circle_filled(screen_pos, radius, pos.color);
+
+                // Drawing edges (connections) between drones
+                let start = pos;
+                let vec = self.edges.get(&start.clone()).unwrap();
+                for end in vec {
+                    if end.id > start.id {
+                        painter.line_segment(
+                            [
+                                egui::pos2(start.x as f32, start.y as f32),
+                                egui::pos2(end.x as f32, end.y as f32),
+                            ],
+                            egui::Stroke::new(2.0, self.edge_color),
+                        );
+                    }
+                }
             }
 
             // Displaying a pop-up with detailed information when a drone is selected
