@@ -13,16 +13,19 @@ use wg_2024::{
 pub struct SimulationController {
     drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
     receiver: Receiver<DroneEvent>,
+    neighbor: HashMap<NodeId, Vec<NodeId>>
 }
 
 impl SimulationController {
     pub fn new(
         drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
-        recv: Receiver<DroneEvent>,
+        receiver: Receiver<DroneEvent>,
+        neighbor: HashMap<NodeId, Vec<NodeId>>
     ) -> Self {
         return Self {
             drones,
-            receiver: recv,
+            receiver,
+            neighbor
         };
     }
 
