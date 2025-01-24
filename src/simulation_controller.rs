@@ -32,10 +32,10 @@ impl SimulationController {
 
     pub fn run(&mut self) {
         println!("\tStarting Simulation Controller...");
-        match self.receiver.recv() {
+        /*match self.receiver.recv() {
             Ok(drone_event) => self.handle_event(drone_event),
             Err(_) => error!("{} Channel is closed", "✗".red()),
-        }
+        }*/
 
         println!("\tStarting Simulation Controller GUI...");
         let options = eframe::NativeOptions::default();
