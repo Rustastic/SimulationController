@@ -31,11 +31,13 @@ impl SimulationController {
     }
 
     pub fn run(&mut self) {
+        println!("\tStarting Simulation Controller...");
         match self.receiver.recv() {
             Ok(drone_event) => self.handle_event(drone_event),
             Err(_) => error!("{} Channel is closed", "✗".red()),
         }
 
+        println!("\tStarting Simulation Controller GUI...");
         let options = eframe::NativeOptions::default();
         let _ = eframe::run_native(
             "Simulation Controller",
@@ -46,6 +48,7 @@ impl SimulationController {
                 ))
             }),
         );
+        println!("\tShutting Doewn Simulation Controller...");
     }
 
     fn spawn() {}
