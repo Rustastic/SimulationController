@@ -207,12 +207,10 @@ impl SimulationControllerInstance {
 // Implementation for updating the simulation UI in the eframe application (the main loop)
 impl eframe::App for SimulationControllerInstance {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        println!("\tUpdate...");
+        println!("- Update...");
         // Creating the main window for the UI
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Simulation Controller");
-
-            println!("├──> Start");
 
             // Allocating space for drawing and preparing the painter for rendering
             let (_response, painter) =
@@ -224,7 +222,7 @@ impl eframe::App for SimulationControllerInstance {
                 if let Some(vec) = self.edges.get(&start.clone()) {
                     for end in vec {
                         if end.id > start.id {
-                            println!("├──> Edge");
+                            print!(" Edge");
                             painter.line_segment(
                                 [
                                     egui::pos2(start.x as f32, start.y as f32),
@@ -235,13 +233,13 @@ impl eframe::App for SimulationControllerInstance {
                         }
                     }
                 } else {
-                    panic!("ERROR")
+                    panic!("ERROR");
                 }
             }
 
             // Drawing the nodes (drones) and handling user interaction for selection
             for pos in self.nodes.iter_mut() {
-                println!("├──> Drone");
+                println!(" Drone");
 
                 let screen_pos = egui::pos2(pos.x as f32, pos.y as f32);
                 let radius = 10.0;
