@@ -207,7 +207,7 @@ impl SimulationControllerInstance {
 // Implementation for updating the simulation UI in the eframe application (the main loop)
 impl eframe::App for SimulationControllerInstance {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        println!("- Update...");
+        print!("\n- Update...\n\t");
         // Creating the main window for the UI
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Simulation Controller");
@@ -216,30 +216,9 @@ impl eframe::App for SimulationControllerInstance {
             let (_response, painter) =
                 ui.allocate_painter(egui::Vec2::new(400.0, 400.0), egui::Sense::hover());
 
-            // Drawing edges (connections) between drones
-            for start in self.nodes.iter() {
-                if let Some(vec) = self.edges.get(&start.clone()) {
-                    for end in vec {
-                        if end.id > start.id {
-                            print!(" Edge");
-                            painter.line_segment(
-                                [
-                                    egui::pos2(start.x as f32, start.y as f32),
-                                    egui::pos2(end.x as f32, end.y as f32),
-                                ],
-                                egui::Stroke::new(2.0, self.edge_color),
-                            );
-                        }
-                    }
-                } else {
-                    panic!("ERROR: No neighbor associated with [ Drone {} ]", start.id);
-                }
-            }
-            println!("");
-
             // Drawing the nodes (drones) and handling user interaction for selection
             for pos in self.nodes.iter_mut() {
-                print!(" Drone");
+                print!("Drone ");
 
                 let screen_pos = egui::pos2(pos.x as f32, pos.y as f32);
                 let radius = 10.0;
@@ -257,6 +236,28 @@ impl eframe::App for SimulationControllerInstance {
 
                 // Drawing the drone as a filled circle
                 painter.circle_filled(screen_pos, radius, pos.color);
+            }
+
+            print!("\n\t");
+
+            // Drawing edges (connections) between drones
+            for start in self.nodes.iter() {
+                if let Some(vec) = self.edges.get(&start.clone()) {
+                    for end in vec {
+                        if end.id > start.id {
+                            print!("Edge ");
+                            painter.line_segment(
+                                [
+                                    egui::pos2(start.x as f32, start.y as f32),
+                                    egui::pos2(end.x as f32, end.y as f32),
+                                ],
+                                egui::Stroke::new(2.0, self.edge_color),
+                            );
+                        }
+                    }
+                } else {
+                    panic!("ERROR: No neighbor associated with [ Drone {} ]", start.id);
+                }
             }
 
             // Displaying a pop-up with detailed information when a drone is selected
