@@ -230,9 +230,9 @@ impl eframe::App for SimulationControllerInstance {
                 );
 
                 // Detecting if the drone is clicked and updating its selected status
-                if response.clicked() {
+                /*if response.clicked() {
                     pos.selected = true;
-                }
+                }*/
 
                 // Drawing the drone as a filled circle
                 painter.circle_filled(screen_pos, radius, pos.color);
