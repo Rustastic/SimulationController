@@ -218,6 +218,27 @@ impl eframe::App for SimulationControllerInstance {
             let (_response, painter) =
                 ui.allocate_painter(egui::Vec2::new(400.0, 400.0), egui::Sense::hover());
 
+            // Drawing edges (connections) between drones
+            for drones in self.nodes.iter() {
+                let start = drones;
+                if let Some(vec) = self.edges.get(&start.clone()) {
+                    for end in vec {
+                        if end.id > start.id {
+                            println!("├──> Edge");
+                            painter.line_segment(
+                                [
+                                    egui::pos2(start.x as f32, start.y as f32),
+                                    egui::pos2(end.x as f32, end.y as f32),
+                                ],
+                                egui::Stroke::new(2.0, self.edge_color),
+                            );
+                        }
+                    }
+                } else {
+                    panic!("ERROR")
+                }
+            }
+
             // Drawing the nodes (drones) and handling user interaction for selection
             for pos in self.nodes.iter_mut() {
                 println!("├──> Drone");
@@ -238,27 +259,6 @@ impl eframe::App for SimulationControllerInstance {
 
                 // Drawing the drone as a filled circle
                 painter.circle_filled(screen_pos, radius, pos.color);
-            }
-
-            // Drawing edges (connections) between drones
-            for drones in self.nodes.iter() {
-                let start = drones;
-                if let Some(vec) = self.edges.get(&start.clone()) {
-                    for end in vec {
-                        if end.id > start.id {
-                            println!("├──> Edge");
-                            painter.line_segment(
-                                [
-                                    egui::pos2(start.x as f32, start.y as f32),
-                                    egui::pos2(end.x as f32, end.y as f32),
-                                ],
-                                egui::Stroke::new(2.0, self.edge_color),
-                            );
-                        }
-                    }
-                } else {
-                    panic!("ERROR")
-                }
             }
 
             // Displaying a pop-up with detailed information when a drone is selected
