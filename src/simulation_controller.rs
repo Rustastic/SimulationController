@@ -153,8 +153,8 @@ impl DroneInstance {
     fn new(id: NodeId) -> Self {
         Self {
             id,
-            x: 0,
-            y: 0,
+            x: 5,
+            y: 5,
             selected: false,
             color: egui::Color32::BLUE,
         }
@@ -211,12 +211,16 @@ impl eframe::App for SimulationControllerInstance {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Simulation Controller");
 
+            println!("├──> Start");
+
             // Allocating space for drawing and preparing the painter for rendering
             let (_response, painter) =
                 ui.allocate_painter(egui::Vec2::new(400.0, 400.0), egui::Sense::hover());
 
             // Drawing the nodes (drones) and handling user interaction for selection
             for pos in self.nodes.iter_mut() {
+                println!("├──> Drone");
+
                 let screen_pos = egui::pos2(pos.x as f32, pos.y as f32);
                 let radius = 10.0;
 
@@ -233,12 +237,15 @@ impl eframe::App for SimulationControllerInstance {
 
                 // Drawing the drone as a filled circle
                 painter.circle_filled(screen_pos, radius, pos.color);
+            }
 
-                // Drawing edges (connections) between drones
-                let start = pos;
+            // Drawing edges (connections) between drones
+            for drones in self.nodes.iter() {
+                let start = drones;
                 let vec = self.edges.get(&start.clone()).unwrap();
                 for end in vec {
                     if end.id > start.id {
+                        println!("├──> Edge");
                         painter.line_segment(
                             [
                                 egui::pos2(start.x as f32, start.y as f32),
@@ -288,3 +295,10 @@ impl eframe::App for SimulationControllerInstance {
         });
     }
 }
+
+
+/*
+│   ├── f4mphpql1vynoa6upv2a1h9m0.o
+├── query-cache.bin
+└─
+*/
