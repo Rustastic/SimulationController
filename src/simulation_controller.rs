@@ -150,11 +150,11 @@ struct DroneInstance {
 }
 
 impl DroneInstance {
-    fn new(id: NodeId) -> Self {
+    fn new(id: NodeId, multiplier: i32) -> Self {
         Self {
             id,
-            x: 5,
-            y: 5,
+            x: 100 * multiplier,
+            y: 100 * multiplier,
             selected: false,
             color: egui::Color32::BLUE,
         }
@@ -173,7 +173,8 @@ impl SimulationControllerInstance {
         let nodes: Vec<DroneInstance> = simulation_controller
             .drones
             .keys()
-            .map(|id| DroneInstance::new(id.clone()))
+            .enumerate()
+            .map(|(multiplier, id)| DroneInstance::new(id.clone(), multiplier as i32))
             .collect();
 
         let mut edges = HashMap::<DroneInstance, Vec<DroneInstance>>::new();
