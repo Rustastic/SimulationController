@@ -1,7 +1,6 @@
 use crossbeam_channel::{Receiver, Sender};
 use std::collections::HashMap;
 
-use colored::Colorize;
 use log::{error, info, warn};
 
 use wg_2024::{
@@ -48,7 +47,7 @@ impl SimulationController {
                 ))
             }),
         );
-        println!("\tShutting Doewn Simulation Controller...");
+        println!("\tShutting Down Simulation Controller...");
     }
 
     fn spawn() {}
@@ -170,6 +169,7 @@ struct SimulationControllerInstance {
 
 impl SimulationControllerInstance {
     fn new(simulation_controller: SimulationController) -> Self {
+        println!("\tGetting all Drones...");
         let nodes: Vec<DroneInstance> = simulation_controller
             .drones
             .keys()
@@ -178,6 +178,7 @@ impl SimulationControllerInstance {
 
         let mut edges = HashMap::<DroneInstance, Vec<DroneInstance>>::new();
 
+        println!("\tGetting all edges...");
         for (drone_id, neighbor) in simulation_controller.neighbor {
             let start = nodes.iter().find(|drone| drone.id == drone_id).unwrap();
             for dest in neighbor {
@@ -193,6 +194,7 @@ impl SimulationControllerInstance {
             }
         }
 
+        println!("\tCreating SimulationControllerInstance...");
         Self {
             nodes,
             edges,
@@ -204,6 +206,7 @@ impl SimulationControllerInstance {
 // Implementation for updating the simulation UI in the eframe application (the main loop)
 impl eframe::App for SimulationControllerInstance {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        println!("\tUpdate...");
         // Creating the main window for the UI
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Simulation Controller");
