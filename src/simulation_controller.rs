@@ -216,30 +216,6 @@ impl eframe::App for SimulationControllerInstance {
             let (_response, painter) =
                 ui.allocate_painter(egui::Vec2::new(400.0, 400.0), egui::Sense::hover());
 
-            // Drawing the nodes (drones) and handling user interaction for selection
-            for pos in self.nodes.iter_mut() {
-                print!("Drone ");
-
-                let screen_pos = egui::pos2(pos.x as f32, pos.y as f32);
-                let radius = 10.0;
-
-                // Allocating space for each drone's graphical representation
-                let response = ui.allocate_rect(
-                    egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(radius * 2.0)),
-                    egui::Sense::click(),
-                );
-
-                // Detecting if the drone is clicked and updating its selected status
-                /*if response.clicked() {
-                    pos.selected = true;
-                }*/
-
-                // Drawing the drone as a filled circle
-                painter.circle_filled(screen_pos, radius, pos.color);
-            }
-
-            print!("\n\t");
-
             // Drawing edges (connections) between drones
             for start in self.nodes.iter() {
                 if let Some(vec) = self.edges.get(&start.clone()) {
@@ -260,8 +236,33 @@ impl eframe::App for SimulationControllerInstance {
                 }
             }
 
+            print!("\n\t");
+
+
+            // Drawing the nodes (drones) and handling user interaction for selection
+            for pos in self.nodes.iter_mut() {
+                print!("Drone ");
+
+                let screen_pos = egui::pos2(pos.x as f32, pos.y as f32);
+                let radius = 10.0;
+
+                // Allocating space for each drone's graphical representation
+                let response = ui.allocate_rect(
+                    egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(radius * 2.0)),
+                    egui::Sense::click(),
+                );
+
+                // Detecting if the drone is clicked and updating its selected status
+                if response.clicked() {
+                    pos.selected = true;
+                }
+
+                // Drawing the drone as a filled circle
+                painter.circle_filled(screen_pos, radius, pos.color);
+            }
+
             // Displaying a pop-up with detailed information when a drone is selected
-            for instance in self.nodes.iter_mut() {
+            /*for instance in self.nodes.iter_mut() {
                 if instance.selected {
                     egui::Window::new(format!("Node {}", instance.id))
                         .fixed_size([100.0, 100.0]) // Window size
@@ -294,7 +295,7 @@ impl eframe::App for SimulationControllerInstance {
                             }
                         });
                 }
-            }
+            }*/
         });
     }
 }
