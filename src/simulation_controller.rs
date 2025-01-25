@@ -243,18 +243,21 @@ impl eframe::App for SimulationControllerInstance {
             // Drawing edges (connections) between drones
             for drones in self.nodes.iter() {
                 let start = drones;
-                let vec = self.edges.get(&start.clone()).unwrap();
-                for end in vec {
-                    if end.id > start.id {
-                        println!("├──> Edge");
-                        painter.line_segment(
-                            [
-                                egui::pos2(start.x as f32, start.y as f32),
-                                egui::pos2(end.x as f32, end.y as f32),
-                            ],
-                            egui::Stroke::new(2.0, self.edge_color),
-                        );
+                if let Some(vec) = self.edges.get(&start.clone()) {
+                    for end in vec {
+                        if end.id > start.id {
+                            println!("├──> Edge");
+                            painter.line_segment(
+                                [
+                                    egui::pos2(start.x as f32, start.y as f32),
+                                    egui::pos2(end.x as f32, end.y as f32),
+                                ],
+                                egui::Stroke::new(2.0, self.edge_color),
+                            );
+                        }
                     }
+                } else {
+                    panic!("ERROR")
                 }
             }
 
@@ -296,10 +299,3 @@ impl eframe::App for SimulationControllerInstance {
         });
     }
 }
-
-
-/*
-│   ├── f4mphpql1vynoa6upv2a1h9m0.o
-├── query-cache.bin
-└─
-*/
