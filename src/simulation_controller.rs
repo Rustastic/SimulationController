@@ -154,7 +154,7 @@ impl DroneInstance {
         Self {
             id,
             x: 100 * multiplier,
-            y: 100 * multiplier,
+            y: 100,
             selected: false,
             color: egui::Color32::BLUE,
         }
@@ -217,8 +217,7 @@ impl eframe::App for SimulationControllerInstance {
                 ui.allocate_painter(egui::Vec2::new(400.0, 400.0), egui::Sense::hover());
 
             // Drawing edges (connections) between drones
-            for drones in self.nodes.iter() {
-                let start = drones;
+            for start in self.nodes.iter() {
                 if let Some(vec) = self.edges.get(&start.clone()) {
                     for end in vec {
                         if end.id > start.id {
@@ -233,13 +232,14 @@ impl eframe::App for SimulationControllerInstance {
                         }
                     }
                 } else {
-                    panic!("ERROR");
+                    panic!("ERROR: No neighbor associated with [ Drone {} ]", start.id);
                 }
             }
+            println!("");
 
             // Drawing the nodes (drones) and handling user interaction for selection
             for pos in self.nodes.iter_mut() {
-                println!(" Drone");
+                print!(" Drone");
 
                 let screen_pos = egui::pos2(pos.x as f32, pos.y as f32);
                 let radius = 10.0;
