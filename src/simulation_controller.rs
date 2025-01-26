@@ -2,6 +2,7 @@ use crossbeam_channel::{Receiver, Sender};
 use std::collections::HashMap;
 
 use log::{error, info, warn};
+use colored::Colorize;
 
 use wg_2024::{
     controller::{DroneCommand, DroneEvent},
@@ -30,24 +31,12 @@ impl SimulationController {
     }
 
     pub fn run(&mut self) {
-        println!("\tStarting Simulation Controller...");
-        /*match self.receiver.recv() {
-            Ok(drone_event) => self.handle_event(drone_event),
-            Err(_) => error!("{} Channel is closed", "✗".red()),
-        }*/
-
-        println!("\tStarting Simulation Controller GUI...");
-        let options = eframe::NativeOptions::default();
-        let _ = eframe::run_native(
-            "Simulation Controller",
-            options,
-            Box::new(|_cc| {
-                Ok(Box::<SimulationControllerInstance>::new(
-                    SimulationControllerInstance::new(self.clone()),
-                ))
-            }),
-        );
-        println!("\tShutting Down Simulation Controller...");
+        loop {
+            match self.receiver.recv() {
+                Ok(drone_event) => self.handle_event(drone_event),
+                Err(_) => error!("{} Channel is closed", "✗".red()),
+            }
+        }
     }
 
     fn spawn() {}
