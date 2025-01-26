@@ -1,8 +1,8 @@
 use crossbeam_channel::{Receiver, Sender};
 use std::collections::HashMap;
 
-use log::{error, info, warn};
 use colored::Colorize;
+use log::{error, info, warn};
 
 use wg_2024::{
     controller::{DroneCommand, DroneEvent},
@@ -70,17 +70,33 @@ impl SimulationController {
                 // GUI
             }
             DroneEvent::ControllerShortcut(packet) => {
-                if let Some(dest) = packet.routing_header.hops.get(packet.routing_header.len()) {
+                // Get packet destination node
+                if let Some(dest) = packet
+                    .routing_header
+                    .hops
+                    .get(packet.routing_header.len() - 1)
+                {
+                    // Get destination node channel
                     if let Some((_, packet_channel)) = self.drones.get(dest) {
+                        // Send Packet t destination
                         match packet.pack_type {
                             PacketType::MsgFragment(_) => error!(""),
                             _ => {
                                 packet_channel.send(packet.clone()).unwrap();
                             }
                         }
+                    } else {
+                        error!(
+                            "{} [ Simulation Controller ]: failed to find a Sender<Packet> channel for the [ Drone {} ]",
+                            "✗".red(),
+                            dest
+                        );
                     }
                 } else {
-                    error!("");
+                    error!(
+                        "{} [ Simulation Controller ]: failed to find a Drone to send the DroneEvent: ControllerShortcut",
+                        "✗".red()
+                    );
                 }
             }
         }
@@ -90,36 +106,89 @@ impl SimulationController {
         if let Some((command_channel, _)) = self.drones.get(drone) {
             match drone_command {
                 DroneCommand::RemoveSender(node_id) => {
-                    command_channel
-                        .send(DroneCommand::RemoveSender(node_id))
-                        .unwrap();
+                    match command_channel.send(DroneCommand::RemoveSender(node_id)) {
+                        Ok(()) => info!(
+                            "{} [ Simulation Controller ]: sent a DroneCommand: RemoveSender({}) sent to [ Drone {} ]",
+                            "✓".green(),
+                            node_id,
+                            drone
+                        ),
+                        Err(e) => error!(
+                            "{} [ Simulation Controller ]: failed to send a DroneCommand: RemoveSender({}) to the [ Drone {} ]: {}",
+                            "✗".red(),
+                            node_id,
+                            drone,
+                            e
+                        ),
+                    }
                 }
                 DroneCommand::AddSender(node_id, sender) => {
-                    command_channel
-                        .send(DroneCommand::AddSender(node_id, sender))
-                        .unwrap();
+                    match command_channel.send(DroneCommand::AddSender(node_id, sender)) {
+                        Ok(()) => info!(
+                            "{} [ Simulation Controller ]: sent a DroneCommand: AddSender({}, sender_channel) sent to [ Drone {} ]",
+                            "✓".green(),
+                            node_id,
+                            drone
+                        ),
+                        Err(e) => error!(
+                            "{} [ Simulation Controller ]: failed to send a DroneCommand: AddSender({}, sender_channel) to the [ Drone {} ]: {}",
+                            "✗".red(),
+                            node_id,
+                            drone,
+                            e
+                        ),
+                    }
                 }
                 DroneCommand::SetPacketDropRate(pdr) => {
-                    command_channel
-                        .send(DroneCommand::SetPacketDropRate(pdr))
-                        .unwrap();
+                    match command_channel.send(DroneCommand::SetPacketDropRate(pdr)) {
+                        Ok(()) => info!(
+                            "{} [ Simulation Controller ]: sent a DroneCommand: SetPacketDropRate({}) sent to [ Drone {} ]",
+                            "✓".green(),
+                            pdr,
+                            drone
+                        ),
+                        Err(e) => error!(
+                            "{} [ Simulation Controller ]: failed to send a DroneCommand: SetPacketDropRate({}) to the [ Drone {} ]: {}",
+                            "✗".red(),
+                            pdr,
+                            drone,
+                            e
+                        ),
+                    }
                 }
                 DroneCommand::Crash => {
-                    let neighbors = self.neighbor.get(drone).unwrap();
+                    if let Some(neighbors) = self.neighbor.get(drone) {
+                        for neighbor in neighbors {
+                            self.handle_command(neighbor, DroneCommand::RemoveSender(*drone));
+                        }
 
-                    for neighbor in neighbors {
-                        let (neighbor_channel, _) = self.drones.get(neighbor).unwrap();
-
-                        neighbor_channel
-                            .send(DroneCommand::RemoveSender(*drone))
-                            .unwrap();
+                        match command_channel.send(DroneCommand::Crash) {
+                            Ok(()) => info!(
+                                "{} [ Simulation Controller ]: sent a DroneCommand: Crash() sent to [ Drone {} ]",
+                                "✓".green(),
+                                drone
+                            ),
+                            Err(e) => error!(
+                                "{} [ Simulation Controller ]: failed to send a DroneCommand: Crash() to the [ Drone {} ]: {}",
+                                "✗".red(),
+                                drone,
+                                e
+                            ),
+                        }
+                    } else {
+                        error!("{} [ Simulation Controller ]: failed to send a DroneCommand: Crash() to the [ Drone {} ]",
+                            "✗".red(),
+                            drone
+                        );
                     }
-
-                    command_channel.send(DroneCommand::Crash).unwrap();
                 }
             }
         } else {
-            error!("");
+            error!("
+                {} [ Simulation Controller ]: failed to find a Sender<DroneCommand> channel for the [ Drone {} ]",
+                "✗".red(),
+                drone
+            );
         }
     }
 }
