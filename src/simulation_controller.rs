@@ -1,21 +1,58 @@
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use std::{collections::HashMap, io};
 use rand::Rng;
+use std::{collections::HashMap, io};
 
 use colored::Colorize;
 use log::{error, info, warn};
 
 use wg_2024::{
+    config::Drone as ConfigDrone,
     controller::{DroneCommand, DroneEvent},
+    drone::Drone,
     network::NodeId,
     packet::{Packet, PacketType},
 };
+
+fn drone_factory<T>() -> Box<
+    dyn Fn(
+        &ConfigDrone,
+        &Sender<DroneEvent>,
+        &Receiver<DroneCommand>,
+        &Receiver<Packet>,
+        &Sender<Packet>,
+    ) -> Box<dyn Drone>,
+>
+where
+    T: Drone + 'static,
+{
+    Box::new(
+        |drone, event_send, command_recv, packet_recv, packet_send| {
+            // Create packet send hashmap
+            let mut packet_send_hashmap = HashMap::<NodeId, Sender<Packet>>::new();
+            // Fill hashmap with only neighbor
+            for neighbor in &drone.connected_node_ids {
+                packet_send_hashmap.insert(*neighbor, packet_send.clone());
+            }
+
+            // Get drone's command receiver channel
+            return Box::new(T::new(
+                drone.id,
+                event_send.clone(),
+                command_recv.clone(),
+                packet_recv.clone(),
+                packet_send_hashmap,
+                drone.pdr,
+            ));
+        },
+    )
+}
 
 #[derive(Clone)]
 pub struct SimulationController {
     drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
     receiver: Receiver<DroneEvent>,
     neighbor: HashMap<NodeId, Vec<NodeId>>,
+    event_send: Sender<DroneEvent>,
 }
 
 impl SimulationController {
@@ -23,11 +60,13 @@ impl SimulationController {
         drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
         receiver: Receiver<DroneEvent>,
         neighbor: HashMap<NodeId, Vec<NodeId>>,
+        event_send: Sender<DroneEvent>,
     ) -> Self {
         return Self {
             drones,
             receiver,
             neighbor,
+            event_send,
         };
     }
 
@@ -52,8 +91,84 @@ impl SimulationController {
         let number: i32 = input.trim().parse().expect("Insert a number");
         match number {
             0 => {
+                println!("Please provide the necessary parameters for ne new drone");
+                print!("Id: ");
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Failed to read from terminal");
+                let id: NodeId = input.trim().parse().expect("Insert a number");
+
+                print!("Connected Drones Id: ");
+                let mut connected_node_ids = Vec::<NodeId>::new();
+                let mut add = true;
+                while add {
+                    print!("Connected Drones Id: ");
+                    io::stdin()
+                        .read_line(&mut input)
+                        .expect("Failed to read from terminal");
+                    let new_neighbor: NodeId = input.trim().parse().expect("Insert a number");
+
+                    if !connected_node_ids.contains(&new_neighbor) {
+                        connected_node_ids.push(new_neighbor);
+                    } else {
+                        error!(
+                            "{} [ Simulation Controller ]: The [ Drone: {} ] is already a neighbor",
+                            "✗".red(),
+                            new_neighbor
+                        );
+                    }
+
+                    println!("Do you want to add another Drone to the neighbor list? 0->No 1->Yes");
+                    io::stdin()
+                        .read_line(&mut input)
+                        .expect("Failed to read from terminal");
+                    add = input.trim().parse().expect("Insert a number");
+                }
+
+                print!("PDR: ");
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Failed to read from terminal");
+                let pdr: f32 = input.trim().parse().expect("Insert a number");
+
+                let drone = ConfigDrone {
+                    id,
+                    connected_node_ids,
+                    pdr,
+                };
+
                 let rand = rand::thread_rng().gen_range(0..10);
-                
+
+                let drone_factories = vec![
+                    drone_factory::<rusty_drones::RustyDrone>(),
+                    drone_factory::<LeDron_James::Drone>(),
+                    drone_factory::<dr_ones::Drone>(),
+                    drone_factory::<skylink::SkyLinkDrone>(),
+                    drone_factory::<rustbusters_drone::RustBustersDrone>(),
+                    drone_factory::<rust_roveri::RustRoveri>(),
+                    drone_factory::<rust_do_it::RustDoIt>(),
+                    drone_factory::<wg_2024_rust::drone::RustDrone>(),
+                    drone_factory::<null_pointer_drone::MyDrone>(),
+                    drone_factory::<null_pointer_drone::MyDrone>(),
+                    //create_factory::<lockheedrustin_drone::LockheedRustin>(),
+                ];
+
+                let (command_send, command_recv) = unbounded::<DroneCommand>();
+                let (packet_send, packet_recv) = unbounded::<Packet>();
+                if let Some(factory) = drone_factories.get(rand) {
+                    let new_drone = factory(
+                        &drone,
+                        &self.event_send,
+                        &command_recv,
+                        &packet_send,
+                        &packet_recv,
+                    );
+
+                    // Fill drone Hashmap
+                    self.drones.insert(id, (command_send, packet_send));
+                } else {
+                    panic!("No factory defined for [ Drone {} ]", drone.id);
+                }
             }
             1 => {
                 println!("Witch drone would you like to send the DroneCommand::Crash");
@@ -103,7 +218,7 @@ impl SimulationController {
                 let target: i32 = input.trim().parse().expect("Insert a number");
 
                 println!("Which of his neighbor would u like to remove?");
-                if let Some(neighbor) = self.neighbor.get(&(target as u8).clone()) {
+                if let Some(neighbor) = self.neighbor.get(&(target as NodeId).clone()) {
                     for node_id in neighbor {
                         println!("- [ Drone {} ]", node_id)
                     }
@@ -125,7 +240,7 @@ impl SimulationController {
                     if node_id == target as NodeId {
                         let neighbor_ids: Vec<NodeId> = self.neighbor.keys().cloned().collect();
                         for neighbor in neighbor_ids {
-                            if neighbor == to_remove as u8 {
+                            if neighbor == to_remove as NodeId {
                                 found = true;
                                 self.handle_command(&node_id, DroneCommand::RemoveSender(neighbor));
                             }
@@ -154,7 +269,7 @@ impl SimulationController {
                 let target: i32 = input.trim().parse().expect("Insert a number");
 
                 println!("Which of his neighbor would u like to remove?");
-                if let Some(neighbor) = self.neighbor.get(&(target as u8).clone()) {
+                if let Some(neighbor) = self.neighbor.get(&(target as NodeId).clone()) {
                     for (node_id, _) in self.drones.iter() {
                         for neighbor_id in neighbor {
                             if node_id != neighbor_id {
@@ -178,12 +293,12 @@ impl SimulationController {
                     if node_id == target as NodeId {
                         let neighbor_ids: Vec<NodeId> = self.neighbor.keys().cloned().collect();
                         for neighbor in neighbor_ids {
-                            if neighbor != to_add as u8 {
+                            if neighbor != to_add as NodeId {
                                 found = true;
                                 let (packet_send, _) = unbounded::<Packet>();
                                 self.handle_command(
                                     &node_id,
-                                    DroneCommand::AddSender(to_add as u8, packet_send),
+                                    DroneCommand::AddSender(to_add as NodeId, packet_send),
                                 );
                             }
                         }
