@@ -160,8 +160,8 @@ impl SimulationController {
                         &drone,
                         &self.event_send,
                         &command_recv,
-                        &packet_send,
                         &packet_recv,
+                        &packet_send,
                     );
 
                     // Fill drone Hashmap
