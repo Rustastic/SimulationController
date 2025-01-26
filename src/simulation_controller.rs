@@ -1,5 +1,6 @@
-use crossbeam_channel::{Receiver, Sender};
-use std::collections::HashMap;
+use crossbeam_channel::{unbounded, Receiver, Sender};
+use std::{collections::HashMap, io};
+use rand::Rng;
 
 use colored::Colorize;
 use log::{error, info, warn};
@@ -30,11 +31,248 @@ impl SimulationController {
         };
     }
 
+    fn ask_action(&mut self) {
+        print!(
+            "Select the action to execute:\n
+            0 - Spawn\n
+            1 - Crash\n
+            2 - RemoveSender\n
+            3 - AddSender\n
+            4 - SetPackageDropRate\n
+            5 - None\n
+            \n
+            Chiose: "
+        );
+
+        let mut input = String::new();
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read from terminal");
+
+        let number: i32 = input.trim().parse().expect("Insert a number");
+        match number {
+            0 => {
+                let rand = rand::thread_rng().gen_range(0..10);
+                
+            }
+            1 => {
+                println!("Witch drone would you like to send the DroneCommand::Crash");
+
+                for (node_id, _) in self.drones.iter() {
+                    println!("- [ Drone {} ]", node_id)
+                }
+
+                print!("Chiose: ");
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Failed to read from terminal");
+
+                let target: i32 = input.trim().parse().expect("Insert a number");
+
+                let neighbor_ids: Vec<NodeId> = self.neighbor.keys().cloned().collect();
+                for neighbor in neighbor_ids {
+                    self.handle_command(&neighbor, DroneCommand::RemoveSender(neighbor));
+                }
+                let mut found: bool = false;
+                let drone_ids: Vec<NodeId> = self.drones.keys().cloned().collect();
+                for node_id in drone_ids {
+                    if node_id == target as NodeId {
+                        found = true;
+                        self.handle_command(&node_id, DroneCommand::Crash);
+                    }
+                }
+
+                if !found {
+                    error!(
+                        "{} [ Simulation Controller ]: There is no drones with the provided NodeIds",
+                        "✗".red()
+                    );
+                }
+            }
+            2 => {
+                println!("Witch drone would you like to send the DroneCommand::RemoveSender");
+
+                for (node_id, _) in self.drones.iter() {
+                    println!("- [ Drone {} ]", node_id);
+                }
+
+                print!("Chiose: ");
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Failed to read from terminal");
+                let target: i32 = input.trim().parse().expect("Insert a number");
+
+                println!("Which of his neighbor would u like to remove?");
+                if let Some(neighbor) = self.neighbor.get(&(target as u8).clone()) {
+                    for node_id in neighbor {
+                        println!("- [ Drone {} ]", node_id)
+                    }
+                } else {
+                    error!("{} [ Simulation Controller ]: The selected drone does not exist or does not have any neighbor",
+                        "✗".red()
+                    );
+                }
+
+                print!("Chiose: ");
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Failed to read from terminal");
+                let to_remove: i32 = input.trim().parse().expect("Insert a number");
+
+                let mut found: bool = false;
+                let drone_ids: Vec<NodeId> = self.drones.keys().cloned().collect();
+                for node_id in drone_ids {
+                    if node_id == target as NodeId {
+                        let neighbor_ids: Vec<NodeId> = self.neighbor.keys().cloned().collect();
+                        for neighbor in neighbor_ids {
+                            if neighbor == to_remove as u8 {
+                                found = true;
+                                self.handle_command(&node_id, DroneCommand::RemoveSender(neighbor));
+                            }
+                        }
+                    }
+                }
+
+                if !found {
+                    error!(
+                        "{} [ Simulation Controller ]: There is no drones with the provided NodeIds",
+                        "✗".red()
+                    );
+                }
+            }
+            3 => {
+                println!("Witch drone would you like to send the DroneCommand::AddSender");
+
+                for (node_id, _) in self.drones.iter() {
+                    println!("- [ Drone {} ]", node_id);
+                }
+
+                print!("Chiose: ");
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Failed to read from terminal");
+                let target: i32 = input.trim().parse().expect("Insert a number");
+
+                println!("Which of his neighbor would u like to remove?");
+                if let Some(neighbor) = self.neighbor.get(&(target as u8).clone()) {
+                    for (node_id, _) in self.drones.iter() {
+                        for neighbor_id in neighbor {
+                            if node_id != neighbor_id {
+                                println!("- [ Drone {} ]", node_id)
+                            }
+                        }
+                    }
+                } else {
+                    error!("The selected drone does not exist or does not have any neighbor");
+                }
+
+                print!("Chiose: ");
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Failed to read from terminal");
+                let to_add: i32 = input.trim().parse().expect("Insert a number");
+
+                let mut found: bool = false;
+                let drone_ids: Vec<NodeId> = self.drones.keys().cloned().collect();
+                for node_id in drone_ids {
+                    if node_id == target as NodeId {
+                        let neighbor_ids: Vec<NodeId> = self.neighbor.keys().cloned().collect();
+                        for neighbor in neighbor_ids {
+                            if neighbor != to_add as u8 {
+                                found = true;
+                                let (packet_send, _) = unbounded::<Packet>();
+                                self.handle_command(
+                                    &node_id,
+                                    DroneCommand::AddSender(to_add as u8, packet_send),
+                                );
+                            }
+                        }
+                    }
+                }
+
+                if !found {
+                    error!(
+                        "{} [ Simulation Controller ]: There is no drones with the provided NodeIds",
+                        "✗".red()
+                    );
+                }
+            }
+            4 => {
+                println!("Witch drone would you like to send the DroneCommand::SetPackageDropRate");
+
+                for (node_id, _) in self.drones.iter() {
+                    println!("- [ Drone {} ]", node_id);
+                }
+
+                print!("Chiose: ");
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Failed to read from terminal");
+                let target: i32 = input.trim().parse().expect("Insert a number");
+
+                print!("Insert the desired PDR: ");
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Failed to read from terminal");
+
+                match input.trim().parse::<f32>() {
+                    Ok(number) if (0.0..=1.0).contains(&number) => {
+                        let pdr: f32 = input.trim().parse().expect("Insert a number");
+
+                        let mut found: bool = false;
+                        let drone_ids: Vec<NodeId> = self.drones.keys().cloned().collect();
+                        for node_id in drone_ids {
+                            if node_id == target as NodeId {
+                                found = true;
+                                self.handle_command(&node_id, DroneCommand::SetPacketDropRate(pdr));
+                            }
+                        }
+
+                        if !found {
+                            error!(
+                                "{} [ Simulation Controller ]: There is no drones with the provided NodeIds",
+                                "✗".red()
+                            );
+                        }
+                    }
+                    Ok(_) => {
+                        error!(
+                            "{} [ Simulation Controller ]: The PDR number is out of range. Please enter a number between 0 and 1.",
+                            "✗".red()
+                        );
+                    }
+                    Err(_) => {
+                        error!(
+                            "{} [ Simulation Controller ]: That's not a valid number. Please try again.",
+                            "✗".red()
+                        );
+                    }
+                }
+            }
+            5 => info!("{} None selected", "✓".green()),
+            _ => error!(
+                "{} [ Simulation Controller ]: Select a number between 0 and 5",
+                "✗".red()
+            ),
+        }
+    }
+
     pub fn run(&mut self) {
         loop {
-            match self.receiver.recv() {
-                Ok(drone_event) => self.handle_event(drone_event),
-                Err(_) => error!("{} Channel is closed", "✗".red()),
+            self.ask_action();
+
+            match self.receiver.try_recv() {
+                Ok(drone_event) => {
+                    self.handle_event(drone_event);
+                }
+                Err(e) => match e {
+                    crossbeam_channel::TryRecvError::Empty => continue,
+                    crossbeam_channel::TryRecvError::Disconnected => error!(
+                        "{} [ Simulation Controller ]: DroneEvent receiver channel disconnected: {}",
+                        "✗".red(),
+                        e
+                    )
+                },
             }
         }
     }
@@ -102,41 +340,51 @@ impl SimulationController {
         }
     }
 
-    fn handle_command(&self, drone: &NodeId, drone_command: DroneCommand) {
+    fn handle_command(&mut self, drone: &NodeId, drone_command: DroneCommand) {
         if let Some((command_channel, _)) = self.drones.get(drone) {
             match drone_command {
                 DroneCommand::RemoveSender(node_id) => {
-                    match command_channel.send(DroneCommand::RemoveSender(node_id)) {
-                        Ok(()) => info!(
-                            "{} [ Simulation Controller ]: sent a DroneCommand: RemoveSender({}) sent to [ Drone {} ]",
-                            "✓".green(),
-                            node_id,
-                            drone
-                        ),
-                        Err(e) => error!(
-                            "{} [ Simulation Controller ]: failed to send a DroneCommand: RemoveSender({}) to the [ Drone {} ]: {}",
-                            "✗".red(),
-                            node_id,
-                            drone,
-                            e
-                        ),
+                    if let Some(vec) = self.neighbor.get_mut(drone) {
+                        vec.retain(|x| *x == node_id);
+                        match command_channel.send(DroneCommand::RemoveSender(node_id)) {
+                            Ok(()) => info!(
+                                "{} [ Simulation Controller ]: sent a DroneCommand: RemoveSender({}) sent to [ Drone {} ]",
+                                "✓".green(),
+                                node_id,
+                                drone
+                            ),
+                            Err(e) => error!(
+                                "{} [ Simulation Controller ]: failed to send a DroneCommand: RemoveSender({}) to the [ Drone {} ]: {}",
+                                "✗".red(),
+                                node_id,
+                                drone,
+                                e
+                            ),
+                        }
+                    } else {
+                        error!("");
                     }
                 }
                 DroneCommand::AddSender(node_id, sender) => {
-                    match command_channel.send(DroneCommand::AddSender(node_id, sender)) {
-                        Ok(()) => info!(
-                            "{} [ Simulation Controller ]: sent a DroneCommand: AddSender({}, sender_channel) sent to [ Drone {} ]",
-                            "✓".green(),
-                            node_id,
-                            drone
-                        ),
-                        Err(e) => error!(
-                            "{} [ Simulation Controller ]: failed to send a DroneCommand: AddSender({}, sender_channel) to the [ Drone {} ]: {}",
-                            "✗".red(),
-                            node_id,
-                            drone,
-                            e
-                        ),
+                    if let Some(vec) = self.neighbor.get_mut(drone) {
+                        vec.push(node_id);
+                        match command_channel.send(DroneCommand::AddSender(node_id, sender)) {
+                            Ok(()) => info!(
+                                "{} [ Simulation Controller ]: sent a DroneCommand: AddSender({}, sender_channel) sent to [ Drone {} ]",
+                                "✓".green(),
+                                node_id,
+                                drone
+                            ),
+                            Err(e) => error!(
+                                "{} [ Simulation Controller ]: failed to send a DroneCommand: AddSender({}, sender_channel) to the [ Drone {} ]: {}",
+                                "✗".red(),
+                                node_id,
+                                drone,
+                                e
+                            ),
+                        }
+                    } else {
+                        error!("")
                     }
                 }
                 DroneCommand::SetPacketDropRate(pdr) => {
@@ -157,29 +405,32 @@ impl SimulationController {
                     }
                 }
                 DroneCommand::Crash => {
-                    if let Some(neighbors) = self.neighbor.get(drone) {
-                        for neighbor in neighbors {
-                            self.handle_command(neighbor, DroneCommand::RemoveSender(*drone));
-                        }
+                    if let Some((command_send, packet_send)) = self.drones.get(drone) {
+                        let _ = drop(command_send);
+                        let _ = drop(packet_send);
+                    }
 
-                        match command_channel.send(DroneCommand::Crash) {
-                            Ok(()) => info!(
-                                "{} [ Simulation Controller ]: sent a DroneCommand: Crash() sent to [ Drone {} ]",
-                                "✓".green(),
-                                drone
-                            ),
-                            Err(e) => error!(
-                                "{} [ Simulation Controller ]: failed to send a DroneCommand: Crash() to the [ Drone {} ]: {}",
-                                "✗".red(),
-                                drone,
-                                e
-                            ),
-                        }
-                    } else {
-                        error!("{} [ Simulation Controller ]: failed to send a DroneCommand: Crash() to the [ Drone {} ]",
-                            "✗".red(),
+                    self.neighbor
+                        .iter()
+                        .position(|(x, _)| x == drone)
+                        .map(|x| self.neighbor.remove(&(x as NodeId)));
+                    self.drones
+                        .iter()
+                        .position(|(x, _)| x == drone)
+                        .map(|x| self.neighbor.remove(&(x as NodeId)));
+
+                    match command_channel.send(DroneCommand::Crash) {
+                        Ok(()) => info!(
+                            "{} [ Simulation Controller ]: sent a DroneCommand: Crash() sent to [ Drone {} ]",
+                            "✓".green(),
                             drone
-                        );
+                        ),
+                        Err(e) => error!(
+                            "{} [ Simulation Controller ]: failed to send a DroneCommand: Crash() to the [ Drone {} ]: {}",
+                            "✗".red(),
+                            drone,
+                            e
+                        ),
                     }
                 }
             }
