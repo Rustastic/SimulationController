@@ -77,7 +77,7 @@ impl SimulationController {
         println!("2 - RemoveSender");
         println!("3 - AddSender");
         println!("4 - SetPackageDropRate");
-        println!("5 - None");  
+        println!("5 - None");
         println!("\nChiose: ");
 
         let mut input = String::new();
@@ -88,19 +88,19 @@ impl SimulationController {
                 println!("Please provide the necessary parameters for ne new drone");
                 print!("Id: ");
                 let _ = io::stdin().read_line(&mut input);
-                let id: NodeId; 
+                let id: NodeId;
                 match input.trim().parse::<NodeId>() {
                     Ok(value) => {
                         id = value;
-                    },
+                    }
                     Err(e) => {
-                        warn!(
+                        error!(
                             "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                            "!!!".yellow(),
+                            "✗".red(),
                             e
                         );
                         return;
-                    },
+                    }
                 }
 
                 print!("Connected Drones Id: ");
@@ -113,21 +113,21 @@ impl SimulationController {
                     match input.trim().parse::<NodeId>() {
                         Ok(value) => new_neighbor = value,
                         Err(e) => {
-                            warn!(
+                            error!(
                                 "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                                "!!!".yellow(),
+                                "✗".red(),
                                 e
                             );
                             return;
-                        },
+                        }
                     }
 
                     if !connected_node_ids.contains(&new_neighbor) {
                         connected_node_ids.push(new_neighbor);
                     } else {
-                        warn!(
+                        error!(
                             "{} [ ERROR ]: The [ Drone: {} ] is already a neighbor",
-                            "!!!".yellow(),
+                            "✗".red(),
                             new_neighbor
                         );
                     }
@@ -143,22 +143,22 @@ impl SimulationController {
                 match input.trim().parse::<f32>() {
                     Ok(value) if (0.0..=1.0).contains(&value) => {
                         pdr = value;
-                    },
+                    }
                     Ok(_) => {
-                        warn!(
+                        error!(
                             "{} [ ERROR ]: The PDR number is out of range. Please enter a number between 0 and 1.",
-                            "!!!".yellow(),
+                            "✗".red(),
                         );
                         return;
                     }
                     Err(e) => {
-                        warn!(
+                        error!(
                             "{} [ ERROR ]: Please insert a valid f32 value: {}",
-                            "!!!".yellow(),
+                            "✗".red(),
                             e
                         );
                         return;
-                    },
+                    }
                 }
 
                 let drone = ConfigDrone {
@@ -212,17 +212,15 @@ impl SimulationController {
                 let _ = io::stdin().read_line(&mut input);
                 let target: NodeId;
                 match input.trim().parse::<NodeId>() {
-                    Ok(value) => {
-                        target = value
-                    },
+                    Ok(value) => target = value,
                     Err(e) => {
-                        warn!(
+                        error!(
                             "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                            "!!!".yellow(),
+                            "✗".red(),
                             e
                         );
                         return;
-                    },
+                    }
                 }
 
                 let neighbor_ids: Vec<NodeId> = self.neighbor.keys().cloned().collect();
@@ -239,9 +237,9 @@ impl SimulationController {
                 }
 
                 if !found {
-                    warn!(
+                    error!(
                         "{} [ ERROR ]: There is no drones with the provided NodeIds",
-                        "!!!".yellow()
+                        "✗".red(),
                     );
                 }
             }
@@ -256,17 +254,15 @@ impl SimulationController {
                 let _ = io::stdin().read_line(&mut input);
                 let target: NodeId;
                 match input.trim().parse::<NodeId>() {
-                    Ok(value) => {
-                        target = value
-                    },
+                    Ok(value) => target = value,
                     Err(e) => {
-                        warn!(
+                        error!(
                             "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                            "!!!".yellow(),
+                            "✗".red(),
                             e
                         );
                         return;
-                    },
+                    }
                 }
 
                 println!("Which of his neighbor would u like to remove?");
@@ -275,8 +271,8 @@ impl SimulationController {
                         println!("- [ Drone {} ]", node_id)
                     }
                 } else {
-                    warn!("{} [ ERROR ]: The selected drone does not exist or does not have any neighbor",
-                        "!!!".yellow()
+                    error!("{} [ ERROR ]: The selected drone does not exist or does not have any neighbor",
+                        "✗".red(),
                     );
                 }
 
@@ -284,17 +280,15 @@ impl SimulationController {
                 let _ = io::stdin().read_line(&mut input);
                 let to_remove: NodeId;
                 match input.trim().parse::<NodeId>() {
-                    Ok(value) => {
-                        to_remove = value
-                    },
+                    Ok(value) => to_remove = value,
                     Err(e) => {
-                        warn!(
+                        error!(
                             "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                            "!!!".yellow(),
+                            "✗".red(),
                             e
                         );
                         return;
-                    },
+                    }
                 }
 
                 let mut found: bool = false;
@@ -312,9 +306,9 @@ impl SimulationController {
                 }
 
                 if !found {
-                    warn!(
+                    error!(
                         "{} [ ERROR ]: There is no drones with the provided NodeIds",
-                        "!!!".yellow()
+                        "✗".red(),
                     );
                 }
             }
@@ -329,17 +323,15 @@ impl SimulationController {
                 let _ = io::stdin().read_line(&mut input);
                 let target: NodeId;
                 match input.trim().parse::<NodeId>() {
-                    Ok(value) => {
-                        target = value
-                    },
+                    Ok(value) => target = value,
                     Err(e) => {
-                        warn!(
+                        error!(
                             "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                            "!!!".yellow(),
+                            "✗".red(),
                             e
                         );
                         return;
-                    },
+                    }
                 }
 
                 println!("Which of his neighbor would u like to remove?");
@@ -352,8 +344,8 @@ impl SimulationController {
                         }
                     }
                 } else {
-                    warn!("{} [ ERROR ]: The selected drone does not exist or does not have any neighbor",
-                        "!!!".yellow()
+                    error!("{} [ ERROR ]: The selected drone does not exist or does not have any neighbor",
+                        "✗".red(),
                     );
                 }
 
@@ -361,17 +353,15 @@ impl SimulationController {
                 let _ = io::stdin().read_line(&mut input);
                 let to_add: NodeId;
                 match input.trim().parse::<NodeId>() {
-                    Ok(value) => {
-                        to_add = value
-                    },
+                    Ok(value) => to_add = value,
                     Err(e) => {
-                        warn!(
+                        error!(
                             "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                            "!!!".yellow(),
+                            "✗".red(),
                             e
                         );
                         return;
-                    },
+                    }
                 }
 
                 let mut found: bool = false;
@@ -393,9 +383,9 @@ impl SimulationController {
                 }
 
                 if !found {
-                    warn!(
+                    error!(
                         "{} [ Simulation Controller ]: There is no drones with the provided NodeIds",
-                        "!!!".yellow()
+                        "✗".red(),
                     );
                 }
             }
@@ -410,22 +400,20 @@ impl SimulationController {
                 let _ = io::stdin().read_line(&mut input);
                 let target: NodeId;
                 match input.trim().parse::<NodeId>() {
-                    Ok(value) => {
-                        target = value
-                    },
+                    Ok(value) => target = value,
                     Err(e) => {
-                        warn!(
+                        error!(
                             "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                            "!!!".yellow(),
+                            "✗".red(),
                             e
                         );
                         return;
-                    },
+                    }
                 }
 
                 print!("Insert the desired PDR: ");
                 let _ = io::stdin().read_line(&mut input);
-                
+
                 match input.trim().parse::<f32>() {
                     Ok(value) if (0.0..=1.0).contains(&value) => {
                         let mut found: bool = false;
@@ -433,36 +421,36 @@ impl SimulationController {
                         for node_id in drone_ids {
                             if node_id == target as NodeId {
                                 found = true;
-                                self.handle_command(&node_id, DroneCommand::SetPacketDropRate(value));
+                                self.handle_command(
+                                    &node_id,
+                                    DroneCommand::SetPacketDropRate(value),
+                                );
                             }
                         }
 
                         if !found {
-                            warn!(
+                            error!(
                                 "{} [ ERROR ]: There is no drones with the provided NodeIds",
-                                "!!!".yellow(),
+                                "✗".red(),
                             );
                         }
                     }
                     Ok(_) => {
-                        warn!(
+                        error!(
                             "{} [ ERROR ]: The PDR number is out of range. Please enter a number between 0 and 1.",
-                            "!!!".yellow(),
+                            "✗".red(),
                         );
                     }
                     Err(_) => {
-                        warn!(
+                        error!(
                             "{} [ ERROR ]: That's not a valid number. Please try again.",
-                            "!!!".yellow(),
+                            "✗".red(),
                         );
                     }
                 }
             }
             5 => info!("{} None selected", "✓".green()),
-            _ => warn!(
-                "{} [ ERROR ]: Select a number between 0 and 5",
-                "!!!".yellow(),
-            ),
+            _ => error!("{} [ ERROR ]: Select a number between 0 and 5", "✗".red(),),
         }
     }
 
@@ -527,7 +515,9 @@ impl SimulationController {
                     if let Some((_, packet_channel)) = self.drones.get(dest) {
                         // Send Packet t destination
                         match packet.pack_type {
-                            PacketType::MsgFragment(_) => panic!("Impossible how the hell did u do this"),
+                            PacketType::MsgFragment(_) => {
+                                panic!("Impossible how the hell did u do this")
+                            }
                             _ => {
                                 packet_channel.send(packet.clone()).unwrap();
                             }
