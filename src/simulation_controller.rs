@@ -565,7 +565,7 @@ impl SimulationController {
             match drone_command {
                 DroneCommand::RemoveSender(node_id) => {
                     if let Some(vec) = self.neighbor.get_mut(drone) {
-                        vec.retain(|x| *x == node_id);
+                        vec.retain(|x| *x != node_id);
                         match command_channel.send(DroneCommand::RemoveSender(node_id)) {
                             Ok(()) => info!(
                                 "{} [ Simulation Controller ]: sent a DroneCommand: RemoveSender({}) sent to [ Drone {} ]",
