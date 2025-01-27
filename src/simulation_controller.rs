@@ -100,7 +100,7 @@ impl SimulationController {
         match number {
             0 => {
                 println!("Please provide the necessary parameters for ne new drone");
-                print!("Id: ");
+                println!("Id: ");
                 let _ = io::stdin().read_line(&mut input);
                 let id: NodeId;
                 match input.trim_end().parse::<NodeId>() {
@@ -116,11 +116,11 @@ impl SimulationController {
                 }
                 input.clear();
 
-                print!("Connected Drones Id: ");
+                println!("Connected Drones Id: ");
                 let mut connected_node_ids = Vec::<NodeId>::new();
                 let mut add = true;
                 while add {
-                    print!("Connected Drones Id: ");
+                    println!("Connected Drones Id: ");
                     let _ = io::stdin().read_line(&mut input);
                     let new_neighbor: NodeId;
                     match input.trim_end().parse::<NodeId>() {
@@ -168,7 +168,7 @@ impl SimulationController {
                     input.clear();
                 }
 
-                print!("PDR: ");
+                println!("PDR: ");
                 let _ = io::stdin().read_line(&mut input);
                 let pdr: f32;
                 match input.trim_end().parse::<f32>() {
@@ -238,7 +238,7 @@ impl SimulationController {
                     println!("- [ Drone {} ]", node_id)
                 }
 
-                print!("Chiose: ");
+                println!("Chiose: ");
                 let _ = io::stdin().read_line(&mut input);
                 let target: NodeId;
                 match input.trim_end().parse::<NodeId>() {
@@ -281,7 +281,7 @@ impl SimulationController {
                     println!("- [ Drone {} ]", node_id);
                 }
 
-                print!("Chiose: ");
+                println!("Chiose: ");
                 let _ = io::stdin().read_line(&mut input);
                 let target: NodeId;
                 match input.trim_end().parse::<NodeId>() {
@@ -308,7 +308,7 @@ impl SimulationController {
                     );
                 }
 
-                print!("Chiose: ");
+                println!("Chiose: ");
                 let _ = io::stdin().read_line(&mut input);
                 let to_remove: NodeId;
                 match input.trim_end().parse::<NodeId>() {
@@ -352,7 +352,7 @@ impl SimulationController {
                     println!("- [ Drone {} ]", node_id);
                 }
 
-                print!("Chiose: ");
+                println!("Chiose: ");
                 let _ = io::stdin().read_line(&mut input);
                 let target: NodeId;
                 match input.trim_end().parse::<NodeId>() {
@@ -368,12 +368,13 @@ impl SimulationController {
                 }
                 input.clear();
 
-                println!("Which of his neighbor would u like to remove?");
+                println!("Which Drone you want to add?");
                 if let Some(neighbor) = self.neighbor.get(&target.clone()) {
                     for (node_id, _) in self.drones.iter() {
                         for neighbor_id in neighbor {
                             if node_id != neighbor_id {
-                                println!("- [ Drone {} ]", node_id)
+                                println!("- [ Drone {} ]", node_id);
+                                break;
                             }
                         }
                     }
@@ -383,7 +384,7 @@ impl SimulationController {
                     );
                 }
 
-                print!("Chiose: ");
+                println!("Chiose: ");
                 let _ = io::stdin().read_line(&mut input);
                 let to_add: NodeId;
                 match input.trim_end().parse::<NodeId>() {
@@ -431,11 +432,9 @@ impl SimulationController {
                     println!("- [ Drone {} ]", node_id);
                 }
 
-                print!("Chiose: ");
+                println!("Chiose: ");
                 let _ = io::stdin().read_line(&mut input);
                 let target: NodeId;
-                println!("Raw input: {:?}", input);
-
                 match input.trim_end().parse::<NodeId>() {
                     Ok(value) => target = value,
                     Err(e) => {
@@ -449,7 +448,7 @@ impl SimulationController {
                 }
                 input.clear();
                 
-                print!("Insert the desired PDR: ");
+                println!("Insert the desired PDR: ");
                 let _ = io::stdin().read_line(&mut input);
 
                 match input.trim_end().parse::<f32>() {
