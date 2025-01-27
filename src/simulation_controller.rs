@@ -95,9 +95,7 @@ impl SimulationController {
                 return;
             }
         }
-
-        println!("Raw input: {:?}", input);
-        println!("Raw number: {:?}", number);
+        input.clear();
 
         match number {
             0 => {
@@ -116,6 +114,7 @@ impl SimulationController {
                         return;
                     }
                 }
+                input.clear();
 
                 print!("Connected Drones Id: ");
                 let mut connected_node_ids = Vec::<NodeId>::new();
@@ -135,6 +134,7 @@ impl SimulationController {
                             return;
                         }
                     }
+                    input.clear();
 
                     if !connected_node_ids.contains(&new_neighbor) {
                         connected_node_ids.push(new_neighbor);
@@ -165,6 +165,7 @@ impl SimulationController {
                             return;
                         }
                     }
+                    input.clear();
                 }
 
                 print!("PDR: ");
@@ -188,6 +189,7 @@ impl SimulationController {
                         return;
                     }
                 }
+                input.clear();
 
                 let drone = ConfigDrone {
                     id,
@@ -250,6 +252,7 @@ impl SimulationController {
                         return;
                     }
                 }
+                input.clear();
 
                 let neighbor_ids: Vec<NodeId> = self.neighbor.keys().cloned().collect();
                 for neighbor in neighbor_ids {
@@ -292,6 +295,7 @@ impl SimulationController {
                         return;
                     }
                 }
+                input.clear();
 
                 println!("Which of his neighbor would u like to remove?");
                 if let Some(neighbor) = self.neighbor.get(&target.clone()) {
@@ -318,6 +322,7 @@ impl SimulationController {
                         return;
                     }
                 }
+                input.clear();
 
                 let mut found: bool = false;
                 let drone_ids: Vec<NodeId> = self.drones.keys().cloned().collect();
@@ -361,6 +366,7 @@ impl SimulationController {
                         return;
                     }
                 }
+                input.clear();
 
                 println!("Which of his neighbor would u like to remove?");
                 if let Some(neighbor) = self.neighbor.get(&target.clone()) {
@@ -391,6 +397,7 @@ impl SimulationController {
                         return;
                     }
                 }
+                input.clear();
 
                 let mut found: bool = false;
                 let drone_ids: Vec<NodeId> = self.drones.keys().cloned().collect();
@@ -440,6 +447,7 @@ impl SimulationController {
                         return;
                     }
                 }
+                input.clear();
                 
                 print!("Insert the desired PDR: ");
                 let _ = io::stdin().read_line(&mut input);
@@ -478,6 +486,7 @@ impl SimulationController {
                         );
                     }
                 }
+                input.clear();
             }
             5 => info!("{} None selected", "✓".green()),
             _ => error!("{} [ ERROR ]: Select a number between 0 and 5", "✗".red(),),
