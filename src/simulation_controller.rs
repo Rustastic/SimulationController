@@ -197,27 +197,27 @@ impl SimulationController {
                     pdr,
                 };
 
-                let rand = rand::thread_rng().gen_range(0..10);
+                self.neighbor.insert(drone.id, drone.connected_node_ids.clone());
+
+                let rand = rand::rng().random_range(0..10);
 
                 let drone_factories = vec![
                     drone_factory::<rusty_drones::RustyDrone>(),
                     drone_factory::<LeDron_James::Drone>(),
-                    //drone_factory::<dr_ones::Drone>(),
+                    drone_factory::<dr_ones::Drone>(),
                     drone_factory::<skylink::SkyLinkDrone>(),
                     drone_factory::<rustbusters_drone::RustBustersDrone>(),
                     drone_factory::<rust_roveri::RustRoveri>(),
                     drone_factory::<rust_do_it::RustDoIt>(),
                     drone_factory::<wg_2024_rust::drone::RustDrone>(),
                     drone_factory::<null_pointer_drone::MyDrone>(),
-                    drone_factory::<null_pointer_drone::MyDrone>(),
-                    drone_factory::<null_pointer_drone::MyDrone>(),
-                    //create_factory::<lockheedrustin_drone::LockheedRustin>(),
+                    drone_factory::<lockheedrustin_drone::LockheedRustin>(),
                 ];
 
                 let (command_send, command_recv) = unbounded::<DroneCommand>();
                 let (packet_send, packet_recv) = unbounded::<Packet>();
                 if let Some(factory) = drone_factories.get(rand) {
-                    let new_drone = factory(
+                    factory(
                         &drone,
                         &self.event_send,
                         &command_recv,
