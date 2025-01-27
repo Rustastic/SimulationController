@@ -1,5 +1,6 @@
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use rand::Rng;
+use toml::value;
 use std::{collections::HashMap, io};
 
 use colored::Colorize;
@@ -436,7 +437,6 @@ impl SimulationController {
                             "✗".red(),
                             e
                         );
-                        println!("Raw target: {:?}", target);
                         return;
                     }
                 }
