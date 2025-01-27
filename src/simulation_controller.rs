@@ -403,28 +403,28 @@ impl SimulationController {
                 }
                 input.clear();
 
-                let mut found: bool = false;
-                let drone_ids: Vec<NodeId> = self.drones.keys().cloned().collect();
-                for node_id in drone_ids {
-                    if node_id == target {
-                        let neighbor_ids: Vec<NodeId> = self.neighbor.keys().cloned().collect();
-                        for neighbor in neighbor_ids {
-                            found = true;
-                            let (packet_send, _) = unbounded::<Packet>();
-                            self.handle_command(
-                                &neighbor,
-                                DroneCommand::AddSender(to_add, packet_send),
-                            );
-                        }
-                    }
-                }
+                // get sender channel of to_add
+                let (_, target_packet_send) = self.drones.get(&target).unwrap().clone();
+                // get sender channel of target
+                let (_, to_add_packet_send) = self.drones.get(&to_add).unwrap().clone();
+                // send command
+                self.handle_command(
+                    &target,
+                    DroneCommand::AddSender(to_add, to_add_packet_send.clone()),
+                );
 
-                if !found {
-                    error!(
-                        "{} [ Simulation Controller ]: There is no drones with the provided NodeIds",
-                        "✗".red(),
-                    );
-                }
+                self.handle_command(
+                    &to_add,
+                    DroneCommand::AddSender(target, target_packet_send.clone()),
+                );
+
+                // add new neighbor to target
+                let target_neighbor = self.neighbor.get_mut(&target).unwrap();
+                target_neighbor.push(to_add);
+
+                // add new neighbor to to_add
+                let to_add_neighbor = self.neighbor.get_mut(&to_add).unwrap();
+                to_add_neighbor.push(target);
             }
             4 => {
                 println!("Witch drone would you like to send the DroneCommand::SetPackageDropRate");
