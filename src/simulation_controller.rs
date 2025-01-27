@@ -426,6 +426,8 @@ impl SimulationController {
                 print!("Chiose: ");
                 let _ = io::stdin().read_line(&mut input);
                 let target: NodeId;
+                println!("Raw input: {:?}", input);
+
                 match input.trim_end().parse::<NodeId>() {
                     Ok(value) => target = value,
                     Err(e) => {
@@ -434,13 +436,11 @@ impl SimulationController {
                             "✗".red(),
                             e
                         );
+                        println!("Raw target: {:?}", target);
                         return;
                     }
                 }
-
-                println!("Raw input: {:?}", input);
-                println!("Raw target: {:?}", target);
-
+                
                 print!("Insert the desired PDR: ");
                 let _ = io::stdin().read_line(&mut input);
 
