@@ -324,26 +324,8 @@ impl SimulationController {
                 }
                 input.clear();
 
-                let mut found: bool = false;
-                let drone_ids: Vec<NodeId> = self.drones.keys().cloned().collect();
-                for node_id in drone_ids {
-                    if node_id == target {
-                        let neighbor_ids: Vec<NodeId> = self.neighbor.keys().cloned().collect();
-                        for neighbor in neighbor_ids {
-                            if neighbor == to_remove {
-                                found = true;
-                                self.handle_command(&node_id, DroneCommand::RemoveSender(neighbor));
-                            }
-                        }
-                    }
-                }
-
-                if !found {
-                    error!(
-                        "{} [ ERROR ]: There is no drones with the provided NodeIds",
-                        "✗".red(),
-                    );
-                }
+                self.handle_command(&target, DroneCommand::RemoveSender(to_remove));
+                self.handle_command(&to_remove, DroneCommand::RemoveSender(target));
             }
             3 => {
                 println!("Witch drone would you like to send the DroneCommand::AddSender");
