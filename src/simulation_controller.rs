@@ -1,7 +1,7 @@
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use rand::Rng;
-use toml::value;
 use std::{collections::HashMap, io};
+use toml::value;
 
 use colored::Colorize;
 use log::{error, info, warn};
@@ -155,7 +155,7 @@ impl SimulationController {
                             } else {
                                 add = false;
                             }
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "{} [ ERROR ]: Please insert a valid NodeId: {}",
@@ -261,7 +261,7 @@ impl SimulationController {
                 let mut found: bool = false;
                 let drone_ids: Vec<NodeId> = self.drones.keys().cloned().collect();
                 for node_id in drone_ids {
-                    if node_id == target as NodeId {
+                    if node_id == target {
                         found = true;
                         self.handle_command(&node_id, DroneCommand::Crash);
                     }
@@ -327,10 +327,10 @@ impl SimulationController {
                 let mut found: bool = false;
                 let drone_ids: Vec<NodeId> = self.drones.keys().cloned().collect();
                 for node_id in drone_ids {
-                    if node_id == target as NodeId {
+                    if node_id == target {
                         let neighbor_ids: Vec<NodeId> = self.neighbor.keys().cloned().collect();
                         for neighbor in neighbor_ids {
-                            if neighbor == to_remove as NodeId {
+                            if neighbor == to_remove {
                                 found = true;
                                 self.handle_command(&node_id, DroneCommand::RemoveSender(neighbor));
                             }
@@ -373,7 +373,7 @@ impl SimulationController {
                     for (node_id, _) in self.drones.iter() {
                         let mut not_neighbor = true;
                         for neighbor_id in neighbor {
-                            if node_id == neighbor_id || *node_id == target  {
+                            if node_id == neighbor_id || *node_id == target {
                                 not_neighbor = false
                             }
                         }
@@ -406,17 +406,15 @@ impl SimulationController {
                 let mut found: bool = false;
                 let drone_ids: Vec<NodeId> = self.drones.keys().cloned().collect();
                 for node_id in drone_ids {
-                    if node_id == target as NodeId {
+                    if node_id == target {
                         let neighbor_ids: Vec<NodeId> = self.neighbor.keys().cloned().collect();
                         for neighbor in neighbor_ids {
-                            if neighbor != to_add as NodeId {
-                                found = true;
-                                let (packet_send, _) = unbounded::<Packet>();
-                                self.handle_command(
-                                    &node_id,
-                                    DroneCommand::AddSender(to_add as NodeId, packet_send),
-                                );
-                            }
+                            found = true;
+                            let (packet_send, _) = unbounded::<Packet>();
+                            self.handle_command(
+                                &neighbor,
+                                DroneCommand::AddSender(to_add, packet_send),
+                            );
                         }
                     }
                 }
@@ -450,7 +448,7 @@ impl SimulationController {
                     }
                 }
                 input.clear();
-                
+
                 println!("Insert the desired PDR: ");
                 let _ = io::stdin().read_line(&mut input);
 
@@ -459,7 +457,7 @@ impl SimulationController {
                         let mut found: bool = false;
                         let drone_ids: Vec<NodeId> = self.drones.keys().cloned().collect();
                         for node_id in drone_ids {
-                            if node_id == target as NodeId {
+                            if node_id == target {
                                 found = true;
                                 self.handle_command(
                                     &node_id,
