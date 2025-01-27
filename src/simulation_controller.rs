@@ -624,31 +624,32 @@ impl SimulationController {
                     if let Some((command_send, packet_send)) = self.drones.get(drone) {
                         let _ = drop(command_send);
                         let _ = drop(packet_send);
-                    }
+                    }                    
 
-                    self.neighbor
-                        .iter()
-                        .position(|(x, _)| x == drone)
-                        .map(|x| self.neighbor.remove(&(x as NodeId)));
-                    self.drones
-                        .iter()
-                        .position(|(x, _)| x == drone)
-                        .map(|x| {
-                            self.neighbor.remove(&(x as NodeId));
-                        });
-
-                    match command_channel.send(DroneCommand::Crash) {
-                        Ok(()) => info!(
-                            "{} [ Simulation Controller ]: sent a DroneCommand: Crash() sent to [ Drone {} ]",
-                            "✓".green(),
-                            drone
-                        ),
-                        Err(e) => error!(
-                            "{} [ Simulation Controller ]: failed to send a DroneCommand: Crash() to the [ Drone {} ]: {}",
+                    let drone_entry = self.drones.remove(drone);
+                
+                    self.neighbor.remove(drone);
+                
+                    if let Some((command_channel, _)) = drone_entry {
+                        match command_channel.send(DroneCommand::Crash) {
+                            Ok(()) => info!(
+                                "{} [ Simulation Controller ]: sent a DroneCommand: Crash() sent to [ Drone {} ]",
+                                "✓".green(),
+                                drone
+                            ),
+                            Err(e) => error!(
+                                "{} [ Simulation Controller ]: failed to send a DroneCommand: Crash() to the [ Drone {} ]: {}",
+                                "✗".red(),
+                                drone,
+                                e
+                            ),
+                        }
+                    } else {
+                        error!(
+                            "{} [ Simulation Controller ]: the [ Drone {} ] was not found in the drones map",
                             "✗".red(),
-                            drone,
-                            e
-                        ),
+                            drone
+                        );
                     }
                 }
             }
