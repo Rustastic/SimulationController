@@ -254,25 +254,13 @@ impl SimulationController {
                 }
                 input.clear();
 
-                let neighbor_ids: Vec<NodeId> = self.neighbor.keys().cloned().collect();
-                for neighbor in neighbor_ids {
-                    self.handle_command(&neighbor, DroneCommand::RemoveSender(neighbor));
-                }
-                let mut found: bool = false;
-                let drone_ids: Vec<NodeId> = self.drones.keys().cloned().collect();
-                for node_id in drone_ids {
-                    if node_id == target {
-                        found = true;
-                        self.handle_command(&node_id, DroneCommand::Crash);
+                if let Some(neighbor_ids) = self.neighbor.get_mut(&target).cloned() {
+                    for neighbor in  neighbor_ids{
+                        self.handle_command(&neighbor, DroneCommand::RemoveSender(target));
                     }
                 }
 
-                if !found {
-                    error!(
-                        "{} [ ERROR ]: There is no drones with the provided NodeIds",
-                        "✗".red(),
-                    );
-                }
+                self.handle_command(&target, DroneCommand::Crash);
             }
             2 => {
                 println!("Witch drone would you like to send the DroneCommand::RemoveSender");
@@ -645,7 +633,9 @@ impl SimulationController {
                     self.drones
                         .iter()
                         .position(|(x, _)| x == drone)
-                        .map(|x| self.neighbor.remove(&(x as NodeId)));
+                        .map(|x| {
+                            self.neighbor.remove(&(x as NodeId));
+                        });
 
                     match command_channel.send(DroneCommand::Crash) {
                         Ok(()) => info!(
