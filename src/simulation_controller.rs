@@ -95,6 +95,9 @@ impl SimulationController {
             }
         }
 
+        println!("Raw input: {:?}", input);
+        println!("Raw number: {:?}", number);
+
         match number {
             0 => {
                 println!("Please provide the necessary parameters for ne new drone");
@@ -434,6 +437,9 @@ impl SimulationController {
                         return;
                     }
                 }
+
+                println!("Raw input: {:?}", input);
+                println!("Raw target: {:?}", target);
 
                 print!("Insert the desired PDR: ");
                 let _ = io::stdin().read_line(&mut input);
