@@ -371,11 +371,14 @@ impl SimulationController {
                 println!("Which Drone you want to add?");
                 if let Some(neighbor) = self.neighbor.get(&target.clone()) {
                     for (node_id, _) in self.drones.iter() {
+                        let mut not_neighbor = true;
                         for neighbor_id in neighbor {
-                            if node_id != neighbor_id {
-                                println!("- [ Drone {} ]", node_id);
-                                break;
+                            if node_id == neighbor_id || *node_id == target  {
+                                not_neighbor = false
                             }
+                        }
+                        if not_neighbor {
+                            println!("- [ Drone {} ]", node_id);
                         }
                     }
                 } else {
