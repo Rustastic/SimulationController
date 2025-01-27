@@ -72,12 +72,12 @@ impl SimulationController {
 
     fn ask_action(&mut self) {
         println!("Select the action to execute:");
-        println!("0 - Spawn\n");
-        println!("1 - Crash\n");
-        println!("2 - RemoveSender\n");
-        println!("3 - AddSender\n");
-        println!("4 - SetPackageDropRate\n");
-        println!("5 - None\n");  
+        println!("0 - Spawn");
+        println!("1 - Crash");
+        println!("2 - RemoveSender");
+        println!("3 - AddSender");
+        println!("4 - SetPackageDropRate");
+        println!("5 - None");  
         println!("\nChiose: ");
 
         let mut input = String::new();
