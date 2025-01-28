@@ -72,6 +72,18 @@ impl SimulationController {
         };
     }
 
+    fn print(&self) {
+        for (drone, _) in self.drones.iter() {
+            println!("\n[ Drone: {} ]", drone);
+            
+            println!("Neighbors:");
+            let neighbor_ids = self.neighbor.get(drone).unwrap();
+            for neighbor in neighbor_ids {
+                println!("\t[ Drone: {} ]", neighbor)
+            }
+        }
+    }
+
     fn spawn(&mut self) {
         // Get ID of the new drone
         // UI menu
@@ -596,7 +608,8 @@ impl SimulationController {
         println!("2 - RemoveSender");
         println!("3 - AddSender");
         println!("4 - SetPackageDropRate");
-        println!("5 - None");
+        println!("5 - Print");
+        println!("6 - None");
         println!("\nChiose: ");
 
         // Create input sting
@@ -627,8 +640,9 @@ impl SimulationController {
             2 => self.remove_sender(),
             3 => self.add_sender(),
             4 => self.set_pdr(),
-            5 => info!("{} None selected", "✓".green()),
-            _ => error!("{} [ ERROR ]: Select a number between 0 and 5", "✗".red()),
+            5 => self.print(),
+            6 => info!("{} None selected", "✓".green()),
+            _ => error!("{} [ ERROR ]: Select a number between 0 and 6", "✗".red()),
         }
     }
 
