@@ -10,8 +10,10 @@ toml = "0.8.19"
 rand = "0.9"
 colored = "3"
 log = "0.4"
-eframe = { version = "0.30.0", features = ["default", "__screenshot"] }
-egui_extras = { version = "0.30.0", features = ["default", "image"] }
+#eframe = { version = "0.30.0", features = ["default", "__screenshot"] }
+#egui_extras = { version = "0.30.0", features = ["default", "image"] }
+
+#chat_client = { git = "https://github.com/Rustastic/ChatClient"}
 
 rusty_drones = { git = "https://github.com/rusty-drone-2024/rusty-drone.git" }
 LeDron_James = { git = "https://github.com/anass03/LeDron_James.git" }

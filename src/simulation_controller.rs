@@ -1,10 +1,9 @@
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use rand::Rng;
 use std::{collections::HashMap, io};
-use toml::value;
 
 use colored::Colorize;
-use log::{error, info, warn};
+use log::{error, info};
 
 use wg_2024::{
     config::Drone as ConfigDrone,
@@ -13,6 +12,8 @@ use wg_2024::{
     network::NodeId,
     packet::{Packet, PacketType},
 };
+
+//use chat_client::ChatClient;
 
 fn drone_factory<T>() -> Box<
     dyn Fn(
@@ -71,7 +72,524 @@ impl SimulationController {
         };
     }
 
-    fn ask_action(&mut self) {
+    fn spawn(&mut self) {
+        // Get ID of the new drone
+        // UI menu
+        println!("Please provide the necessary parameters for the new drone");
+        println!("Id: ");
+        
+        // Create input sting
+        let mut input = String::new();
+        // Get input from stdin
+        let _ = io::stdin().read_line(&mut input);
+
+        // Parse and verify input
+        let id: NodeId;
+        match input.trim_end().parse::<NodeId>() {
+            Ok(value) => id = value,
+            Err(e) => {
+                error!(
+                    "{} [ ERROR ]: Please insert a valid NodeId: {}",
+                    "✗".red(),
+                    e
+                );
+                return;
+            }
+        }
+        // Clear input String 
+        input.clear();
+
+        // Check if drone with this id already exist
+        if self.drones.contains_key(&id) {
+            error!(
+                "{} [ ERROR ]: A drone with the NodeId: {} already exists",
+                "✗".red(),
+                id
+            );
+            return;
+        }
+
+        // Get all the neighbors
+        // Vec containing the neighbor drones
+        let mut connected_node_ids = Vec::<NodeId>::new();
+
+        // loop to get all the neighbors
+        let mut add = true;
+        while add {
+            // UI menu
+            println!("Connected Drones Id: ");
+            // Get input from stdin
+            let _ = io::stdin().read_line(&mut input);
+
+            // Parse and verify input
+            let new_neighbor: NodeId;
+            match input.trim_end().parse::<NodeId>() {
+                Ok(value) => new_neighbor = value,
+                Err(e) => {
+                    error!(
+                        "{} [ ERROR ]: Please insert a valid NodeId: {}",
+                        "✗".red(),
+                        e
+                    );
+                    return;
+                }
+            }
+            // Clear input string
+            input.clear();
+
+            // Add drone to the neighbor vec
+            if !connected_node_ids.contains(&new_neighbor) {
+                connected_node_ids.push(new_neighbor);
+            } else {
+                error!(
+                    "{} [ ERROR ]: The [ Drone: {} ] is already a neighbor",
+                    "✗".red(),
+                    new_neighbor
+                );
+            }
+
+            // Ask if user want to add another drone
+            // UI menu
+            println!("Do you want to add another Drone to the neighbor list?\n 0->No 1->Yes");
+            // Get input from stdin
+            let _ = io::stdin().read_line(&mut input);
+
+            // Parse and verify input
+            match input.trim_end().parse::<u8>() {
+                Ok(value) => {
+                    if value != 0 {
+                        add = true;
+                    } else {
+                        add = false;
+                    }
+                }
+                Err(e) => {
+                    error!(
+                        "{} [ ERROR ]: Please insert a valid NodeId: {}",
+                        "✗".red(),
+                        e
+                    );
+                    return;
+                }
+            }
+            //clear input string
+            input.clear();
+        }
+
+        // Get drone pdr
+        // UI menu
+        println!("PDR: ");
+        // Get input from stdin
+        let _ = io::stdin().read_line(&mut input);
+
+        // Parse and verify input
+        let pdr: f32;
+        match input.trim_end().parse::<f32>() {
+            // Check if number is in the right range
+            Ok(value) if (0.0..=1.0).contains(&value) => pdr = value,
+            Ok(_) => {
+                error!(
+                    "{} [ ERROR ]: The PDR number is out of range. Please enter a number between 0 and 1.",
+                    "✗".red(),
+                );
+                return;
+            }
+            Err(e) => {
+                error!(
+                    "{} [ ERROR ]: Please insert a valid f32 value: {}",
+                    "✗".red(),
+                    e
+                );
+                return;
+            }
+        }
+        // Clear input String
+        input.clear();
+
+        // Create new drone
+        let drone = ConfigDrone {
+            id,
+            connected_node_ids,
+            pdr,
+        };
+
+        // Add drone to neighbor list
+        self.neighbor.insert(drone.id, drone.connected_node_ids.clone());
+
+        // Generate random number to pick a random factory
+        let rand = rand::rng().random_range(0..10);
+        let drone_factories = vec![
+            drone_factory::<rusty_drones::RustyDrone>(),
+            drone_factory::<LeDron_James::Drone>(),
+            drone_factory::<dr_ones::Drone>(),
+            drone_factory::<skylink::SkyLinkDrone>(),
+            drone_factory::<rustbusters_drone::RustBustersDrone>(),
+            drone_factory::<rust_roveri::RustRoveri>(),
+            drone_factory::<rust_do_it::RustDoIt>(),
+            drone_factory::<wg_2024_rust::drone::RustDrone>(),
+            drone_factory::<null_pointer_drone::MyDrone>(),
+            drone_factory::<lockheedrustin_drone::LockheedRustin>(),
+        ];
+
+        // create necessary channels
+        let (command_send, command_recv) = unbounded::<DroneCommand>();
+        let (packet_send, packet_recv) = unbounded::<Packet>();
+        // Crate drone
+        if let Some(factory) = drone_factories.get(rand) {
+            factory(
+                &drone,
+                &self.event_send,
+                &command_recv,
+                &packet_recv,
+                &packet_send,
+            );
+
+            // Add drone to drone list
+            self.drones.insert(id, (command_send, packet_send));
+        } else {
+            panic!("No factory defined for [ Drone {} ]", drone.id);
+        }
+    }
+
+    fn crash(&mut self) {
+        // Get drone to crash
+        // UI menu
+        println!("Witch drone would you like to send the DroneCommand::Crash");
+        for (node_id, _) in self.drones.iter() {
+            println!("- [ Drone {} ]", node_id)
+        }
+        println!("Chiose: ");
+
+        // Create input sting
+        let mut input = String::new();
+        // Get input from stdin
+        let _ = io::stdin().read_line(&mut input);
+
+        // Parse and verify input
+        let target: NodeId;
+        match input.trim_end().parse::<NodeId>() {
+            Ok(value) => target = value,
+            Err(e) => {
+                error!(
+                    "{} [ ERROR ]: Please insert a valid NodeId: {}",
+                    "✗".red(),
+                    e
+                );
+                return;
+            }
+        }
+        // UI menu
+        input.clear();
+
+        // Check if it exists a drone with this id
+        if !self.drones.contains_key(&target) {
+            error!(
+                "{} [ ERROR ]: There is not a drone with the NodeId: {}",
+                "✗".red(),
+                target
+            );
+            return;
+        }
+
+        // If the drone has any neighbors
+        if let Some(neighbor_ids) = self.neighbor.get_mut(&target).cloned() {
+            for neighbor in  neighbor_ids{
+                // Send command to neighbors
+                self.handle_command(&neighbor, DroneCommand::RemoveSender(target));
+            }
+        }
+
+        // Send command
+        self.handle_command(&target, DroneCommand::Crash);
+    }
+
+    fn remove_sender(&mut self) {
+        // Get drone to which remove a sender
+        // UI menu
+        println!("Witch drone would you like to send the DroneCommand::RemoveSender");
+        for (node_id, _) in self.drones.iter() {
+            println!("- [ Drone {} ]", node_id);
+        }
+        println!("Chiose: ");
+
+        // Create input sting
+        let mut input = String::new();
+        // Get input from stdin
+        let _ = io::stdin().read_line(&mut input);
+
+        // Parse and verify input
+        let target: NodeId;
+        match input.trim_end().parse::<NodeId>() {
+            Ok(value) => target = value,
+            Err(e) => {
+                error!(
+                    "{} [ ERROR ]: Please insert a valid NodeId: {}",
+                    "✗".red(),
+                    e
+                );
+                return;
+            }
+        }
+        // Clear input string
+        input.clear();
+
+        // Check if it exists a drone with this id
+        if !self.drones.contains_key(&target) {
+            error!(
+                "{} [ ERROR ]: There is not a drone with the NodeId: {}",
+                "✗".red(),
+                target
+            );
+            return;
+        }
+
+        // Get the neighbor to remove
+        // UI menu
+        println!("Which of his neighbor would u like to remove?");
+        if let Some(neighbor) = self.neighbor.get(&target.clone()) {
+            for node_id in neighbor {
+                println!("- [ Drone {} ]", node_id)
+            }
+        } else {
+            error!("{} [ ERROR ]: The selected drone does not exist or does not have any neighbor",
+                "✗".red(),
+            );
+        }
+        println!("Chiose: ");
+
+        // Get input from stdin
+        let _ = io::stdin().read_line(&mut input);
+
+        // Parse and verify input
+        let to_remove: NodeId;
+        match input.trim_end().parse::<NodeId>() {
+            Ok(value) => to_remove = value,
+            Err(e) => {
+                error!(
+                    "{} [ ERROR ]: Please insert a valid NodeId: {}",
+                    "✗".red(),
+                    e
+                );
+                return;
+            }
+        }
+        // Clear input String
+        input.clear();
+
+        // Check if it exists a neighbor with this id
+        if let Some(neighbor) = self.neighbor.get(&target) {
+            if !neighbor.contains(&to_remove) {
+                error!(
+                    "{} [ ERROR ]: The [ Drone: {} ] is not a neighbor of [ Drone: {} ]",
+                    "✗".red(),
+                    target,
+                    to_remove
+                );
+            }  
+        } else {
+            error!("{} [ ERROR ]: The selected [ Drone: {} ] does not exist or does not have any neighbor",
+                "✗".red(),
+                target,
+            );
+        }
+
+        // Send command
+        self.handle_command(&target, DroneCommand::RemoveSender(to_remove));
+        self.handle_command(&to_remove, DroneCommand::RemoveSender(target));
+    }
+
+    fn add_sender(&mut self) {
+        // Get drone to which add a sender
+        // UI menu
+        println!("Witch drone would you like to send the DroneCommand::AddSender");
+        for (node_id, _) in self.drones.iter() {
+            println!("- [ Drone {} ]", node_id);
+        }
+        println!("Chiose: ");
+
+        // Create input sting
+        let mut input = String::new();
+        // Get input from stdin
+        let _ = io::stdin().read_line(&mut input);
+
+        // Parse and verify input
+        let target: NodeId;
+        match input.trim_end().parse::<NodeId>() {
+            Ok(value) => target = value,
+            Err(e) => {
+                error!(
+                    "{} [ ERROR ]: Please insert a valid NodeId: {}",
+                    "✗".red(),
+                    e
+                );
+                return;
+            }
+        }
+        // Clear input string
+        input.clear();
+
+        // Check if it exists a drone with this id
+        if !self.drones.contains_key(&target) {
+            error!(
+                "{} [ ERROR ]: There is not a drone with the NodeId: {}",
+                "✗".red(),
+                target
+            );
+            return;
+        }
+
+        // Get drone to add
+        // UI menu
+        println!("Which Drone you want to add?");
+
+        // Get the drone neighbors
+        if let Some(neighbor) = self.neighbor.get(&target.clone()) {
+            // for all drones
+            for (node_id, _) in self.drones.iter() {
+                let mut not_neighbor = true;
+                // for all the drone's neighbor
+                for neighbor_id in neighbor {
+                    // if the drone is not the neighbor or the drone itself
+                    if node_id == neighbor_id || *node_id == target {
+                        not_neighbor = false
+                    }
+                }
+                if not_neighbor {
+                    // UI menu
+                    println!("- [ Drone {} ]", node_id);
+                }
+            }
+        } else {
+            error!("{} [ ERROR ]: The selected drone does not exist or does not have any neighbor",
+                "✗".red(),
+            );
+        }
+
+        // UI menu 
+        println!("Chiose: ");
+        // Get input from stdin
+        let _ = io::stdin().read_line(&mut input);
+
+        // Parse and verify input
+        let to_add: NodeId;
+        match input.trim_end().parse::<NodeId>() {
+            Ok(value) => to_add = value,
+            Err(e) => {
+                error!(
+                    "{} [ ERROR ]: Please insert a valid NodeId: {}",
+                    "✗".red(),
+                    e
+                );
+                return;
+            }
+        }
+        // Clear input string
+        input.clear();
+
+        // Check if it exists a neighbor with this id
+        if let Some(neighbor) = self.neighbor.get(&target) {
+            if neighbor.contains(&to_add) {
+                error!(
+                    "{} [ ERROR ]: The [ Drone: {} ] is already a neighbor of [ Drone: {} ]",
+                    "✗".red(),
+                    target,
+                    to_add
+                );
+            }  
+        } else {
+            error!("{} [ ERROR ]: The selected [ Drone: {} ] does not exist or does not have any neighbor",
+                "✗".red(),
+                target,
+            );
+        }
+
+        // Add drone
+        // Get sender channel of the target drone
+        let (_, to_add_packet_send) = self.drones.get(&to_add).unwrap().clone();
+        // Get sender channel of the drone to add 
+        let (_, target_packet_send) = self.drones.get(&target).unwrap().clone();
+        
+        // Send command
+        self.handle_command(
+            &target,
+            DroneCommand::AddSender(to_add, to_add_packet_send.clone()),
+        );
+        self.handle_command(
+            &to_add,
+            DroneCommand::AddSender(target, target_packet_send.clone()),
+        );
+    }
+
+    fn set_pdr(&mut self) {
+        // Get drone to which change the pdr
+        // UI menu
+        println!("Witch drone would you like to send the DroneCommand::SetPackageDropRate");
+        for (node_id, _) in self.drones.iter() {
+            println!("- [ Drone {} ]", node_id);
+        }
+        println!("Chiose: ");
+
+        // Create input sting
+        let mut input = String::new();
+        // Get input from stdin
+        let _ = io::stdin().read_line(&mut input);
+
+        // Parse and verify input
+        let target: NodeId;
+        match input.trim_end().parse::<NodeId>() {
+            Ok(value) => target = value,
+            Err(e) => {
+                error!(
+                    "{} [ ERROR ]: Please insert a valid NodeId: {}",
+                    "✗".red(),
+                    e
+                );
+                return;
+            }
+        }
+        // Clear input string
+        input.clear();
+
+        // Check if it exists a drone with this id
+        if !self.drones.contains_key(&target) {
+            error!(
+                "{} [ ERROR ]: There is not a drone with the NodeId: {}",
+                "✗".red(),
+                target
+            );
+            return;
+        }
+
+        // Get the new PDR
+        // UI menu
+        println!("Insert the desired PDR: ");
+        // Get input from stdin
+        let _ = io::stdin().read_line(&mut input);
+
+        // Parse and verify input
+        match input.trim_end().parse::<f32>() {
+            // Check if number is in the right range
+            Ok(value) if (0.0..=1.0).contains(&value) => {
+                self.handle_command(&target, DroneCommand::SetPacketDropRate(value));
+            }
+            Ok(_) => {
+                error!(
+                    "{} [ ERROR ]: The PDR number is out of range. Please enter a float number between 0.00 and 1.00",
+                    "✗".red(),
+                );
+            }
+            Err(_) => {
+                error!(
+                    "{} [ ERROR ]: That's not a valid number. Please try again.",
+                    "✗".red(),
+                );
+            }
+        }
+        input.clear();
+    }
+
+    fn drone_action_handler(&mut self) {
+        // UI menu
         println!("Select the action to execute:");
         println!("0 - Spawn");
         println!("1 - Crash");
@@ -81,10 +599,14 @@ impl SimulationController {
         println!("5 - None");
         println!("\nChiose: ");
 
+        // Create input sting
         let mut input = String::new();
+        // Get input from stdin
         let _ = io::stdin().read_line(&mut input);
+
+        // Parse and verify input
         let number: i32;
-        match input.trim_end().parse() {
+        match input.trim_end().parse::<i32>() {
             Ok(value) => number = value,
             Err(e) => {
                 error!(
@@ -95,378 +617,68 @@ impl SimulationController {
                 return;
             }
         }
+        // Clear input string
         input.clear();
 
+        // Handle chiose
         match number {
-            0 => {
-                println!("Please provide the necessary parameters for ne new drone");
-                println!("Id: ");
-                let _ = io::stdin().read_line(&mut input);
-                let id: NodeId;
-                match input.trim_end().parse::<NodeId>() {
-                    Ok(value) => id = value,
-                    Err(e) => {
-                        error!(
-                            "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                            "✗".red(),
-                            e
-                        );
-                        return;
-                    }
-                }
-                input.clear();
-
-                println!("Connected Drones Id: ");
-                let mut connected_node_ids = Vec::<NodeId>::new();
-                let mut add = true;
-                while add {
-                    println!("Connected Drones Id: ");
-                    let _ = io::stdin().read_line(&mut input);
-                    let new_neighbor: NodeId;
-                    match input.trim_end().parse::<NodeId>() {
-                        Ok(value) => new_neighbor = value,
-                        Err(e) => {
-                            error!(
-                                "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                                "✗".red(),
-                                e
-                            );
-                            return;
-                        }
-                    }
-                    input.clear();
-
-                    if !connected_node_ids.contains(&new_neighbor) {
-                        connected_node_ids.push(new_neighbor);
-                    } else {
-                        error!(
-                            "{} [ ERROR ]: The [ Drone: {} ] is already a neighbor",
-                            "✗".red(),
-                            new_neighbor
-                        );
-                    }
-
-                    println!("Do you want to add another Drone to the neighbor list? 0->No 1->Yes");
-                    let _ = io::stdin().read_line(&mut input);
-                    match input.trim_end().parse::<u8>() {
-                        Ok(value) => {
-                            if value != 0 {
-                                add = true;
-                            } else {
-                                add = false;
-                            }
-                        }
-                        Err(e) => {
-                            error!(
-                                "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                                "✗".red(),
-                                e
-                            );
-                            return;
-                        }
-                    }
-                    input.clear();
-                }
-
-                println!("PDR: ");
-                let _ = io::stdin().read_line(&mut input);
-                let pdr: f32;
-                match input.trim_end().parse::<f32>() {
-                    Ok(value) if (0.0..=1.0).contains(&value) => pdr = value,
-                    Ok(_) => {
-                        error!(
-                            "{} [ ERROR ]: The PDR number is out of range. Please enter a number between 0 and 1.",
-                            "✗".red(),
-                        );
-                        return;
-                    }
-                    Err(e) => {
-                        error!(
-                            "{} [ ERROR ]: Please insert a valid f32 value: {}",
-                            "✗".red(),
-                            e
-                        );
-                        return;
-                    }
-                }
-                input.clear();
-
-                let drone = ConfigDrone {
-                    id,
-                    connected_node_ids,
-                    pdr,
-                };
-
-                self.neighbor.insert(drone.id, drone.connected_node_ids.clone());
-
-                let rand = rand::rng().random_range(0..10);
-
-                let drone_factories = vec![
-                    drone_factory::<rusty_drones::RustyDrone>(),
-                    drone_factory::<LeDron_James::Drone>(),
-                    drone_factory::<dr_ones::Drone>(),
-                    drone_factory::<skylink::SkyLinkDrone>(),
-                    drone_factory::<rustbusters_drone::RustBustersDrone>(),
-                    drone_factory::<rust_roveri::RustRoveri>(),
-                    drone_factory::<rust_do_it::RustDoIt>(),
-                    drone_factory::<wg_2024_rust::drone::RustDrone>(),
-                    drone_factory::<null_pointer_drone::MyDrone>(),
-                    drone_factory::<lockheedrustin_drone::LockheedRustin>(),
-                ];
-
-                let (command_send, command_recv) = unbounded::<DroneCommand>();
-                let (packet_send, packet_recv) = unbounded::<Packet>();
-                if let Some(factory) = drone_factories.get(rand) {
-                    factory(
-                        &drone,
-                        &self.event_send,
-                        &command_recv,
-                        &packet_recv,
-                        &packet_send,
-                    );
-
-                    // Fill drone Hashmap
-                    self.drones.insert(id, (command_send, packet_send));
-                } else {
-                    panic!("No factory defined for [ Drone {} ]", drone.id);
-                }
-            }
-            1 => {
-                println!("Witch drone would you like to send the DroneCommand::Crash");
-
-                for (node_id, _) in self.drones.iter() {
-                    println!("- [ Drone {} ]", node_id)
-                }
-
-                println!("Chiose: ");
-                let _ = io::stdin().read_line(&mut input);
-                let target: NodeId;
-                match input.trim_end().parse::<NodeId>() {
-                    Ok(value) => target = value,
-                    Err(e) => {
-                        error!(
-                            "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                            "✗".red(),
-                            e
-                        );
-                        return;
-                    }
-                }
-                input.clear();
-
-                if let Some(neighbor_ids) = self.neighbor.get_mut(&target).cloned() {
-                    for neighbor in  neighbor_ids{
-                        self.handle_command(&neighbor, DroneCommand::RemoveSender(target));
-                    }
-                }
-
-                self.handle_command(&target, DroneCommand::Crash);
-            }
-            2 => {
-                println!("Witch drone would you like to send the DroneCommand::RemoveSender");
-
-                for (node_id, _) in self.drones.iter() {
-                    println!("- [ Drone {} ]", node_id);
-                }
-
-                println!("Chiose: ");
-                let _ = io::stdin().read_line(&mut input);
-                let target: NodeId;
-                match input.trim_end().parse::<NodeId>() {
-                    Ok(value) => target = value,
-                    Err(e) => {
-                        error!(
-                            "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                            "✗".red(),
-                            e
-                        );
-                        return;
-                    }
-                }
-                input.clear();
-
-                println!("Which of his neighbor would u like to remove?");
-                if let Some(neighbor) = self.neighbor.get(&target.clone()) {
-                    for node_id in neighbor {
-                        println!("- [ Drone {} ]", node_id)
-                    }
-                } else {
-                    error!("{} [ ERROR ]: The selected drone does not exist or does not have any neighbor",
-                        "✗".red(),
-                    );
-                }
-
-                println!("Chiose: ");
-                let _ = io::stdin().read_line(&mut input);
-                let to_remove: NodeId;
-                match input.trim_end().parse::<NodeId>() {
-                    Ok(value) => to_remove = value,
-                    Err(e) => {
-                        error!(
-                            "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                            "✗".red(),
-                            e
-                        );
-                        return;
-                    }
-                }
-                input.clear();
-
-                self.handle_command(&target, DroneCommand::RemoveSender(to_remove));
-                self.handle_command(&to_remove, DroneCommand::RemoveSender(target));
-            }
-            3 => {
-                println!("Witch drone would you like to send the DroneCommand::AddSender");
-
-                for (node_id, _) in self.drones.iter() {
-                    println!("- [ Drone {} ]", node_id);
-                }
-
-                println!("Chiose: ");
-                let _ = io::stdin().read_line(&mut input);
-                let target: NodeId;
-                match input.trim_end().parse::<NodeId>() {
-                    Ok(value) => target = value,
-                    Err(e) => {
-                        error!(
-                            "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                            "✗".red(),
-                            e
-                        );
-                        return;
-                    }
-                }
-                input.clear();
-
-                println!("Which Drone you want to add?");
-                if let Some(neighbor) = self.neighbor.get(&target.clone()) {
-                    for (node_id, _) in self.drones.iter() {
-                        let mut not_neighbor = true;
-                        for neighbor_id in neighbor {
-                            if node_id == neighbor_id || *node_id == target {
-                                not_neighbor = false
-                            }
-                        }
-                        if not_neighbor {
-                            println!("- [ Drone {} ]", node_id);
-                        }
-                    }
-                } else {
-                    error!("{} [ ERROR ]: The selected drone does not exist or does not have any neighbor",
-                        "✗".red(),
-                    );
-                }
-
-                println!("Chiose: ");
-                let _ = io::stdin().read_line(&mut input);
-                let to_add: NodeId;
-                match input.trim_end().parse::<NodeId>() {
-                    Ok(value) => to_add = value,
-                    Err(e) => {
-                        error!(
-                            "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                            "✗".red(),
-                            e
-                        );
-                        return;
-                    }
-                }
-                input.clear();
-
-                // get sender channel of to_add
-                let (_, target_packet_send) = self.drones.get(&target).unwrap().clone();
-                // get sender channel of target
-                let (_, to_add_packet_send) = self.drones.get(&to_add).unwrap().clone();
-                // send command
-                self.handle_command(
-                    &target,
-                    DroneCommand::AddSender(to_add, to_add_packet_send.clone()),
-                );
-
-                self.handle_command(
-                    &to_add,
-                    DroneCommand::AddSender(target, target_packet_send.clone()),
-                );
-
-                // add new neighbor to target
-                let target_neighbor = self.neighbor.get_mut(&target).unwrap();
-                target_neighbor.push(to_add);
-
-                // add new neighbor to to_add
-                let to_add_neighbor = self.neighbor.get_mut(&to_add).unwrap();
-                to_add_neighbor.push(target);
-            }
-            4 => {
-                println!("Witch drone would you like to send the DroneCommand::SetPackageDropRate");
-
-                for (node_id, _) in self.drones.iter() {
-                    println!("- [ Drone {} ]", node_id);
-                }
-
-                println!("Chiose: ");
-                let _ = io::stdin().read_line(&mut input);
-                let target: NodeId;
-                match input.trim_end().parse::<NodeId>() {
-                    Ok(value) => target = value,
-                    Err(e) => {
-                        error!(
-                            "{} [ ERROR ]: Please insert a valid NodeId: {}",
-                            "✗".red(),
-                            e
-                        );
-                        return;
-                    }
-                }
-                input.clear();
-
-                println!("Insert the desired PDR: ");
-                let _ = io::stdin().read_line(&mut input);
-
-                match input.trim_end().parse::<f32>() {
-                    Ok(value) if (0.0..=1.0).contains(&value) => {
-                        let mut found: bool = false;
-                        let drone_ids: Vec<NodeId> = self.drones.keys().cloned().collect();
-                        for node_id in drone_ids {
-                            if node_id == target {
-                                found = true;
-                                self.handle_command(
-                                    &node_id,
-                                    DroneCommand::SetPacketDropRate(value),
-                                );
-                            }
-                        }
-
-                        if !found {
-                            error!(
-                                "{} [ ERROR ]: There is no drones with the provided NodeIds",
-                                "✗".red(),
-                            );
-                        }
-                    }
-                    Ok(_) => {
-                        error!(
-                            "{} [ ERROR ]: The PDR number is out of range. Please enter a number between 0 and 1.",
-                            "✗".red(),
-                        );
-                    }
-                    Err(_) => {
-                        error!(
-                            "{} [ ERROR ]: That's not a valid number. Please try again.",
-                            "✗".red(),
-                        );
-                    }
-                }
-                input.clear();
-            }
+            0 => self.spawn(),
+            1 => self.crash(),
+            2 => self.remove_sender(),
+            3 => self.add_sender(),
+            4 => self.set_pdr(),
             5 => info!("{} None selected", "✓".green()),
-            _ => error!("{} [ ERROR ]: Select a number between 0 and 5", "✗".red(),),
+            _ => error!("{} [ ERROR ]: Select a number between 0 and 5", "✗".red()),
+        }
+    }
+
+    fn client_action_handler(&mut self) {
+
+    }
+
+    fn ask_action(&mut self) {
+        // UI menu
+        println!("Would u like to perform an action on:");
+        println!("0 - Drone");
+        println!("1 - Client");
+        println!("\nChiose: ");
+
+        // Create input sting
+        let mut input = String::new();
+        // Get input from stdin
+        let _ = io::stdin().read_line(&mut input);
+
+        // Parse and verify input
+        let category: i32;
+        match input.trim_end().parse::<i32>() {
+            Ok(value) => category = value,
+            Err(e) => {
+                error!(
+                    "{} [ ERROR ]: Please insert a valid value: {}",
+                    "✗".red(),
+                    e
+                );
+                return;
+            }
+        }
+        // Clear input string
+        input.clear();
+        
+        // Handle chiose
+        match category {
+            0 => self.drone_action_handler(),
+            1 => self.client_action_handler(),
+            _ => error!("{} [ ERROR ]: The number must be either 0 or 1", "✗".red())
         }
     }
 
     pub fn run(&mut self) {
+        // Start loop
         loop {
+            // Check for action to perform
             self.ask_action();
 
+            // Check if any events are received
             match self.receiver.try_recv() {
                 Ok(drone_event) => {
                     self.handle_event(drone_event);
@@ -482,8 +694,6 @@ impl SimulationController {
             }
         }
     }
-
-    fn spawn() {}
 
     fn handle_event(&self, drone_event: DroneEvent) {
         match drone_event {
