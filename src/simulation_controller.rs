@@ -147,7 +147,7 @@ impl SimulationController {
                 Err(e) => match e {
                     crossbeam_channel::TryRecvError::Empty => continue,
                     crossbeam_channel::TryRecvError::Disconnected => eprintln!(
-                        "[ {} ]: DroneEvent receiver channel disconnected: {}",
+                        "[ {} ]: GUICommands receiver channel disconnected: {}",
                         "Simulation Controller".red(),
                         e
                     ),
