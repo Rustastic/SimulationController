@@ -9,6 +9,8 @@ use wg_2024::{
     packet::{Packet, PacketType},
 };
 
+use gui::{GUICommands, GUIEvents};
+
 //use chat_client::ChatClient;
 
 use crate::{action, helpers::user_interaction};
@@ -19,6 +21,8 @@ pub struct SimulationController {
     receiver: Receiver<DroneEvent>,
     pub neighbor: HashMap<NodeId, Vec<NodeId>>,
     pub event_send: Sender<DroneEvent>,
+    gui_send: Sender<GUIEvents>,
+    gui_recv: Receiver<GUICommands>
 }
 
 impl SimulationController {
@@ -27,12 +31,16 @@ impl SimulationController {
         receiver: Receiver<DroneEvent>,
         neighbor: HashMap<NodeId, Vec<NodeId>>,
         event_send: Sender<DroneEvent>,
+        gui_send: Sender<GUIEvents>,
+        gui_recv: Receiver<GUICommands>
     ) -> Self {
         return Self {
             drones,
             receiver,
             neighbor,
             event_send,
+            gui_send,
+            gui_recv
         };
     }
 
@@ -130,12 +138,29 @@ impl SimulationController {
                     ),
                 },
             }
+
+            // Check if any commands are received
+            match self.gui_recv.try_recv() {
+                Ok(gui_command) => {
+                    self.handle_gui_command(gui_command);
+                },
+                Err(e) => match e {
+                    crossbeam_channel::TryRecvError::Empty => continue,
+                    crossbeam_channel::TryRecvError::Disconnected => eprintln!(
+                        "[ {} ]: DroneEvent receiver channel disconnected: {}",
+                        "Simulation Controller".red(),
+                        e
+                    ),
+                },
+            }
         }
     }
 
     pub fn handle_event(&self, drone_event: DroneEvent) {
         match drone_event {
             DroneEvent::PacketSent(packet) => {
+                let gui_packet = packet.clone();
+
                 let src = packet
                     .routing_header
                     .hops
@@ -148,7 +173,23 @@ impl SimulationController {
                     .get(packet.routing_header.hop_index + 1)
                     .unwrap();
 
-                let packet_type = packet.pack_type;
+                let packet_type = packet.clone().pack_type;
+
+                // GUI
+                match self.gui_send.send(GUIEvents::PacketSent(*src, *dest, gui_packet)) {
+                    Ok(()) => println!(
+                        "[ Simulation Controller ]: sent a GUIEvent: PacketSent({}, {}) sent to GUI",
+                        src,
+                        dest
+                    ),
+                    Err(e) => eprintln!(
+                        "[ {} ]: failed to send GUIEvent: PacketSent({}, {}) sent to GUI: {}",
+                        "Simulation Controller".red(),
+                        src,
+                        dest,
+                        e
+                    ),
+                }
 
                 println!(
                     "[ Drone: {} ]: Sent a Packet: {} to Drone {}",
@@ -158,6 +199,8 @@ impl SimulationController {
                 );
             },
             DroneEvent::PacketDropped(packet) => {
+                let gui_packet = packet.clone();
+
                 let drone = packet
                     .routing_header
                     .hops
@@ -167,6 +210,19 @@ impl SimulationController {
                 let session_id = packet.session_id;
 
                 // GUI
+                match self.gui_send.send(GUIEvents::PacketDropped(*drone, gui_packet)) {
+                    Ok(()) => println!(
+                        "[ Simulation Controller ]: sent a GUIEvent: PacketDropped({}) sent to GUI",
+                        drone
+                    ),
+                    Err(e) => eprintln!(
+                        "[ {} ]: failed to send GUIEvent: PacketDropped({}) sent to GUI: {}",
+                        "Simulation Controller".red(),
+                        drone,
+                        e
+                    ),
+                }
+
                 println!(
                     "[ Drone: {} ]: Dropped the packet with session_id: {}",
                     drone,
@@ -216,11 +272,11 @@ impl SimulationController {
                         vec.retain(|x| *x != node_id);
                         match command_channel.send(DroneCommand::RemoveSender(node_id)) {
                             Ok(()) => println!(
-                                "[ Simulation Controller ]: sent a DroneCommand: RemoveSender({}) sent to [ Drone {} ]",
+                                "[ Simulation Controller ]: sent a DroneCommand: RemoveSender({}) to [ Drone {} ]",
                                 node_id,
                                 drone
                             ),
-                            Err(e) => println!(
+                            Err(e) => eprintln!(
                                 "[ {} ]: failed to send a DroneCommand: RemoveSender({}) to the [ Drone {} ]: {}",
                                 "Simulation Controller".red(),
                                 node_id,
@@ -241,7 +297,7 @@ impl SimulationController {
                         vec.push(node_id);
                         match command_channel.send(DroneCommand::AddSender(node_id, sender)) {
                             Ok(()) => println!(
-                                "[ Simulation Controller ]: sent a DroneCommand: AddSender({}, sender_channel) sent to [ Drone {} ]",
+                                "[ Simulation Controller ]: sent a DroneCommand: AddSender({}, sender_channel) to [ Drone {} ]",
                                 node_id,
                                 drone
                             ),
@@ -264,7 +320,7 @@ impl SimulationController {
                 DroneCommand::SetPacketDropRate(pdr) => {
                     match command_channel.send(DroneCommand::SetPacketDropRate(pdr)) {
                         Ok(()) => println!(
-                            "[ Simulation Controller ]: sent a DroneCommand: SetPacketDropRate({}) sent to [ Drone {} ]",
+                            "[ Simulation Controller ]: sent a DroneCommand: SetPacketDropRate({}) to [ Drone {} ]",
                             pdr,
                             drone
                         ),
@@ -290,7 +346,7 @@ impl SimulationController {
                     if let Some((command_channel, _)) = drone_entry {
                         match command_channel.send(DroneCommand::Crash) {
                             Ok(()) => println!(
-                                "[ Simulation Controller ]: sent a DroneCommand: Crash() sent to [ Drone {} ]",
+                                "[ Simulation Controller ]: sent a DroneCommand: Crash() to [ Drone {} ]",
                                 drone
                             ),
                             Err(e) => eprintln!(
@@ -315,6 +371,16 @@ impl SimulationController {
                 "Simulation Controller".red(),
                 drone
             );
+        }
+    }
+
+    fn handle_gui_command(&mut self, command: GUICommands) {
+        match command {
+            GUICommands::Spawn(drone) => return,
+            GUICommands::Crash(drone) => self.handle_command(&drone, DroneCommand::Crash),
+            GUICommands::RemoveSender(drone, neighbor) => self.handle_command(&drone, DroneCommand::RemoveSender(neighbor)),
+            GUICommands::AddSender(drone, neighbor) => return,
+            GUICommands::SetPDR(drone, pdr) => self.handle_command(&drone, DroneCommand::SetPacketDropRate(pdr)),
         }
     }
 }
