@@ -376,7 +376,7 @@ impl SimulationController {
 
     fn handle_gui_command(&mut self, command: GUICommands) {
         match command {
-            GUICommands::Spawn(drone) => return,
+            GUICommands::Spawn => return,
             GUICommands::Crash(drone) => self.handle_command(&drone, DroneCommand::Crash),
             GUICommands::RemoveSender(drone, neighbor) => self.handle_command(&drone, DroneCommand::RemoveSender(neighbor)),
             GUICommands::AddSender(drone, neighbor) => return,
