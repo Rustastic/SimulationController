@@ -122,7 +122,7 @@ impl SimulationController {
         // Start loop
         loop {
             // Check for action to perform
-            self.ask_action();
+            //self.ask_action();
 
             // Check if any events are received
             match self.receiver.try_recv() {
