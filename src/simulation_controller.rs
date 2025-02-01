@@ -1,5 +1,5 @@
 use crossbeam_channel::{Receiver, Sender};
-use log::{error, info};
+use log::{error, info, warn};
 use std::{collections::HashMap, io::Write};
 
 use colored::Colorize;
@@ -46,9 +46,10 @@ impl SimulationController {
     }
 
     pub fn run(&mut self) {
-        info!("[ Simulation Controller ] Starting Simulation Controller");
+        info!("[ {} ] Starting Simulation Controller", "Simulation Controller".green());
         // Start loop
         loop {
+
             // Check if any events are received
             match self.receiver.try_recv() {
                 Ok(drone_event) => {
@@ -56,7 +57,7 @@ impl SimulationController {
                     self.handle_event(drone_event);
                 }
                 Err(e) => match e {
-                    crossbeam_channel::TryRecvError::Empty => continue,
+                    crossbeam_channel::TryRecvError::Empty => (),
                     crossbeam_channel::TryRecvError::Disconnected => error!(
                         "[ {} ]: DroneEvent receiver channel disconnected: {}",
                         "Simulation Controller".red(),
@@ -73,7 +74,7 @@ impl SimulationController {
                     self.handle_gui_command(gui_command);
                 },
                 Err(e) => match e {
-                    crossbeam_channel::TryRecvError::Empty => continue,
+                    crossbeam_channel::TryRecvError::Empty => warn!("[ {} ] Nothing", "Simulation Controller".yellow()),
                     crossbeam_channel::TryRecvError::Disconnected => error!(
                         "[ {} ]: GUICommands receiver channel disconnected: {}",
                         "Simulation Controller".red(),
