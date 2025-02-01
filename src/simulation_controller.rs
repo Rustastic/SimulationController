@@ -104,12 +104,12 @@ impl SimulationController {
                 // GUI
                 match self.gui_send.send(GUIEvents::PacketSent(*src, *dest, gui_packet)) {
                     Ok(()) => println!(
-                        "[ Simulation Controller ]: sent a GUIEvent: PacketSent({}, {}) sent to GUI",
+                        "[ Simulation Controller ]: sent a GUIEvent: PacketSent({}, {}) to GUI",
                         src,
                         dest
                     ),
                     Err(e) => eprintln!(
-                        "[ {} ]: failed to send GUIEvent: PacketSent({}, {}) sent to GUI: {}",
+                        "[ {} ]: failed to send GUIEvent: PacketSent({}, {}) to GUI: {}",
                         "Simulation Controller".red(),
                         src,
                         dest,
@@ -210,6 +210,9 @@ impl SimulationController {
                                 e
                             ),
                         }
+
+                        action::remove_sender(self, *drone, node_id);
+
                     } else {
                         eprintln!(
                             "[ {} ]: the [ Drone {} ] does not have any neighbor",
@@ -235,6 +238,9 @@ impl SimulationController {
                                 e
                             ),
                         }
+
+                        action::add_sender(self, *drone, node_id);
+
                     } else {
                         eprintln!(
                             "[ {} ]: the [ Drone {} ] does not have any neighbor",

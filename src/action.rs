@@ -46,18 +46,6 @@ where
     )
 }
 
-pub fn print(sim_ctrl: &SimulationController) {
-    for (drone, _) in sim_ctrl.drones.iter() {
-        println!("\n[ Drone: {} ]", drone);
-
-        println!("Neighbors:");
-        let neighbor_ids = sim_ctrl.neighbor.get(drone).unwrap();
-        for neighbor in neighbor_ids {
-            println!("\t[ Drone: {} ]", neighbor)
-        }
-    }
-}
-
 pub fn spawn(sim_ctrl: &mut SimulationController) {
     // Get ID of the new drone
     // UI menu
@@ -213,6 +201,11 @@ pub fn spawn(sim_ctrl: &mut SimulationController) {
 }
 
 pub fn crash(sim_ctrl: &mut SimulationController, target: NodeId) {
+    if let Err(e) = verify::check_drone_existence(&sim_ctrl, &target) {
+        println!("{}", e);
+        return;
+    }
+
     // If the drone has any neighbors
     if let Some(neighbor_ids) = sim_ctrl.neighbor.get_mut(&target).cloned() {
         for neighbor in neighbor_ids {
@@ -222,54 +215,10 @@ pub fn crash(sim_ctrl: &mut SimulationController, target: NodeId) {
     }
 }
 
-pub fn remove_sender(sim_ctrl: &mut SimulationController) {
-    // Get drone to which remove a sender
-    // UI menu
-    let prompt = "Witch drone would you like to send the DroneCommand::RemoveSender".to_string();
-    user_interaction::print_drones(sim_ctrl, prompt);
-
-    // Create input sting
-    let mut input = String::new();
-    // Get input from stdin
-    let _ = io::stdin().read_line(&mut input);
-
-    // Parse and verify input
-    let target: NodeId;
-    match user_interaction::parse_and_verify(&mut input) {
-        Ok(node_id) => target = node_id,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
-
-    // Check if it exists a drone with this id
-    if let Err(e) = verify::check_drone_existence(&sim_ctrl, &target) {
-        println!("{}", e);
-        return;
-    }
-
-    // Get the neighbor to remove
-    // UI menu
-    let prompt = "Which of his neighbor would u like to remove?".to_string();
-    user_interaction::print_neighbor(sim_ctrl, prompt, &target);
-
-    // Get input from stdin
-    let _ = io::stdin().read_line(&mut input);
-
-    // Parse and verify input
-    let to_remove: NodeId;
-    match user_interaction::parse_and_verify(&mut input) {
-        Ok(node_id) => to_remove = node_id,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    }
-
+pub fn remove_sender(sim_ctrl: &mut SimulationController, drone: NodeId, to_remove: NodeId) {
     // Check if it exists a neighbor with this id
-    match verify::has_neighbors(sim_ctrl, &target) {
-        Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_remove, &target, false) {
+    match verify::has_neighbors(sim_ctrl, &drone) {
+        Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_remove, &drone, false) {
             Ok(()) => (),
             Err(e) => {
                 println!("{}", e);
@@ -283,8 +232,7 @@ pub fn remove_sender(sim_ctrl: &mut SimulationController) {
     }
 
     // Send command
-    sim_ctrl.handle_command(&target, DroneCommand::RemoveSender(to_remove));
-    sim_ctrl.handle_command(&to_remove, DroneCommand::RemoveSender(target));
+    sim_ctrl.handle_command(&to_remove, DroneCommand::RemoveSender(drone));
 }
 
 pub fn add_sender(sim_ctrl: &mut SimulationController, drone: NodeId, to_add: NodeId) {
@@ -304,9 +252,6 @@ pub fn add_sender(sim_ctrl: &mut SimulationController, drone: NodeId, to_add: No
     }
 
     // Add drone
-    // Get sender channel of the target drone
-    let (_, to_add_packet_send) = sim_ctrl.drones.get(&to_add).unwrap().clone();
-    // Get sender channel of the drone to add
     let (_, drone_packet_send) = sim_ctrl.drones.get(&drone).unwrap().clone();
 
     sim_ctrl.handle_command(
