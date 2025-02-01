@@ -44,80 +44,6 @@ impl SimulationController {
         };
     }
 
-    fn drone_action_handler(&mut self) {
-        // UI menu
-        println!("Select the action to execute:");
-        println!("0 - Spawn");
-        println!("1 - Crash");
-        println!("2 - RemoveSender");
-        println!("3 - AddSender");
-        println!("4 - SetPackageDropRate");
-        println!("5 - Print");
-        println!("6 - None");
-        println!("\nChiose: ");
-
-        // Create input sting
-        let mut input = String::new();
-        // Get input from stdin
-        let _ = io::stdin().read_line(&mut input);
-
-        // Parse and verify input
-        let number: i32;
-        match user_interaction::parse_and_verify(&mut input) {
-            Ok(node_id) => number = node_id,
-            Err(e) => {
-                println!("{}", e);
-                return;
-            }
-        }
-
-        // Handle chiose
-        match number {
-            0 => action::spawn(self),
-            1 => action::crash(self),
-            2 => action::remove_sender(self),
-            3 => action::add_sender(self),
-            4 => action::set_pdr(self),
-            5 => action::print(self),
-            6 => println!("None selected"),
-            _ => eprintln!("[ ERROR ]: Select a number between 0 and 6"),
-        }
-    }
-
-    fn client_action_handler(&mut self) {}
-
-    fn ask_action(&mut self) {
-        // UI menu
-        println!("Would u like to perform an action on:");
-        println!("0 - Drone");
-        println!("1 - Client");
-        println!("\nChiose: ");
-
-        // Create input sting
-        let mut input = String::new();
-        // Get input from stdin
-        let _ = io::stdin().read_line(&mut input);
-
-        // Parse and verify input
-        let category: i32;
-        match input.trim_end().parse::<i32>() {
-            Ok(value) => category = value,
-            Err(e) => {
-                eprintln!("[ ERROR ]: Please insert a valid value: {}", e);
-                return;
-            }
-        }
-        // Clear input string
-        input.clear();
-
-        // Handle chiose
-        match category {
-            0 => self.drone_action_handler(),
-            1 => self.client_action_handler(),
-            _ => eprintln!("[ ERROR ]: The number must be either 0 or 1"),
-        }
-    }
-
     pub fn run(&mut self) {
         // Start loop
         loop {
@@ -334,6 +260,8 @@ impl SimulationController {
                     }
                 }
                 DroneCommand::Crash => {
+                    action::crash(self, *drone);
+
                     if let Some((command_send, packet_send)) = self.drones.get(drone) {
                         let _ = drop(command_send);
                         let _ = drop(packet_send);

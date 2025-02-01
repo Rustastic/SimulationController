@@ -212,32 +212,7 @@ pub fn spawn(sim_ctrl: &mut SimulationController) {
     }
 }
 
-pub fn crash(sim_ctrl: &mut SimulationController) {
-    // Get drone to crash
-    // UI menu
-    let prompt = "Witch drone would you like to send the DroneCommand::Crash".to_string();
-    user_interaction::print_drones(&sim_ctrl, prompt);
-
-    // Create input sting
-    let mut input = String::new();
-    // Get input from stdin
-    let _ = io::stdin().read_line(&mut input);
-
-    // Parse and verify input
-    let target: NodeId;
-    match user_interaction::parse_and_verify(&mut input) {
-        Ok(node_id) => target = node_id,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    }
-
-    if let Err(e) = verify::check_drone_existence(&sim_ctrl, &target) {
-        println!("{}", e);
-        return;
-    }
-
+pub fn crash(sim_ctrl: &mut SimulationController, target: NodeId) {
     // If the drone has any neighbors
     if let Some(neighbor_ids) = sim_ctrl.neighbor.get_mut(&target).cloned() {
         for neighbor in neighbor_ids {
@@ -245,9 +220,6 @@ pub fn crash(sim_ctrl: &mut SimulationController) {
             sim_ctrl.handle_command(&neighbor, DroneCommand::RemoveSender(target));
         }
     }
-
-    // Send command
-    sim_ctrl.handle_command(&target, DroneCommand::Crash);
 }
 
 pub fn remove_sender(sim_ctrl: &mut SimulationController) {
@@ -315,78 +287,10 @@ pub fn remove_sender(sim_ctrl: &mut SimulationController) {
     sim_ctrl.handle_command(&to_remove, DroneCommand::RemoveSender(target));
 }
 
-pub fn add_sender(sim_ctrl: &mut SimulationController) {
-    // Get drone to which add a sender
-    // UI menu
-    let prompt = "Witch drone would you like to send the DroneCommand::AddSender".to_string();
-    user_interaction::print_drones(sim_ctrl, prompt);
-
-    // Create input sting
-    let mut input = String::new();
-    // Get input from stdin
-    let _ = io::stdin().read_line(&mut input);
-
-    // Parse and verify input
-    let target: NodeId;
-    match user_interaction::parse_and_verify(&mut input) {
-        Ok(node_id) => target = node_id,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    }
-
-    if let Err(e) = verify::check_drone_existence(&sim_ctrl, &target) {
-        println!("{}", e);
-        return;
-    }
-
-    // Get drone to add
-    // UI menu
-    println!("Which Drone you want to add?");
-    // Get the drone neighbors
-    match verify::has_neighbors(sim_ctrl, &target) {
-        Ok(neighbor) => {
-            // for all drones
-            for (node_id, _) in sim_ctrl.drones.iter() {
-                let mut not_neighbor = true;
-                // for all the drone's neighbor
-                for neighbor_id in neighbor {
-                    // if the drone is not the neighbor or the drone itself
-                    if node_id == neighbor_id || *node_id == target {
-                        not_neighbor = false
-                    }
-                }
-                if not_neighbor {
-                    // UI menu
-                    println!("- [ Drone {} ]", node_id);
-                }
-            }
-        }
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    }
-
-    // UI menu
-    println!("Write the number corresponding to the chosen option");
-    // Get input from stdin
-    let _ = io::stdin().read_line(&mut input);
-
-    // Parse and verify input
-    let to_add: NodeId;
-    match user_interaction::parse_and_verify(&mut input) {
-        Ok(node_id) => to_add = node_id,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    }
-
+pub fn add_sender(sim_ctrl: &mut SimulationController, drone: NodeId, to_add: NodeId) {
     // Check if it exists a neighbor with this id
-    match verify::has_neighbors(sim_ctrl, &target) {
-        Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_add, &target, true) {
+    match verify::has_neighbors(sim_ctrl, &drone) {
+        Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_add, &drone, true) {
             Ok(()) => (),
             Err(e) => {
                 println!("{}", e);
@@ -403,58 +307,10 @@ pub fn add_sender(sim_ctrl: &mut SimulationController) {
     // Get sender channel of the target drone
     let (_, to_add_packet_send) = sim_ctrl.drones.get(&to_add).unwrap().clone();
     // Get sender channel of the drone to add
-    let (_, target_packet_send) = sim_ctrl.drones.get(&target).unwrap().clone();
+    let (_, drone_packet_send) = sim_ctrl.drones.get(&drone).unwrap().clone();
 
-    // Send command
-    sim_ctrl.handle_command(
-        &target,
-        DroneCommand::AddSender(to_add, to_add_packet_send.clone()),
-    );
     sim_ctrl.handle_command(
         &to_add,
-        DroneCommand::AddSender(target, target_packet_send.clone()),
+        DroneCommand::AddSender(drone, drone_packet_send.clone()),
     );
-}
-
-pub fn set_pdr(sim_ctrl: &mut SimulationController) {
-    // Get drone to which change the pdr
-    // UI menu
-    let prompt =
-        "Witch drone would you like to send the DroneCommand::SetPackageDropRate".to_string();
-    user_interaction::print_drones(sim_ctrl, prompt);
-
-    // Create input sting
-    let mut input = String::new();
-    // Get input from stdin
-    let _ = io::stdin().read_line(&mut input);
-
-    // Parse and verify input
-    let target: NodeId;
-    match user_interaction::parse_and_verify(&mut input) {
-        Ok(node_id) => target = node_id,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    }
-
-    if let Err(e) = verify::check_drone_existence(&sim_ctrl, &target) {
-        println!("{}", e);
-        return;
-    }
-
-    // Get the new PDR
-    // UI menu
-    println!("Insert the desired PDR: ");
-    // Get input from stdin
-    let _ = io::stdin().read_line(&mut input);
-
-    // Parse and verify input
-    match user_interaction::pdr_parse_and_verify(&mut input) {
-        Ok(value) => sim_ctrl.handle_command(&target, DroneCommand::SetPacketDropRate(value)),
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    }
 }
