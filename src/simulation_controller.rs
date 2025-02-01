@@ -1,5 +1,5 @@
 use crossbeam_channel::{Receiver, Sender};
-use std::{collections::HashMap, io};
+use std::{collections::HashMap, io::{self, stdout, Write}};
 
 use colored::Colorize;
 
@@ -188,6 +188,8 @@ impl SimulationController {
                 }
             }
         }
+
+        stdout().flush().unwrap();
     }
 
     pub fn handle_command(&mut self, drone: &NodeId, drone_command: DroneCommand) {
@@ -306,6 +308,8 @@ impl SimulationController {
                 drone
             );
         }
+
+        stdout().flush().unwrap();
     }
 
     fn handle_gui_command(&mut self, command: GUICommands) {
