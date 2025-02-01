@@ -46,6 +46,9 @@ impl SimulationController {
     }
 
     pub fn run(&mut self) {
+        // Initialize env_logger
+        env_logger::init();
+        
         // Start loop
         loop {
             // Check for action to perform
