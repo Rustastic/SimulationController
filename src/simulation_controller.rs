@@ -1,4 +1,5 @@
 use crossbeam_channel::{Receiver, Sender};
+use log::{error, info};
 use std::{collections::HashMap, io::{self, stdout, Write}};
 
 use colored::Colorize;
@@ -199,12 +200,12 @@ impl SimulationController {
                     if let Some(vec) = self.neighbor.get_mut(drone) {
                         vec.retain(|x| *x != node_id);
                         match command_channel.send(DroneCommand::RemoveSender(node_id)) {
-                            Ok(()) => println!(
+                            Ok(()) => info!(
                                 "[ Simulation Controller ]: sent a DroneCommand: RemoveSender({}) to [ Drone {} ]",
                                 node_id,
                                 drone
                             ),
-                            Err(e) => eprintln!(
+                            Err(e) => error!(
                                 "[ {} ]: failed to send a DroneCommand: RemoveSender({}) to the [ Drone {} ]: {}",
                                 "Simulation Controller".red(),
                                 node_id,
@@ -216,7 +217,7 @@ impl SimulationController {
                         action::remove_sender(self, *drone, node_id);
 
                     } else {
-                        eprintln!(
+                        error!(
                             "[ {} ]: the [ Drone {} ] does not have any neighbor",
                             "Simulation Controller".red(),
                             drone
@@ -227,12 +228,12 @@ impl SimulationController {
                     if let Some(vec) = self.neighbor.get_mut(drone) {
                         vec.push(node_id);
                         match command_channel.send(DroneCommand::AddSender(node_id, sender)) {
-                            Ok(()) => println!(
+                            Ok(()) => info!(
                                 "[ Simulation Controller ]: sent a DroneCommand: AddSender({}, sender_channel) to [ Drone {} ]",
                                 node_id,
                                 drone
                             ),
-                            Err(e) => eprintln!(
+                            Err(e) => error!(
                                 "[ {} ]: failed to send a DroneCommand: AddSender({}, sender_channel) to the [ Drone {} ]: {}",
                                 "Simulation Controller".red(),
                                 node_id,
@@ -244,7 +245,7 @@ impl SimulationController {
                         action::add_sender(self, *drone, node_id);
 
                     } else {
-                        eprintln!(
+                        error!(
                             "[ {} ]: the [ Drone {} ] does not have any neighbor",
                             "Simulation Controller".red(),
                             drone
