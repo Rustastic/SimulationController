@@ -46,6 +46,7 @@ impl SimulationController {
     }
 
     pub fn run(&mut self) {
+        info!("[ Simulation Controller ] Starting Simulation Controller");
         // Start loop
         loop {
             // Check if any events are received
