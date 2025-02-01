@@ -46,14 +46,8 @@ impl SimulationController {
     }
 
     pub fn run(&mut self) {
-        // Initialize env_logger
-        env_logger::init();
-        
         // Start loop
         loop {
-            // Check for action to perform
-            //self.ask_action();
-
             // Check if any events are received
             match self.receiver.try_recv() {
                 Ok(drone_event) => {
