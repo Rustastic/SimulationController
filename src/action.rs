@@ -46,111 +46,11 @@ where
     )
 }
 
-pub fn spawn(sim_ctrl: &mut SimulationController) {
-    // Get ID of the new drone
-    // UI menu
-    println!("Please provide the necessary parameters for the new drone\n");
-    println!("Id: Choose a value between 0 and 255 that will become the Id of the new drone");
-    println!("Be careful that id doesn't match the one of an existing drone");
-    let prompt = "See the following list of existing drone".to_string();
-    user_interaction::print_drones(sim_ctrl, prompt);
-
-    // Create input sting
-    let mut input = String::new();
-    // Get input from stdin
-    let _ = io::stdin().read_line(&mut input);
-
-    // Parse and verify input
-    let id: NodeId;
-    match user_interaction::parse_and_verify(&mut input) {
-        Ok(node_id) => id = node_id,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    }
-
+pub fn spawn(sim_ctrl: &mut SimulationController, id: NodeId, connected_node_ids: Vec<NodeId>, pdr: f32) {
     // Check if drone with this id already exist
     if sim_ctrl.drones.contains_key(&id) {
         eprintln!("[ ERROR ]: A drone with the NodeId: {} already exists", id);
         return;
-    }
-
-    // Get all the neighbors
-    // Vec containing the neighbor drones
-    let mut connected_node_ids = Vec::<NodeId>::new();
-
-    let prompt =
-        "Neighbors: Choose the drones that will be the neighbors of the new drone".to_string();
-    user_interaction::print_drones(sim_ctrl, prompt);
-
-    // loop to get all the neighbors
-    let mut add = true;
-    while add {
-        // UI menu
-        println!("Connected Drones Id: ");
-        // Get input from stdin
-        let _ = io::stdin().read_line(&mut input);
-
-        // Parse and verify input
-        let new_neighbor: NodeId;
-        match user_interaction::parse_and_verify(&mut input) {
-            Ok(node_id) => new_neighbor = node_id,
-            Err(e) => {
-                println!("{}", e);
-                return;
-            }
-        }
-
-        // Add drone to the neighbor vec
-        if !connected_node_ids.contains(&new_neighbor) {
-            connected_node_ids.push(new_neighbor);
-        } else {
-            eprintln!(
-                "[ ERROR ]: The [ Drone: {} ] is already a neighbor",
-                new_neighbor
-            );
-        }
-
-        // Ask if user want to add another drone
-        // UI menu
-        println!("Do you want to add another Drone to the neighbor list?\n 0->No 1->Yes");
-        // Get input from stdin
-        let _ = io::stdin().read_line(&mut input);
-
-        // Parse and verify input
-        match input.trim_end().parse::<u8>() {
-            Ok(value) => {
-                if value != 0 {
-                    println!("Write the number corresponding to the chosen option");
-                    add = true;
-                } else {
-                    add = false;
-                }
-            }
-            Err(e) => {
-                eprintln!("[ ERROR ]: Please insert a valid value: {}", e);
-                return;
-            }
-        }
-        //clear input string
-        input.clear();
-    }
-
-    // Get drone pdr
-    // UI menu
-    println!("Packet Drop Rate: Choose a value between 0.00 and 1.00 that will become the PDR of the new drone");
-    // Get input from stdin
-    let _ = io::stdin().read_line(&mut input);
-
-    // Parse and verify input
-    let pdr: f32;
-    match user_interaction::pdr_parse_and_verify(&mut input) {
-        Ok(value) => pdr = value,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
     }
 
     // Create new drone
