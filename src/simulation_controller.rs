@@ -109,7 +109,8 @@ impl SimulationController {
                 // GUI
                 match self.gui_send.send(GUIEvents::PacketSent(*src, *dest, gui_packet)) {
                     Ok(()) => info!(
-                        "[ Simulation Controller ]: sent a GUIEvent: PacketSent({}, {}) to GUI",
+                        "[ {} ]: sent a GUIEvent: PacketSent({}, {}) to GUI",
+                        "Simulation Controller".green(),
                         src,
                         dest
                     ),
@@ -143,7 +144,8 @@ impl SimulationController {
                 // GUI
                 match self.gui_send.send(GUIEvents::PacketDropped(*drone, gui_packet)) {
                     Ok(()) => info!(
-                        "[ Simulation Controller ]: sent a GUIEvent: PacketDropped({}) sent to GUI",
+                        "[ {} ]: sent a GUIEvent: PacketDropped({}) sent to GUI",
+                        "Simulation Controller".green(),
                         drone
                     ),
                     Err(e) => error!(
@@ -203,7 +205,8 @@ impl SimulationController {
                         vec.retain(|x| *x != node_id);
                         match command_channel.send(DroneCommand::RemoveSender(node_id)) {
                             Ok(()) => info!(
-                                "[ Simulation Controller ]: sent a DroneCommand: RemoveSender({}) to [ Drone {} ]",
+                                "[ {} ]: sent a DroneCommand: RemoveSender({}) to [ Drone {} ]",
+                                "Simulation Controller".green(),
                                 node_id,
                                 drone
                             ),
@@ -231,7 +234,8 @@ impl SimulationController {
                         vec.push(node_id);
                         match command_channel.send(DroneCommand::AddSender(node_id, sender)) {
                             Ok(()) => info!(
-                                "[ Simulation Controller ]: sent a DroneCommand: AddSender({}, sender_channel) to [ Drone {} ]",
+                                "[ {} ]: sent a DroneCommand: AddSender({}, sender_channel) to [ Drone {} ]",
+                                "Simulation Controller".green(),
                                 node_id,
                                 drone
                             ),
@@ -257,7 +261,8 @@ impl SimulationController {
                 DroneCommand::SetPacketDropRate(pdr) => {
                     match command_channel.send(DroneCommand::SetPacketDropRate(pdr)) {
                         Ok(()) => info!(
-                            "[ Simulation Controller ]: sent a DroneCommand: SetPacketDropRate({}) to [ Drone {} ]",
+                            "[ {} ]: sent a DroneCommand: SetPacketDropRate({}) to [ Drone {} ]",
+                            "Simulation Controller".green(),
                             pdr,
                             drone
                         ),
@@ -285,7 +290,8 @@ impl SimulationController {
                     if let Some((command_channel, _)) = drone_entry {
                         match command_channel.send(DroneCommand::Crash) {
                             Ok(()) => info!(
-                                "[ Simulation Controller ]: sent a DroneCommand: Crash() to [ Drone {} ]",
+                                "[ {} ]: sent a DroneCommand: Crash() to [ Drone {} ]",
+                                "Simulation Controller".green(),
                                 drone
                             ),
                             Err(e) => error!(
