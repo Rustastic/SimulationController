@@ -1,4 +1,5 @@
 use crossbeam_channel::{unbounded, Receiver, Sender};
+use log::error;
 use rand::Rng;
 use std::{collections::HashMap, io};
 
@@ -49,7 +50,7 @@ where
 pub fn spawn(sim_ctrl: &mut SimulationController, id: NodeId, connected_node_ids: Vec<NodeId>, pdr: f32) {
     // Check if drone with this id already exist
     if sim_ctrl.drones.contains_key(&id) {
-        eprintln!("[ ERROR ]: A drone with the NodeId: {} already exists", id);
+        error!("[ ERROR ]: A drone with the NodeId: {} already exists", id);
         return;
     }
 
@@ -102,7 +103,7 @@ pub fn spawn(sim_ctrl: &mut SimulationController, id: NodeId, connected_node_ids
 
 pub fn crash(sim_ctrl: &mut SimulationController, target: NodeId) {
     if let Err(e) = verify::check_drone_existence(&sim_ctrl, &target) {
-        println!("{}", e);
+        error!("{}", e);
         return;
     }
 
@@ -121,12 +122,12 @@ pub fn remove_sender(sim_ctrl: &mut SimulationController, drone: NodeId, to_remo
         Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_remove, &drone, false) {
             Ok(()) => (),
             Err(e) => {
-                println!("{}", e);
+                error!("{}", e);
                 return;
             }
         },
         Err(e) => {
-            println!("{}", e);
+            error!("{}", e);
             return;
         }
     }
@@ -141,12 +142,12 @@ pub fn add_sender(sim_ctrl: &mut SimulationController, drone: NodeId, to_add: No
         Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_add, &drone, true) {
             Ok(()) => (),
             Err(e) => {
-                println!("{}", e);
+                error!("{}", e);
                 return;
             }
         },
         Err(e) => {
-            println!("{}", e);
+            error!("{}", e);
             return;
         }
     }

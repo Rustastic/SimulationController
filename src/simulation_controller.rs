@@ -61,7 +61,7 @@ impl SimulationController {
                 }
                 Err(e) => match e {
                     crossbeam_channel::TryRecvError::Empty => continue,
-                    crossbeam_channel::TryRecvError::Disconnected => eprintln!(
+                    crossbeam_channel::TryRecvError::Disconnected => error!(
                         "[ {} ]: DroneEvent receiver channel disconnected: {}",
                         "Simulation Controller".red(),
                         e
@@ -76,7 +76,7 @@ impl SimulationController {
                 },
                 Err(e) => match e {
                     crossbeam_channel::TryRecvError::Empty => continue,
-                    crossbeam_channel::TryRecvError::Disconnected => eprintln!(
+                    crossbeam_channel::TryRecvError::Disconnected => error!(
                         "[ {} ]: GUICommands receiver channel disconnected: {}",
                         "Simulation Controller".red(),
                         e
@@ -107,12 +107,12 @@ impl SimulationController {
 
                 // GUI
                 match self.gui_send.send(GUIEvents::PacketSent(*src, *dest, gui_packet)) {
-                    Ok(()) => println!(
+                    Ok(()) => info!(
                         "[ Simulation Controller ]: sent a GUIEvent: PacketSent({}, {}) to GUI",
                         src,
                         dest
                     ),
-                    Err(e) => eprintln!(
+                    Err(e) => error!(
                         "[ {} ]: failed to send GUIEvent: PacketSent({}, {}) to GUI: {}",
                         "Simulation Controller".red(),
                         src,
@@ -121,7 +121,7 @@ impl SimulationController {
                     ),
                 }
 
-                println!(
+                info!(
                     "[ Drone: {} ]: Sent a Packet: {} to Drone {}",
                     src,
                     packet_type,
@@ -141,11 +141,11 @@ impl SimulationController {
 
                 // GUI
                 match self.gui_send.send(GUIEvents::PacketDropped(*drone, gui_packet)) {
-                    Ok(()) => println!(
+                    Ok(()) => info!(
                         "[ Simulation Controller ]: sent a GUIEvent: PacketDropped({}) sent to GUI",
                         drone
                     ),
-                    Err(e) => eprintln!(
+                    Err(e) => error!(
                         "[ {} ]: failed to send GUIEvent: PacketDropped({}) sent to GUI: {}",
                         "Simulation Controller".red(),
                         drone,
@@ -153,7 +153,7 @@ impl SimulationController {
                     ),
                 }
 
-                println!(
+                info!(
                     "[ Drone: {} ]: Dropped the packet with session_id: {}",
                     drone,
                     session_id
@@ -178,22 +178,20 @@ impl SimulationController {
                             }
                         }
                     } else {
-                        eprintln!(
+                        error!(
                             "[ {} ]: failed to find a Sender<Packet> channel for the [ Drone {} ]",
                             "Simulation Controller".red(),
                             dest
                         );
                     }
                 } else {
-                    eprintln!(
+                    error!(
                         "[ {} ]: failed to find a Drone to send the DroneEvent: ControllerShortcut",
                         "Simulation Controller".red()
                     );
                 }
             }
         }
-
-        stdout().flush().unwrap();
     }
 
     pub fn handle_command(&mut self, drone: &NodeId, drone_command: DroneCommand) {
@@ -257,12 +255,12 @@ impl SimulationController {
                 }
                 DroneCommand::SetPacketDropRate(pdr) => {
                     match command_channel.send(DroneCommand::SetPacketDropRate(pdr)) {
-                        Ok(()) => println!(
+                        Ok(()) => info!(
                             "[ Simulation Controller ]: sent a DroneCommand: SetPacketDropRate({}) to [ Drone {} ]",
                             pdr,
                             drone
                         ),
-                        Err(e) => eprintln!(
+                        Err(e) => error!(
                             "[ {} ]: failed to send a DroneCommand: SetPacketDropRate({}) to the [ Drone {} ]: {}",
                             "Simulation Controller".red(),
                             pdr,
@@ -285,11 +283,11 @@ impl SimulationController {
 
                     if let Some((command_channel, _)) = drone_entry {
                         match command_channel.send(DroneCommand::Crash) {
-                            Ok(()) => println!(
+                            Ok(()) => info!(
                                 "[ Simulation Controller ]: sent a DroneCommand: Crash() to [ Drone {} ]",
                                 drone
                             ),
-                            Err(e) => eprintln!(
+                            Err(e) => error!(
                                 "[ {} ]: failed to send a DroneCommand: Crash() to the [ Drone {} ]: {}",
                                 "Simulation Controller".red(),
                                 drone,
@@ -297,7 +295,7 @@ impl SimulationController {
                             ),
                         }
                     } else {
-                        eprintln!(
+                        error!(
                             "[ {} ]: the [ Drone {} ] was not found in the drones map",
                             "Simulation Controller".red(),
                             drone
@@ -306,14 +304,12 @@ impl SimulationController {
                 }
             }
         } else {
-            eprintln!(
+            error!(
                 "[ {} ]: failed to find a Sender<DroneCommand> channel for the [ Drone {} ]",
                 "Simulation Controller".red(),
                 drone
             );
         }
-
-        stdout().flush().unwrap();
     }
 
     fn handle_gui_command(&mut self, command: GUICommands) {
