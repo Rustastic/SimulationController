@@ -83,7 +83,8 @@ impl SimulationController {
                 },
             }
 
-            thread::sleep(std::time::Duration::from_secs(10));
+            //////////////////////////////////////////////////////////// REMOVE
+            thread::sleep(std::time::Duration::from_secs(1));
         }
     }
 
