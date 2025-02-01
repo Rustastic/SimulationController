@@ -14,7 +14,7 @@ use gui::{GUICommands, GUIEvents};
 
 //use chat_client::ChatClient;
 
-use crate::{action, helpers::user_interaction};
+use crate::action;
 
 #[derive(Clone)]
 pub struct SimulationController {
@@ -57,6 +57,7 @@ impl SimulationController {
             // Check if any events are received
             match self.receiver.try_recv() {
                 Ok(drone_event) => {
+                    info!("[ {} ]: DroneEvent received", "Simulation Controller".green());
                     self.handle_event(drone_event);
                 }
                 Err(e) => match e {
