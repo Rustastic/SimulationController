@@ -10,10 +10,10 @@ pub enum SimulationControllerError {
     DroneNotFound(NodeId),
     #[error("[ ERROR ]: Please insert a valid NodeId")]
     InvalidNodeId,
-    #[error("[ ERROR ]: The [ Drone: {0} ] is already a neighbor of [ Drone: {1} ]")]
-    AlreadyNeighbor(NodeId, NodeId),
-    #[error("[ ERROR ]: The [ Drone: {0} ] is not a neighbor of [ Drone: {1} ]")]
+    #[error("[ ERROR ]: The [ Drone: {0} ] is NOT a neighbor of [ Drone: {1} ]")]
     NotNeighbor(NodeId, NodeId),
+    #[error("[ ERROR ]: The [ Drone: {0} ] is a neighbor of [ Drone: {1} ]")]
+    IsNeighbor(NodeId, NodeId),
     #[error("[ ERROR ]: The [ Drone: {0} ] doesn't have any neighbor")]
     HasNoNeighbor(NodeId),
     #[error(

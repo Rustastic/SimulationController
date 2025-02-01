@@ -1,3 +1,5 @@
+use colored::Colorize;
+use log::info;
 use wg_2024::network::NodeId;
 
 use crate::{SimulationController, SimulationControllerError};
@@ -19,19 +21,21 @@ pub fn is_a_neighbor(
     drone: &NodeId,
     not: bool,
 ) -> Result<(), SimulationControllerError> {
-    if neighbor_vec.contains(&neighbor) {
-        if not {
-            Err(SimulationControllerError::NotNeighbor(*neighbor, *drone))
+    if not {
+        // If i am hoping it is not a neighbor (not = true)
+        if neighbor_vec.contains(&neighbor) {
+            Err(SimulationControllerError::IsNeighbor(*neighbor, *drone))
         } else {
+            info!("[ {} ] Yes, [ Drone: {} ] is not a neighbor of [ Drone: {} ]", "Simulation Controller".green(), drone, neighbor);
             Ok(())
         }
     } else {
-        if not {
+        // If i am hoping it is a neighbor (not = false)
+        if neighbor_vec.contains(&neighbor) {
+            info!("[ {} ] Yes, [ Drone: {} ] is a neighbor of [ Drone: {} ]", "Simulation Controller".green(), drone, neighbor);
             Ok(())
         } else {
-            Err(SimulationControllerError::AlreadyNeighbor(
-                *neighbor, *drone,
-            ))
+            Err(SimulationControllerError::NotNeighbor(*neighbor, *drone))
         }
     }
 }
