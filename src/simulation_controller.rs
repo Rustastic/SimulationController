@@ -73,6 +73,7 @@ impl SimulationController {
             // Check if any commands are received
             match self.gui_recv.try_recv() {
                 Ok(gui_command) => {
+                    info!("[ {} ]: GUICommand received", "Simulation Controller".green());
                     self.handle_gui_command(gui_command);
                 },
                 Err(e) => match e {
