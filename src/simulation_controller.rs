@@ -1,6 +1,6 @@
 use crossbeam_channel::{Receiver, Sender};
 use log::{error, info, warn};
-use std::{collections::HashMap, io::Write};
+use std::{collections::HashMap, io::Write, thread};
 
 use colored::Colorize;
 
@@ -82,6 +82,8 @@ impl SimulationController {
                     ),
                 },
             }
+
+            thread::sleep(std::time::Duration::from_secs(10));
         }
     }
 
