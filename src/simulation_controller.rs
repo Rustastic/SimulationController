@@ -1,6 +1,6 @@
 use crossbeam_channel::{Receiver, Sender};
 use log::{error, info};
-use std::{collections::HashMap, io::{self, stdout, Write}};
+use std::{collections::HashMap, io::Write};
 
 use colored::Colorize;
 
@@ -68,6 +68,7 @@ impl SimulationController {
             match self.gui_recv.try_recv() {
                 Ok(gui_command) => {
                     info!("[ {} ]: GUICommand received", "Simulation Controller".green());
+                    std::io::stdout().flush().unwrap();
                     self.handle_gui_command(gui_command);
                 },
                 Err(e) => match e {
