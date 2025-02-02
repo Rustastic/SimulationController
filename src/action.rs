@@ -142,12 +142,10 @@ pub fn add_sender(sim_ctrl: &mut SimulationController, drone: &NodeId, to_add: &
             },
             Err(e) => {
                 panic!("{}", e);
-                return;
             }
         },
         Err(e) => {
             panic!("{}", e);
-            return;
         }
     }
 }
