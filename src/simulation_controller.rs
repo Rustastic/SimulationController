@@ -1,13 +1,13 @@
-use crossbeam_channel::{unbounded, Receiver, Sender};
+use crossbeam_channel::{Receiver, Sender};
 use log::{error, info, warn};
-use std::{collections::HashMap, io::Write, thread};
+use std::{collections::HashMap, thread};
 
 use colored::Colorize;
 
 use wg_2024::{
     controller::{DroneCommand, DroneEvent},
     network::NodeId,
-    packet::{self, Packet, PacketType},
+    packet::{Packet, PacketType},
 };
 
 use gui::{GUICommands, GUIEvents};
@@ -23,7 +23,7 @@ pub struct SimulationController {
     pub neighbor: HashMap<NodeId, Vec<NodeId>>,
     pub event_send: Sender<DroneEvent>,
     gui_send: Sender<GUIEvents>,
-    gui_recv: Receiver<GUICommands>
+    gui_recv: Receiver<GUICommands>,
 }
 
 impl SimulationController {
@@ -33,7 +33,7 @@ impl SimulationController {
         neighbor: HashMap<NodeId, Vec<NodeId>>,
         event_send: Sender<DroneEvent>,
         gui_send: Sender<GUIEvents>,
-        gui_recv: Receiver<GUICommands>
+        gui_recv: Receiver<GUICommands>,
     ) -> Self {
         return Self {
             drones,
@@ -41,19 +41,24 @@ impl SimulationController {
             neighbor,
             event_send,
             gui_send,
-            gui_recv
+            gui_recv,
         };
     }
 
     pub fn run(&mut self) {
-        info!("[ {} ] Starting Simulation Controller", "Simulation Controller".green());
+        info!(
+            "[ {} ] Starting Simulation Controller",
+            "Simulation Controller".green()
+        );
         // Start loop
         loop {
-
             // Check if any events are received
             match self.receiver.try_recv() {
                 Ok(drone_event) => {
-                    info!("[ {} ]: DroneEvent received", "Simulation Controller".green());
+                    info!(
+                        "[ {} ]: DroneEvent received",
+                        "Simulation Controller".green()
+                    );
                     self.handle_event(drone_event);
                 }
                 Err(e) => match e {
@@ -69,11 +74,16 @@ impl SimulationController {
             // Check if any commands are received
             match self.gui_recv.try_recv() {
                 Ok(gui_command) => {
-                    info!("[ {} ]: GUICommand received", "Simulation Controller".green());
+                    info!(
+                        "[ {} ]: GUICommand received",
+                        "Simulation Controller".green()
+                    );
                     self.handle_gui_command(gui_command);
-                },
+                }
                 Err(e) => match e {
-                    crossbeam_channel::TryRecvError::Empty => warn!("[ {} ] Nothing", "Simulation Controller".yellow()),
+                    crossbeam_channel::TryRecvError::Empty => {
+                        warn!("[ {} ] Nothing", "Simulation Controller".yellow())
+                    }
                     crossbeam_channel::TryRecvError::Disconnected => error!(
                         "[ {} ]: GUICommands receiver channel disconnected: {}",
                         "Simulation Controller".red(),
@@ -107,7 +117,10 @@ impl SimulationController {
                 let packet_type = packet.clone().pack_type;
 
                 // GUI
-                match self.gui_send.send(GUIEvents::PacketSent(*src, *dest, gui_packet)) {
+                match self
+                    .gui_send
+                    .send(GUIEvents::PacketSent(*src, *dest, gui_packet))
+                {
                     Ok(()) => info!(
                         "[ {} ]: sent a GUIEvent: PacketSent({}, {}) to GUI",
                         "Simulation Controller".green(),
@@ -125,11 +138,9 @@ impl SimulationController {
 
                 info!(
                     "[ Drone: {} ]: Sent a Packet: {} to Drone {}",
-                    src,
-                    packet_type,
-                    dest
+                    src, packet_type, dest
                 );
-            },
+            }
             DroneEvent::PacketDropped(packet) => {
                 let gui_packet = packet.clone();
 
@@ -142,7 +153,10 @@ impl SimulationController {
                 let session_id = packet.session_id;
 
                 // GUI
-                match self.gui_send.send(GUIEvents::PacketDropped(*drone, gui_packet)) {
+                match self
+                    .gui_send
+                    .send(GUIEvents::PacketDropped(*drone, gui_packet))
+                {
                     Ok(()) => info!(
                         "[ {} ]: sent a GUIEvent: PacketDropped({}) sent to GUI",
                         "Simulation Controller".green(),
@@ -158,10 +172,9 @@ impl SimulationController {
 
                 info!(
                     "[ Drone: {} ]: Dropped the packet with session_id: {}",
-                    drone,
-                    session_id
+                    drone, session_id
                 );
-            },
+            }
             DroneEvent::ControllerShortcut(packet) => {
                 // Get packet destination node
                 if let Some(dest) = packet
@@ -273,8 +286,8 @@ impl SimulationController {
                     action::crash(self, *drone);
 
                     if let Some((command_send, packet_send)) = self.drones.get(drone) {
-                        let _ = drop(command_send);
-                        let _ = drop(packet_send);
+                        drop(command_send);
+                        drop(packet_send);
                     }
 
                     let drone_entry = self.drones.remove(drone);
@@ -315,18 +328,22 @@ impl SimulationController {
 
     fn handle_gui_command(&mut self, command: GUICommands) {
         match command {
-            GUICommands::Spawn(id, connected_node_ids, pdr) => action::spawn(self, id, connected_node_ids, pdr),
+            GUICommands::Spawn(id, connected_node_ids, pdr) => {
+                action::spawn(self, id, connected_node_ids, pdr)
+            }
             GUICommands::Crash(drone) => self.handle_command(&drone, DroneCommand::Crash),
             GUICommands::RemoveSender(drone, to_remove) => {
                 action::remove_sender(self, &drone, &to_remove);
                 self.handle_command(&drone, DroneCommand::RemoveSender(to_remove))
-            },
+            }
             GUICommands::AddSender(drone, to_add) => {
                 action::add_sender(self, &drone, &to_add);
                 let (_, sender) = self.drones.get(&to_add).unwrap().clone();
                 self.handle_command(&drone, DroneCommand::AddSender(to_add, sender));
-            },
-            GUICommands::SetPDR(drone, pdr) => self.handle_command(&drone, DroneCommand::SetPacketDropRate(pdr)),
+            }
+            GUICommands::SetPDR(drone, pdr) => {
+                self.handle_command(&drone, DroneCommand::SetPacketDropRate(pdr))
+            }
         }
     }
 }

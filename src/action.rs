@@ -1,6 +1,6 @@
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use std::collections::HashMap;
 use rand::Rng;
+use std::collections::HashMap;
 
 use colored::Colorize;
 use log::error;
@@ -49,7 +49,12 @@ where
     )
 }
 
-pub fn spawn(sim_ctrl: &mut SimulationController, id: NodeId, connected_node_ids: Vec<NodeId>, pdr: f32) {
+pub fn spawn(
+    sim_ctrl: &mut SimulationController,
+    id: NodeId,
+    connected_node_ids: Vec<NodeId>,
+    pdr: f32,
+) {
     // Check if drone with this id already exist
     if sim_ctrl.drones.contains_key(&id) {
         error!("[ ERROR ]: A drone with the NodeId: {} already exists", id);
@@ -99,7 +104,11 @@ pub fn spawn(sim_ctrl: &mut SimulationController, id: NodeId, connected_node_ids
         // Add drone to drone list
         sim_ctrl.drones.insert(id, (command_send, packet_send));
     } else {
-        panic!("[ {} ]: No factory defined for [ Drone {} ]", "Simulation Controller".red(), drone.id);
+        panic!(
+            "[ {} ]: No factory defined for [ Drone {} ]",
+            "Simulation Controller".red(),
+            drone.id
+        );
     }
 }
 
@@ -139,8 +148,11 @@ pub fn add_sender(sim_ctrl: &mut SimulationController, drone: &NodeId, to_add: &
             Ok(()) => {
                 let (_, drone_packet_send) = sim_ctrl.drones.get(&drone).unwrap().clone();
 
-                sim_ctrl.handle_command(&to_add, DroneCommand::AddSender(*drone, drone_packet_send.clone()));
-            },
+                sim_ctrl.handle_command(
+                    &to_add,
+                    DroneCommand::AddSender(*drone, drone_packet_send.clone()),
+                );
+            }
             Err(e) => {
                 panic!("{}", e);
             }
