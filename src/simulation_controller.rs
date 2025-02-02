@@ -1,4 +1,4 @@
-use crossbeam_channel::{Receiver, Sender};
+use crossbeam_channel::{unbounded, Receiver, Sender};
 use log::{error, info, warn};
 use std::{collections::HashMap, io::Write, thread};
 
@@ -7,7 +7,7 @@ use colored::Colorize;
 use wg_2024::{
     controller::{DroneCommand, DroneEvent},
     network::NodeId,
-    packet::{Packet, PacketType},
+    packet::{self, Packet, PacketType},
 };
 
 use gui::{GUICommands, GUIEvents};
@@ -321,10 +321,13 @@ impl SimulationController {
 
     fn handle_gui_command(&mut self, command: GUICommands) {
         match command {
-            GUICommands::Spawn(id, connected_drone_ids, pdr) => return,
+            GUICommands::Spawn(id, neighbors, pdr ) => return,
             GUICommands::Crash(drone) => self.handle_command(&drone, DroneCommand::Crash),
-            GUICommands::RemoveSender(drone, neighbor) => self.handle_command(&drone, DroneCommand::RemoveSender(neighbor)),
-            GUICommands::AddSender(drone, neighbor) => return,
+            GUICommands::RemoveSender(drone, to_remove) => self.handle_command(&drone, DroneCommand::RemoveSender(to_remove)),
+            GUICommands::AddSender(drone, to_add) => {
+                let (_, sender) = self.drones.get(&to_add).unwrap().clone();
+                self.handle_command(&drone, DroneCommand::AddSender(drone, sender));
+            },
             GUICommands::SetPDR(drone, pdr) => self.handle_command(&drone, DroneCommand::SetPacketDropRate(pdr)),
         }
     }
