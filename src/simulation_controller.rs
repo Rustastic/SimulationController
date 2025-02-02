@@ -244,9 +244,6 @@ impl SimulationController {
                                 e
                             ),
                         }
-
-                        action::add_sender(self, *drone, node_id);
-
                     } else {
                         error!(
                             "[ {} ]: the [ Drone {} ] does not have any neighbor",
@@ -325,6 +322,7 @@ impl SimulationController {
                 self.handle_command(&drone, DroneCommand::RemoveSender(to_remove))
             },
             GUICommands::AddSender(drone, to_add) => {
+                action::add_sender(self, &drone, &to_add);
                 let (_, sender) = self.drones.get(&to_add).unwrap().clone();
                 self.handle_command(&drone, DroneCommand::AddSender(drone, sender));
             },

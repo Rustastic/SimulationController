@@ -131,25 +131,22 @@ pub fn remove_sender(sim_ctrl: &mut SimulationController, drone: &NodeId, to_rem
     }
 }
 
-pub fn add_sender(sim_ctrl: &mut SimulationController, drone: NodeId, to_add: NodeId) {
+pub fn add_sender(sim_ctrl: &mut SimulationController, drone: &NodeId, to_add: &NodeId) {
     // Check if it exists a neighbor with this id
     match verify::has_neighbors(sim_ctrl, &drone) {
         Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_add, &drone, true) {
             Ok(()) => {
                 let (_, drone_packet_send) = sim_ctrl.drones.get(&drone).unwrap().clone();
 
-                sim_ctrl.handle_command(
-                    &to_add,
-                    DroneCommand::AddSender(drone, drone_packet_send.clone()),
-                );
+                sim_ctrl.handle_command(&to_add, DroneCommand::AddSender(*drone, drone_packet_send.clone()));
             },
             Err(e) => {
-                error!("{}", e);
+                panic!("{}", e);
                 return;
             }
         },
         Err(e) => {
-            error!("{}", e);
+            panic!("{}", e);
             return;
         }
     }
