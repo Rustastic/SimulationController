@@ -324,7 +324,7 @@ impl SimulationController {
             GUICommands::AddSender(drone, to_add) => {
                 action::add_sender(self, &drone, &to_add);
                 let (_, sender) = self.drones.get(&to_add).unwrap().clone();
-                self.handle_command(&drone, DroneCommand::AddSender(drone, sender));
+                self.handle_command(&drone, DroneCommand::AddSender(to_add, sender));
             },
             GUICommands::SetPDR(drone, pdr) => self.handle_command(&drone, DroneCommand::SetPacketDropRate(pdr)),
         }
