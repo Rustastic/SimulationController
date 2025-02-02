@@ -120,7 +120,7 @@ pub fn remove_sender(sim_ctrl: &mut SimulationController, drone: NodeId, to_remo
     // Check if it exists a neighbor with this id
     match verify::has_neighbors(sim_ctrl, &drone) {
         Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_remove, &drone, false) {
-            Ok(()) => (),
+            Ok(()) => sim_ctrl.handle_command(&to_remove, DroneCommand::RemoveSender(drone)),
             Err(e) => {
                 error!("{}", e);
                 return;
@@ -131,16 +131,20 @@ pub fn remove_sender(sim_ctrl: &mut SimulationController, drone: NodeId, to_remo
             return;
         }
     }
-
-    // Send command
-    sim_ctrl.handle_command(&to_remove, DroneCommand::RemoveSender(drone));
 }
 
 pub fn add_sender(sim_ctrl: &mut SimulationController, drone: NodeId, to_add: NodeId) {
     // Check if it exists a neighbor with this id
     match verify::has_neighbors(sim_ctrl, &drone) {
         Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_add, &drone, true) {
-            Ok(()) => (),
+            Ok(()) => {
+                let (_, drone_packet_send) = sim_ctrl.drones.get(&drone).unwrap().clone();
+
+                sim_ctrl.handle_command(
+                    &to_add,
+                    DroneCommand::AddSender(drone, drone_packet_send.clone()),
+                );
+            },
             Err(e) => {
                 error!("{}", e);
                 return;
@@ -151,12 +155,4 @@ pub fn add_sender(sim_ctrl: &mut SimulationController, drone: NodeId, to_add: No
             return;
         }
     }
-
-    // Add drone
-    let (_, drone_packet_send) = sim_ctrl.drones.get(&drone).unwrap().clone();
-
-    sim_ctrl.handle_command(
-        &to_add,
-        DroneCommand::AddSender(drone, drone_packet_send.clone()),
-    );
 }
