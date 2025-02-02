@@ -24,18 +24,18 @@ pub fn is_a_neighbor(
     if not {
         // If i am hoping it is not a neighbor (not = true)
         if neighbor_vec.contains(&neighbor) {
+            Err(SimulationControllerError::IsNeighbor(*neighbor, *drone))
+        } else {
             info!("[ {} ] Yes, [ Drone: {} ] is not a neighbor of [ Drone: {} ]", "Simulation Controller".green(), drone, neighbor);
             Ok(())
-        } else {
-            Err(SimulationControllerError::IsNeighbor(*neighbor, *drone))            
         }
     } else {
         // If i am hoping it is a neighbor (not = false)
         if neighbor_vec.contains(&neighbor) {
-            Err(SimulationControllerError::NotNeighbor(*neighbor, *drone))
-        } else {
             info!("[ {} ] Yes, [ Drone: {} ] is a neighbor of [ Drone: {} ]", "Simulation Controller".green(), drone, neighbor);
             Ok(())
+        } else {
+            Err(SimulationControllerError::NotNeighbor(*neighbor, *drone))
         }
     }
 }
