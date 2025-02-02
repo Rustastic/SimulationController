@@ -1,8 +1,9 @@
-use colored::Colorize;
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use log::error;
+use std::collections::HashMap;
 use rand::Rng;
-use std::{collections::HashMap, io};
+
+use colored::Colorize;
+use log::error;
 
 use wg_2024::{
     config::Drone as ConfigDrone,
