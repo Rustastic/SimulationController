@@ -116,19 +116,17 @@ pub fn crash(sim_ctrl: &mut SimulationController, target: NodeId) {
     }
 }
 
-pub fn remove_sender(sim_ctrl: &mut SimulationController, drone: NodeId, to_remove: NodeId) {
+pub fn remove_sender(sim_ctrl: &mut SimulationController, drone: &NodeId, to_remove: &NodeId) {
     // Check if it exists a neighbor with this id
     match verify::has_neighbors(sim_ctrl, &drone) {
-        Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_remove, &drone, false) {
-            Ok(()) => sim_ctrl.handle_command(&to_remove, DroneCommand::RemoveSender(drone)),
+        Ok(neighbor) => match verify::is_a_neighbor(neighbor, to_remove, drone, false) {
+            Ok(()) => sim_ctrl.handle_command(&to_remove, DroneCommand::RemoveSender(*drone)),
             Err(e) => {
-                error!("{}", e);
-                return;
+                panic!("{}", e);
             }
         },
         Err(e) => {
-            error!("{}", e);
-            return;
+            panic!("{}", e);
         }
     }
 }
