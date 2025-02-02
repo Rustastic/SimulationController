@@ -1,3 +1,4 @@
+use colored::Colorize;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use log::error;
 use rand::Rng;
@@ -11,7 +12,7 @@ use wg_2024::{
     packet::Packet,
 };
 
-use crate::{user_interaction, verify, SimulationController};
+use crate::{verify, SimulationController};
 
 fn drone_factory<T>() -> Box<
     dyn Fn(
@@ -97,14 +98,13 @@ pub fn spawn(sim_ctrl: &mut SimulationController, id: NodeId, connected_node_ids
         // Add drone to drone list
         sim_ctrl.drones.insert(id, (command_send, packet_send));
     } else {
-        panic!("No factory defined for [ Drone {} ]", drone.id);
+        panic!("[ {} ]: No factory defined for [ Drone {} ]", "Simulation Controller".red(), drone.id);
     }
 }
 
 pub fn crash(sim_ctrl: &mut SimulationController, target: NodeId) {
     if let Err(e) = verify::check_drone_existence(&sim_ctrl, &target) {
-        error!("{}", e);
-        return;
+        panic!("{}", e);
     }
 
     // If the drone has any neighbors
