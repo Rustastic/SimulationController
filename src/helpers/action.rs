@@ -12,7 +12,7 @@ use wg_2024::{
     packet::Packet,
 };
 
-use crate::{verify, SimulationController, SimulationControllerError};
+use crate::{error::SimulationControllerError, verify, SimulationController};
 
 fn drone_factory<T>() -> Box<
     dyn Fn(

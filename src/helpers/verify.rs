@@ -2,7 +2,7 @@ use colored::Colorize;
 use log::info;
 use wg_2024::network::NodeId;
 
-use crate::{SimulationController, SimulationControllerError};
+use crate::{error::SimulationControllerError, SimulationController};
 
 pub fn check_drone_existence(
     sim_ctrl: &SimulationController,
