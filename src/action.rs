@@ -27,29 +27,26 @@ fn drone_factory<T>() -> Box<
 where
     T: Drone + 'static,
 {
-    Box::new(
-        |sim_ctrl, drone, event_send, command_recv, packet_recv| {
-            // Create packet send hashmap
-            let mut packet_send_hashmap = HashMap::<NodeId, Sender<Packet>>::new();
-            // Fill hashmap with only neighbor
-            for neighbor in &drone.connected_node_ids {
-                let (_, neighbor_send_channel) = sim_ctrl.drones.get(neighbor).unwrap();
-                packet_send_hashmap.insert(*neighbor, neighbor_send_channel.clone());
-            }
+    Box::new(|sim_ctrl, drone, event_send, command_recv, packet_recv| {
+        // Create packet send hashmap
+        let mut packet_send_hashmap = HashMap::<NodeId, Sender<Packet>>::new();
+        // Fill hashmap with only neighbor
+        for neighbor in &drone.connected_node_ids {
+            let (_, neighbor_send_channel) = sim_ctrl.drones.get(neighbor).unwrap();
+            packet_send_hashmap.insert(*neighbor, neighbor_send_channel.clone());
+        }
 
-            // Get drone's command receiver channel
-            return Box::new(T::new(
-                drone.id,
-                event_send.clone(),
-                command_recv.clone(),
-                packet_recv.clone(),
-                packet_send_hashmap,
-                drone.pdr,
-            ));
-        },
-    )
+        // Get drone's command receiver channel
+        return Box::new(T::new(
+            drone.id,
+            event_send.clone(),
+            command_recv.clone(),
+            packet_recv.clone(),
+            packet_send_hashmap,
+            drone.pdr,
+        ));
+    })
 }
-
 
 pub fn spawn(
     sim_ctrl: &mut SimulationController,
@@ -89,6 +86,9 @@ pub fn spawn(
     let (command_send, command_recv) = unbounded::<DroneCommand>();
     let (packet_send, packet_recv) = unbounded::<Packet>();
 
+    // Add drone to drone list
+    sim_ctrl.drones.insert(id, (command_send, packet_send));
+
     // Add drone to neighbor list
     sim_ctrl
         .neighbor
@@ -96,11 +96,12 @@ pub fn spawn(
 
     // add to neighbor list of neighbor
     for neighbor_id in drone.connected_node_ids.clone() {
-        sim_ctrl.neighbor.get_mut(&neighbor_id).unwrap().push(drone.id);
+        sim_ctrl
+            .neighbor
+            .get_mut(&neighbor_id)
+            .unwrap()
+            .push(drone.id);
     }
-
-    // Add drone to drone list
-    sim_ctrl.drones.insert(id, (command_send, packet_send));
 
     // Crate drone
     if let Some(factory) = drone_factories.get(rand) {

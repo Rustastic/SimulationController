@@ -5,7 +5,10 @@ use std::{collections::HashMap, thread};
 use colored::Colorize;
 
 use wg_2024::{
-    controller::{DroneCommand, DroneEvent}, drone::Drone, network::NodeId, packet::{Packet, PacketType}
+    controller::{DroneCommand, DroneEvent},
+    drone::Drone,
+    network::NodeId,
+    packet::{Packet, PacketType},
 };
 
 use gui::{GUICommands, GUIEvents};
