@@ -162,3 +162,46 @@ pub fn add_sender(sim_ctrl: &mut SimulationController, drone: &NodeId, to_add: &
         }
     }
 }
+
+pub fn set_pdr(sim_ctrl: &mut SimulationController) {
+    // Get drone to which change the pdr
+    // UI menu
+    let prompt =
+        "Witch drone would you like to send the DroneCommand::SetPackageDropRate".to_string();
+    user_interaction::print_drones(sim_ctrl, prompt);
+
+    // Create input sting
+    let mut input = String::new();
+    // Get input from stdin
+    let _ = io::stdin().read_line(&mut input);
+
+    // Parse and verify input
+    let target: NodeId;
+    match user_interaction::parse_and_verify(&mut input) {
+        Ok(node_id) => target = node_id,
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+    }
+
+    if let Err(e) = verify::check_drone_existence(&sim_ctrl, &target) {
+        println!("{}", e);
+        return;
+    }
+
+    // Get the new PDR
+    // UI menu
+    println!("Insert the desired PDR: ");
+    // Get input from stdin
+    let _ = io::stdin().read_line(&mut input);
+
+    // Parse and verify input
+    match user_interaction::pdr_parse_and_verify(&mut input) {
+        Ok(value) => sim_ctrl.handle_command(&target, DroneCommand::SetPacketDropRate(value)),
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+    }
+}
