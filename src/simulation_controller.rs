@@ -4,21 +4,19 @@ use std::{collections::HashMap, io};
 use colored::Colorize;
 
 use wg_2024::{
-    controller::{DroneCommand, DroneEvent},
-    network::NodeId,
-    packet::{Packet, PacketType},
+    controller::{DroneCommand, DroneEvent}, drone::Drone, network::NodeId, packet::{Packet, PacketType}
 };
 
 //use chat_client::ChatClient;
 
 use crate::{action, helpers::user_interaction};
 
-#[derive(Clone)]
 pub struct SimulationController {
     pub drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
     receiver: Receiver<DroneEvent>,
     pub neighbor: HashMap<NodeId, Vec<NodeId>>,
     pub event_send: Sender<DroneEvent>,
+    pub new_drones: Vec<Box<dyn Drone>>
 }
 
 impl SimulationController {
@@ -33,6 +31,7 @@ impl SimulationController {
             receiver,
             neighbor,
             event_send,
+            new_drones: Vec::new()
         };
     }
 

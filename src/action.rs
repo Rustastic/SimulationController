@@ -207,13 +207,15 @@ pub fn spawn(sim_ctrl: &mut SimulationController) {
 
     // Crate drone
     if let Some(factory) = drone_factories.get(rand) {
-        factory(
+        let new_drone = factory(
             sim_ctrl,
             &drone,
             &sim_ctrl.event_send.clone(),
             &command_recv.clone(),
             &packet_recv.clone(),
         );
+
+        sim_ctrl.new_drones.push(new_drone);
     } else {
         panic!("No factory defined for [ Drone {} ]", drone.id);
     }
