@@ -14,23 +14,24 @@ use crate::{user_interaction, verify, SimulationController};
 
 fn drone_factory<T>() -> Box<
     dyn Fn(
+        &mut SimulationController,
         &ConfigDrone,
         &Sender<DroneEvent>,
         &Receiver<DroneCommand>,
         &Receiver<Packet>,
-        &Sender<Packet>,
     ) -> Box<dyn Drone>,
 >
 where
     T: Drone + 'static,
 {
     Box::new(
-        |drone, event_send, command_recv, packet_recv, packet_send| {
+        |sim_ctrl, drone, event_send, command_recv, packet_recv| {
             // Create packet send hashmap
             let mut packet_send_hashmap = HashMap::<NodeId, Sender<Packet>>::new();
             // Fill hashmap with only neighbor
             for neighbor in &drone.connected_node_ids {
-                packet_send_hashmap.insert(*neighbor, packet_send.clone());
+                let (_, neighbor_send_channel) = sim_ctrl.drones.get(neighbor).unwrap();
+                packet_send_hashmap.insert(*neighbor, neighbor_send_channel.clone());
             }
 
             // Get drone's command receiver channel
@@ -172,11 +173,6 @@ pub fn spawn(sim_ctrl: &mut SimulationController) {
         pdr,
     };
 
-    // Add drone to neighbor list
-    sim_ctrl
-        .neighbor
-        .insert(drone.id, drone.connected_node_ids.clone());
-
     // Generate random number to pick a random factory
     let rand = rand::rng().random_range(0..10);
     let drone_factories = vec![
@@ -195,18 +191,24 @@ pub fn spawn(sim_ctrl: &mut SimulationController) {
     // create necessary channels
     let (command_send, command_recv) = unbounded::<DroneCommand>();
     let (packet_send, packet_recv) = unbounded::<Packet>();
+
+    // Add drone to drone list
+    sim_ctrl.drones.insert(id, (command_send, packet_send));
+
+        // Add drone to neighbor list
+    sim_ctrl
+        .neighbor
+        .insert(drone.id, drone.connected_node_ids.clone());
+
     // Crate drone
     if let Some(factory) = drone_factories.get(rand) {
         factory(
+            sim_ctrl,
             &drone,
             &sim_ctrl.event_send.clone(),
             &command_recv.clone(),
             &packet_recv.clone(),
-            &packet_send,
         );
-
-        // Add drone to drone list
-        sim_ctrl.drones.insert(id, (command_send, packet_send));
     } else {
         panic!("No factory defined for [ Drone {} ]", drone.id);
     }
