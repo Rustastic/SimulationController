@@ -216,12 +216,12 @@ impl SimulationController {
                         vec.retain(|x| *x != node_id);
                         match command_channel.send(DroneCommand::RemoveSender(node_id)) {
                             Ok(()) => println!(
-                                "[ Simulation Controller ]: sent a DroneCommand: RemoveSender({}) sent to [ Drone {} ]",
+                                "[ Simulation Controller ]: sent a DroneCommand::RemoveSender({}) sent to [ Drone {} ]",
                                 node_id,
                                 drone
                             ),
                             Err(e) => println!(
-                                "[ {} ]: failed to send a DroneCommand: RemoveSender({}) to the [ Drone {} ]: {}",
+                                "[ {} ]: failed to send a DroneCommand::RemoveSender({}) to the [ Drone {} ]: {}",
                                 "Simulation Controller".red(),
                                 node_id,
                                 drone,
@@ -241,12 +241,12 @@ impl SimulationController {
                         vec.push(node_id);
                         match command_channel.send(DroneCommand::AddSender(node_id, sender)) {
                             Ok(()) => println!(
-                                "[ Simulation Controller ]: sent a DroneCommand: AddSender({}, sender_channel) sent to [ Drone {} ]",
+                                "[ Simulation Controller ]: sent a DroneCommand::AddSender({}, sender_channel) sent to [ Drone {} ]",
                                 node_id,
                                 drone
                             ),
                             Err(e) => eprintln!(
-                                "[ {} ]: failed to send a DroneCommand: AddSender({}, sender_channel) to the [ Drone {} ]: {}",
+                                "[ {} ]: failed to send a DroneCommand::AddSender({}, sender_channel) to the [ Drone {} ]: {}",
                                 "Simulation Controller".red(),
                                 node_id,
                                 drone,
@@ -264,12 +264,12 @@ impl SimulationController {
                 DroneCommand::SetPacketDropRate(pdr) => {
                     match command_channel.send(DroneCommand::SetPacketDropRate(pdr)) {
                         Ok(()) => println!(
-                            "[ Simulation Controller ]: sent a DroneCommand: SetPacketDropRate({}) sent to [ Drone {} ]",
+                            "[ Simulation Controller ]: sent a DroneCommand::SetPacketDropRate({}) sent to [ Drone {} ]",
                             pdr,
                             drone
                         ),
                         Err(e) => eprintln!(
-                            "[ {} ]: failed to send a DroneCommand: SetPacketDropRate({}) to the [ Drone {} ]: {}",
+                            "[ {} ]: failed to send a DroneCommand::SetPacketDropRate({}) to the [ Drone {} ]: {}",
                             "Simulation Controller".red(),
                             pdr,
                             drone,

@@ -199,9 +199,9 @@ pub fn spawn(sim_ctrl: &mut SimulationController) {
     if let Some(factory) = drone_factories.get(rand) {
         factory(
             &drone,
-            &sim_ctrl.event_send,
-            &command_recv,
-            &packet_recv,
+            &sim_ctrl.event_send.clone(),
+            &command_recv.clone(),
+            &packet_recv.clone(),
             &packet_send,
         );
 
