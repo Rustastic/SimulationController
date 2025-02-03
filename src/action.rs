@@ -70,11 +70,6 @@ pub fn spawn(
         pdr,
     };
 
-    // Add drone to neighbor list
-    sim_ctrl
-        .neighbor
-        .insert(drone.id, drone.connected_node_ids.clone());
-
     // Generate random number to pick a random factory
     let rand = rand::rng().random_range(0..10);
     let drone_factories = vec![
@@ -93,18 +88,31 @@ pub fn spawn(
     // create necessary channels
     let (command_send, command_recv) = unbounded::<DroneCommand>();
     let (packet_send, packet_recv) = unbounded::<Packet>();
+
+    // Add drone to neighbor list
+    sim_ctrl
+        .neighbor
+        .insert(drone.id, drone.connected_node_ids.clone());
+
+    // add to neighbor list of neighbor
+    for neighbor_id in drone.connected_node_ids.clone() {
+        sim_ctrl.neighbor.get_mut(&neighbor_id).unwrap().push(drone.id);
+    }
+
+    // Add drone to drone list
+    sim_ctrl.drones.insert(id, (command_send, packet_send));
+
     // Crate drone
     if let Some(factory) = drone_factories.get(rand) {
-        factory(
+        let new_drone = factory(
+            sim_ctrl,
             &drone,
-            &sim_ctrl.event_send,
-            &command_recv,
-            &packet_recv,
-            &packet_send,
+            &sim_ctrl.event_send.clone(),
+            &command_recv.clone(),
+            &packet_recv.clone(),
         );
 
-        // Add drone to drone list
-        sim_ctrl.drones.insert(id, (command_send, packet_send));
+        sim_ctrl.new_drones.push(new_drone);
     } else {
         panic!(
             "[ {} ]: No factory defined for [ Drone {} ]",
@@ -164,7 +172,7 @@ pub fn add_sender(sim_ctrl: &mut SimulationController, drone: &NodeId, to_add: &
         }
     }
 }
-
+/*
 pub fn set_pdr(sim_ctrl: &mut SimulationController) {
     // Get drone to which change the pdr
     // UI menu
@@ -206,4 +214,4 @@ pub fn set_pdr(sim_ctrl: &mut SimulationController) {
             return;
         }
     }
-}
+}*/
