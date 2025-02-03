@@ -195,10 +195,15 @@ pub fn spawn(sim_ctrl: &mut SimulationController) {
     // Add drone to drone list
     sim_ctrl.drones.insert(id, (command_send, packet_send));
 
-        // Add drone to neighbor list
+    // Add drone to neighbor list
     sim_ctrl
         .neighbor
         .insert(drone.id, drone.connected_node_ids.clone());
+
+    // add to neighbor list of neighbor
+    for neighbor_id in drone.connected_node_ids.clone() {
+        sim_ctrl.neighbor.get_mut(&neighbor_id).unwrap().push(drone.id);
+    }
 
     // Crate drone
     if let Some(factory) = drone_factories.get(rand) {
