@@ -27,7 +27,7 @@ pub fn is_a_neighbor(
             Err(SimulationControllerError::IsNeighbor(*neighbor, *drone))
         } else {
             info!(
-                "[ {} ] Yes, [ Drone: {} ] is not a neighbor of [ Drone: {} ]",
+                "[ {} ]: [ Drone: {} ] is not a neighbor of [ Drone: {} ]",
                 "Simulation Controller".green(),
                 drone,
                 neighbor
@@ -38,7 +38,7 @@ pub fn is_a_neighbor(
         // If i am hoping it is a neighbor (not = false)
         if neighbor_vec.contains(&neighbor) {
             info!(
-                "[ {} ] Yes, [ Drone: {} ] is a neighbor of [ Drone: {} ]",
+                "[ {} ]: [ Drone: {} ] is a neighbor of [ Drone: {} ]",
                 "Simulation Controller".green(),
                 drone,
                 neighbor
