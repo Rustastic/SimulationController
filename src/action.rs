@@ -3,7 +3,6 @@ use rand::Rng;
 use std::collections::HashMap;
 
 use colored::Colorize;
-use log::error;
 
 use wg_2024::{
     config::Drone as ConfigDrone,
@@ -13,7 +12,7 @@ use wg_2024::{
     packet::Packet,
 };
 
-use crate::{verify, SimulationController};
+use crate::{verify, SimulationController, SimulationControllerError};
 
 fn drone_factory<T>() -> Box<
     dyn Fn(
@@ -53,11 +52,10 @@ pub fn spawn(
     id: NodeId,
     connected_node_ids: Vec<NodeId>,
     pdr: f32,
-) {
+) -> Result<(), SimulationControllerError> {
     // Check if drone with this id already exist
     if sim_ctrl.drones.contains_key(&id) {
-        error!("[ ERROR ]: A drone with the NodeId: {} already exists", id);
-        return;
+        return Err(SimulationControllerError::DroneAlreadyExist(id));
     }
 
     // Create new drone
@@ -121,38 +119,52 @@ pub fn spawn(
             drone.id
         );
     }
+
+    Ok(())
 }
 
-pub fn crash(sim_ctrl: &mut SimulationController, target: NodeId) {
-    if let Err(e) = verify::check_drone_existence(&sim_ctrl, &target) {
-        panic!("{}", e);
+pub fn crash(
+    sim_ctrl: &mut SimulationController,
+    drone: NodeId,
+) -> Result<(), SimulationControllerError> {
+    if let Err(e) = verify::check_drone_existence(&sim_ctrl, &drone) {
+        return Err(e);
     }
 
     // If the drone has any neighbors
-    if let Some(neighbor_ids) = sim_ctrl.neighbor.get_mut(&target).cloned() {
+    if let Some(neighbor_ids) = sim_ctrl.neighbor.get_mut(&drone).cloned() {
         for neighbor in neighbor_ids {
             // Send command to neighbors
-            sim_ctrl.handle_command(&neighbor, DroneCommand::RemoveSender(target));
+            sim_ctrl.handle_command(&neighbor, DroneCommand::RemoveSender(drone));
         }
     }
+
+    Ok(())
 }
 
-pub fn remove_sender(sim_ctrl: &mut SimulationController, drone: &NodeId, to_remove: &NodeId) {
+pub fn remove_sender(
+    sim_ctrl: &mut SimulationController,
+    drone: &NodeId,
+    to_remove: &NodeId,
+) -> Result<(), SimulationControllerError> {
     // Check if it exists a neighbor with this id
     match verify::has_neighbors(sim_ctrl, &drone) {
         Ok(neighbor) => match verify::is_a_neighbor(neighbor, to_remove, drone, false) {
-            Ok(()) => sim_ctrl.handle_command(&to_remove, DroneCommand::RemoveSender(*drone)),
-            Err(e) => {
-                panic!("{}", e);
+            Ok(()) => {
+                sim_ctrl.handle_command(&to_remove, DroneCommand::RemoveSender(*drone));
+                Ok(())
             }
+            Err(e) => Err(e),
         },
-        Err(e) => {
-            panic!("{}", e);
-        }
+        Err(e) => Err(e),
     }
 }
 
-pub fn add_sender(sim_ctrl: &mut SimulationController, drone: &NodeId, to_add: &NodeId) {
+pub fn add_sender(
+    sim_ctrl: &mut SimulationController,
+    drone: &NodeId,
+    to_add: &NodeId,
+) -> Result<(), SimulationControllerError> {
     // Check if it exists a neighbor with this id
     match verify::has_neighbors(sim_ctrl, &drone) {
         Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_add, &drone, true) {
@@ -163,56 +175,11 @@ pub fn add_sender(sim_ctrl: &mut SimulationController, drone: &NodeId, to_add: &
                     &to_add,
                     DroneCommand::AddSender(*drone, drone_packet_send.clone()),
                 );
+
+                Ok(())
             }
-            Err(e) => {
-                panic!("{}", e);
-            }
+            Err(e) => Err(e),
         },
-        Err(e) => {
-            panic!("{}", e);
-        }
+        Err(e) => Err(e),
     }
 }
-/*
-pub fn set_pdr(sim_ctrl: &mut SimulationController) {
-    // Get drone to which change the pdr
-    // UI menu
-    let prompt =
-        "Witch drone would you like to send the DroneCommand::SetPackageDropRate".to_string();
-    user_interaction::print_drones(sim_ctrl, prompt);
-
-    // Create input sting
-    let mut input = String::new();
-    // Get input from stdin
-    let _ = io::stdin().read_line(&mut input);
-
-    // Parse and verify input
-    let target: NodeId;
-    match user_interaction::parse_and_verify(&mut input) {
-        Ok(node_id) => target = node_id,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    }
-
-    if let Err(e) = verify::check_drone_existence(&sim_ctrl, &target) {
-        println!("{}", e);
-        return;
-    }
-
-    // Get the new PDR
-    // UI menu
-    println!("Insert the desired PDR: ");
-    // Get input from stdin
-    let _ = io::stdin().read_line(&mut input);
-
-    // Parse and verify input
-    match user_interaction::pdr_parse_and_verify(&mut input) {
-        Ok(value) => sim_ctrl.handle_command(&target, DroneCommand::SetPacketDropRate(value)),
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    }
-}*/

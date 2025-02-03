@@ -15,7 +15,7 @@ use gui::{GUICommands, GUIEvents};
 
 //use chat_client::ChatClient;
 
-use crate::action;
+use crate::{action, verify};
 
 pub struct SimulationController {
     pub drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
@@ -124,13 +124,13 @@ impl SimulationController {
                     .send(GUIEvents::PacketSent(*src, *dest, gui_packet))
                 {
                     Ok(()) => info!(
-                        "[ {} ]: sent a GUIEvent: PacketSent({}, {}) to GUI",
+                        "[ {} ]: sent a GUIEvent::PacketSent({}, {}) to GUI",
                         "Simulation Controller".green(),
                         src,
                         dest
                     ),
                     Err(e) => error!(
-                        "[ {} ]: failed to send GUIEvent: PacketSent({}, {}) to GUI: {}",
+                        "[ {} ]: failed to send GUIEvent::PacketSent({}, {}) to GUI: {}",
                         "Simulation Controller".red(),
                         src,
                         dest,
@@ -160,12 +160,12 @@ impl SimulationController {
                     .send(GUIEvents::PacketDropped(*drone, gui_packet))
                 {
                     Ok(()) => info!(
-                        "[ {} ]: sent a GUIEvent: PacketDropped({}) sent to GUI",
+                        "[ {} ]: sent a GUIEvent::PacketDropped({}) sent to GUI",
                         "Simulation Controller".green(),
                         drone
                     ),
                     Err(e) => error!(
-                        "[ {} ]: failed to send GUIEvent: PacketDropped({}) sent to GUI: {}",
+                        "[ {} ]: failed to send GUIEvent::PacketDropped({}) sent to GUI: {}",
                         "Simulation Controller".red(),
                         drone,
                         e
@@ -204,7 +204,7 @@ impl SimulationController {
                     }
                 } else {
                     error!(
-                        "[ {} ]: failed to find a Drone to send the DroneEvent: ControllerShortcut",
+                        "[ {} ]: failed to find a Drone to send the DroneEvent::ControllerShortcut",
                         "Simulation Controller".red()
                     );
                 }
@@ -220,13 +220,13 @@ impl SimulationController {
                         vec.retain(|x| *x != node_id);
                         match command_channel.send(DroneCommand::RemoveSender(node_id)) {
                             Ok(()) => info!(
-                                "[ {} ]: sent a DroneCommand: RemoveSender({}) to [ Drone {} ]",
+                                "[ {} ]: sent a DroneCommand::RemoveSender({}) to [ Drone {} ]",
                                 "Simulation Controller".green(),
                                 node_id,
                                 drone
                             ),
                             Err(e) => error!(
-                                "[ {} ]: failed to send a DroneCommand: RemoveSender({}) to the [ Drone {} ]: {}",
+                                "[ {} ]: failed to send a DroneCommand::RemoveSender({}) to the [ Drone {} ]: {}",
                                 "Simulation Controller".red(),
                                 node_id,
                                 drone,
@@ -246,13 +246,13 @@ impl SimulationController {
                         vec.push(node_id);
                         match command_channel.send(DroneCommand::AddSender(node_id, sender)) {
                             Ok(()) => info!(
-                                "[ {} ]: sent a DroneCommand: AddSender({}, sender_channel) to [ Drone {} ]",
+                                "[ {} ]: sent a DroneCommand::AddSender({}, sender_channel) to [ Drone {} ]",
                                 "Simulation Controller".green(),
                                 node_id,
                                 drone
                             ),
                             Err(e) => error!(
-                                "[ {} ]: failed to send a DroneCommand: AddSender({}, sender_channel) to the [ Drone {} ]: {}",
+                                "[ {} ]: failed to send a DroneCommand::AddSender({}, sender_channel) to the [ Drone {} ]: {}",
                                 "Simulation Controller".red(),
                                 node_id,
                                 drone,
@@ -270,13 +270,13 @@ impl SimulationController {
                 DroneCommand::SetPacketDropRate(pdr) => {
                     match command_channel.send(DroneCommand::SetPacketDropRate(pdr)) {
                         Ok(()) => info!(
-                            "[ {} ]: sent a DroneCommand: SetPacketDropRate({}) to [ Drone {} ]",
+                            "[ {} ]: sent a DroneCommand::SetPacketDropRate({}) to [ Drone {} ]",
                             "Simulation Controller".green(),
                             pdr,
                             drone
                         ),
                         Err(e) => error!(
-                            "[ {} ]: failed to send a DroneCommand: SetPacketDropRate({}) to the [ Drone {} ]: {}",
+                            "[ {} ]: failed to send a DroneCommand::SetPacketDropRate({}) to the [ Drone {} ]: {}",
                             "Simulation Controller".red(),
                             pdr,
                             drone,
@@ -285,8 +285,6 @@ impl SimulationController {
                     }
                 }
                 DroneCommand::Crash => {
-                    action::crash(self, *drone);
-
                     if let Some((command_send, packet_send)) = self.drones.get(drone) {
                         drop(command_send);
                         drop(packet_send);
@@ -299,12 +297,12 @@ impl SimulationController {
                     if let Some((command_channel, _)) = drone_entry {
                         match command_channel.send(DroneCommand::Crash) {
                             Ok(()) => info!(
-                                "[ {} ]: sent a DroneCommand: Crash() to [ Drone {} ]",
+                                "[ {} ]: sent a DroneCommand::Crash() to [ Drone {} ]",
                                 "Simulation Controller".green(),
                                 drone
                             ),
                             Err(e) => error!(
-                                "[ {} ]: failed to send a DroneCommand: Crash() to the [ Drone {} ]: {}",
+                                "[ {} ]: failed to send a DroneCommand::Crash() to the [ Drone {} ]: {}",
                                 "Simulation Controller".red(),
                                 drone,
                                 e
@@ -331,21 +329,36 @@ impl SimulationController {
     fn handle_gui_command(&mut self, command: GUICommands) {
         match command {
             GUICommands::Spawn(id, connected_node_ids, pdr) => {
-                action::spawn(self, id, connected_node_ids, pdr)
+                match action::spawn(self, id, connected_node_ids, pdr) {
+                    Ok(()) => return,
+                    Err(e) => {
+                        error!("{}", e);
+                    }
+                }
             }
-            GUICommands::Crash(drone) => self.handle_command(&drone, DroneCommand::Crash),
+            GUICommands::Crash(drone) => match action::crash(self, drone) {
+                Ok(()) => self.handle_command(&drone, DroneCommand::Crash),
+                Err(e) => error!("{}", e),
+            },
             GUICommands::RemoveSender(drone, to_remove) => {
-                action::remove_sender(self, &drone, &to_remove);
-                self.handle_command(&drone, DroneCommand::RemoveSender(to_remove))
+                match action::remove_sender(self, &drone, &to_remove) {
+                    Ok(()) => self.handle_command(&drone, DroneCommand::RemoveSender(to_remove)),
+                    Err(e) => error!("{}", e),
+                }
             }
             GUICommands::AddSender(drone, to_add) => {
-                action::add_sender(self, &drone, &to_add);
-                let (_, sender) = self.drones.get(&to_add).unwrap().clone();
-                self.handle_command(&drone, DroneCommand::AddSender(to_add, sender));
+                match action::add_sender(self, &drone, &to_add) {
+                    Ok(()) => {
+                        let (_, sender) = self.drones.get(&to_add).unwrap().clone();
+                        self.handle_command(&drone, DroneCommand::AddSender(to_add, sender));
+                    }
+                    Err(e) => error!("{}", e),
+                }
             }
-            GUICommands::SetPDR(drone, pdr) => {
-                self.handle_command(&drone, DroneCommand::SetPacketDropRate(pdr))
-            }
+            GUICommands::SetPDR(drone, pdr) => match verify::valid_pdr(pdr) {
+                Ok(value) => self.handle_command(&drone, DroneCommand::SetPacketDropRate(value)),
+                Err(e) => error!("{}", e),
+            },
         }
     }
 }

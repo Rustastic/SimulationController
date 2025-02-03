@@ -60,3 +60,11 @@ pub fn has_neighbors<'a>(
         Err(SimulationControllerError::HasNoNeighbor(*drone))
     }
 }
+
+pub fn valid_pdr(pdr: f32) -> Result<f32, SimulationControllerError> {
+    if pdr >= 0.0 && pdr <= 1.0 {
+        Ok(pdr)
+    } else {
+        Err(SimulationControllerError::PacketDropRateOutOfRange)
+    }
+}

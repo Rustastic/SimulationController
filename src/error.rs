@@ -1,5 +1,4 @@
 use std::num::ParseFloatError;
-
 use thiserror::Error;
 
 use wg_2024::network::NodeId;
@@ -8,6 +7,8 @@ use wg_2024::network::NodeId;
 pub enum SimulationControllerError {
     #[error("[ ERROR ]: A drone with the NodeId: {0} does not exist")]
     DroneNotFound(NodeId),
+    #[error("[ ERROR ]: A drone with the NodeId: {0} already exist")]
+    DroneAlreadyExist(NodeId),
     #[error("[ ERROR ]: Please insert a valid NodeId")]
     InvalidNodeId,
     #[error("[ ERROR ]: The [ Drone: {0} ] is NOT a neighbor of [ Drone: {1} ]")]
