@@ -11,7 +11,7 @@ use wg_2024::{
     packet::{Packet, PacketType},
 };
 
-use gui::{GUICommands, GUIEvents};
+use gui::commands::{GUICommands, GUIEvents};
 
 //use chat_client::ChatClient;
 
