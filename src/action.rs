@@ -17,23 +17,24 @@ use crate::{verify, SimulationController};
 
 fn drone_factory<T>() -> Box<
     dyn Fn(
+        &mut SimulationController,
         &ConfigDrone,
         &Sender<DroneEvent>,
         &Receiver<DroneCommand>,
         &Receiver<Packet>,
-        &Sender<Packet>,
     ) -> Box<dyn Drone>,
 >
 where
     T: Drone + 'static,
 {
     Box::new(
-        |drone, event_send, command_recv, packet_recv, packet_send| {
+        |sim_ctrl, drone, event_send, command_recv, packet_recv| {
             // Create packet send hashmap
             let mut packet_send_hashmap = HashMap::<NodeId, Sender<Packet>>::new();
             // Fill hashmap with only neighbor
             for neighbor in &drone.connected_node_ids {
-                packet_send_hashmap.insert(*neighbor, packet_send.clone());
+                let (_, neighbor_send_channel) = sim_ctrl.drones.get(neighbor).unwrap();
+                packet_send_hashmap.insert(*neighbor, neighbor_send_channel.clone());
             }
 
             // Get drone's command receiver channel
@@ -48,6 +49,7 @@ where
         },
     )
 }
+
 
 pub fn spawn(
     sim_ctrl: &mut SimulationController,
