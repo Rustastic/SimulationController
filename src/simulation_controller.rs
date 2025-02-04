@@ -12,8 +12,8 @@ use wg_2024::{
 };
 
 use gui::commands::{GUICommands, GUIEvents};
-use chat_client::chat_client::ChatClient;
-use messages::client_commands::{ChatClientCommand, ChatClientEvent};
+use chat_client::ChatClient;
+use messages::client_commands::{ChatClientCommand, ChatClientEvent, MediaClientCommand, MediaClientEvent};
 
 use crate::{action, verify};
 
@@ -26,7 +26,9 @@ pub struct SimulationController {
     gui_send: Sender<GUIEvents>,
     gui_recv: Receiver<GUICommands>,
     cclient_send: HashMap<NodeId, Sender<ChatClientCommand>>,
-    cclient_recv: Receiver<ChatClientEvent>
+    cclient_recv: Receiver<ChatClientEvent>,
+    mclient_send: HashMap<NodeId, Sender<MediaClientCommand>>,
+    mclient_recv: Receiver<MediaClientEvent>
 }
 
 impl SimulationController {
@@ -38,7 +40,9 @@ impl SimulationController {
         gui_send: Sender<GUIEvents>,
         gui_recv: Receiver<GUICommands>,
         cclient_send: HashMap<NodeId, Sender<ChatClientCommand>>,
-        cclient_recv: Receiver<ChatClientEvent>
+        cclient_recv: Receiver<ChatClientEvent>,
+        mclient_send: HashMap<NodeId, Sender<MediaClientCommand>>,
+        mclient_recv: Receiver<MediaClientEvent>
     ) -> Self {
         return Self {
             drones,
@@ -50,6 +54,8 @@ impl SimulationController {
             gui_recv,
             cclient_send,
             cclient_recv,
+            mclient_send,
+            mclient_recv,
         };
     }
 
