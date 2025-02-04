@@ -104,6 +104,25 @@ impl SimulationController {
                 }
             }
 
+            // Check if any MediaClient events are received
+            match self.mclient_recv.try_recv() {
+                Ok(mclient_command) => {
+                    info!(
+                        "[ {} ]: MediaClientEvent received",
+                        "Simulation Controller".green()
+                    );
+                    self.handle_mclient_event(mclient_command);
+                }
+                Err(e) => match e {
+                    crossbeam_channel::TryRecvError::Empty => (),
+                    crossbeam_channel::TryRecvError::Disconnected => error!(
+                        "[ {} ]: MediaClientEvent receiver channel disconnected: {}",
+                        "Simulation Controller".red(),
+                        e
+                    ),
+                }
+            }
+
             // Check if any GUI commands are received
             match self.gui_recv.try_recv() {
                 Ok(gui_command) => {
@@ -671,6 +690,32 @@ impl SimulationController {
             ChatClientCommand::RegisterTo(server) => (),
             ChatClientCommand::GetClientList => (),
             ChatClientCommand::LogOut => (),
+        }
+    }
+
+    fn handle_mclient_event(&mut self, event: MediaClientEvent) {
+        match event {
+            MediaClientEvent::ReceveidFloodResponse => todo!(),
+            MediaClientEvent::RemovedSender(_) => todo!(),
+            MediaClientEvent::AddedSender(_) => todo!(),
+            MediaClientEvent::UnreachableNode(_) => todo!(),
+            MediaClientEvent::SendError(send_error) => todo!(),
+            MediaClientEvent::ReceveidServerType(server_type) => todo!(),
+            MediaClientEvent::ReceveidFileList(items) => todo!(),
+            MediaClientEvent::ReceveidFile(_, buf_reader) => todo!(),
+            MediaClientEvent::ReceivedMedia(_, buf_reader) => todo!(),
+        }
+    }
+
+    fn handle_mclient_event(&mut self, client: MediaClient, command: MediaClientCommand) {
+        match command {
+            MediaClientCommand::InitFlooding => todo!(),
+            MediaClientCommand::RemoveSender(_) => todo!(),
+            MediaClientCommand::AddSender(_, sender) => todo!(),
+            MediaClientCommand::AskServerType(_) => todo!(),
+            MediaClientCommand::AskFilesList(_) => todo!(),
+            MediaClientCommand::AskForFile(_, _) => todo!(),
+            MediaClientCommand::AskForMedia(_, _) => todo!(),
         }
     }
 }
