@@ -147,6 +147,7 @@ impl SimulationController {
         }
     }
 
+    // Handle Drone Events
     pub fn handle_event(&self, drone_event: DroneEvent) {
         match drone_event {
             DroneEvent::PacketSent(packet) => {
@@ -260,7 +261,9 @@ impl SimulationController {
         }
     }
 
+    // Handle Drone Commands 
     pub fn handle_command(&mut self, drone: &NodeId, drone_command: DroneCommand) {
+        // Get drone channel
         if let Some((command_channel, _)) = self.drones.get(drone) {
             match drone_command {
                 DroneCommand::RemoveSender(node_id) => {
@@ -374,6 +377,7 @@ impl SimulationController {
         }
     }
 
+    // Handle GUI Commands
     fn handle_gui_command(&mut self, command: GUICommands) {
         match command {
             GUICommands::Spawn(id, connected_node_ids, pdr) => {
@@ -410,6 +414,7 @@ impl SimulationController {
         }
     }
 
+    // Handle ChatClient Event
     fn handle_cclient_event(&mut self, event: ChatClientEvent) {
         match event {
             ChatClientEvent::CommunicationServerList(items) => (),
@@ -516,6 +521,7 @@ impl SimulationController {
         }
     }
 
+    // Handle ChatClient Command
     fn handle_cclient_command(&mut self, chat_client: &NodeId, command: ChatClientCommand) {
         match command {
             ChatClientCommand::InitFlooding => {
@@ -566,6 +572,7 @@ impl SimulationController {
             },
             ChatClientCommand::RemoveSender(drone) => {
                 if let Some(neighbors) = self.neighbor.get(chat_client) {
+                    // Max 2 neighbor, Min 1 neighbor
                     if neighbors.len() == 2 {
                         if let Some(client) = self.cclient_send.get(chat_client) {
                             match client.send(ChatClientCommand::RemoveSender(drone)) {
@@ -608,9 +615,11 @@ impl SimulationController {
                 }
             },
             ChatClientCommand::AddSender(drone, sender) => {
+                // Can't connect to a client
                 if !self.cclient_send.contains_key(&drone) {
                     if let Some(neighbors) = self.neighbor.get(chat_client) {
-                        if neighbors.len() == 2 {
+                        // Max 2 neighbor, Min 1 neighbor
+                        if neighbors.len() == 1 {
                             if let Some(client) = self.cclient_send.get(chat_client) {
                                 match client.send(ChatClientCommand::AddSender(drone, sender.clone())) {
                                     Ok(()) => info!(
@@ -693,6 +702,7 @@ impl SimulationController {
         }
     }
 
+    // Handle MediaClient Event
     fn handle_mclient_event(&mut self, event: MediaClientEvent) {
         match event {
             MediaClientEvent::ReceveidFloodResponse => todo!(),
@@ -707,7 +717,8 @@ impl SimulationController {
         }
     }
 
-    fn handle_mclient_event(&mut self, client: MediaClient, command: MediaClientCommand) {
+    // Handle MediaClient Command
+    fn handle_mclient_command(&mut self, client: MediaClient, command: MediaClientCommand) {
         match command {
             MediaClientCommand::InitFlooding => todo!(),
             MediaClientCommand::RemoveSender(_) => todo!(),
