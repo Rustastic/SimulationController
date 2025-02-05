@@ -144,14 +144,14 @@ pub fn crash(
 
 pub fn remove_sender(
     sim_ctrl: &mut SimulationController,
-    drone: &NodeId,
+    node_id: &NodeId,
     to_remove: &NodeId,
 ) -> Result<(), SimulationControllerError> {
     // Check if it exists a neighbor with this id
-    match verify::has_neighbors(sim_ctrl, &drone) {
-        Ok(neighbor) => match verify::is_a_neighbor(neighbor, to_remove, drone, false) {
+    match verify::has_neighbors(sim_ctrl, &node_id) {
+        Ok(neighbor) => match verify::is_a_neighbor(neighbor, to_remove, node_id, false) {
             Ok(()) => {
-                sim_ctrl.handle_command(&to_remove, DroneCommand::RemoveSender(*drone));
+                sim_ctrl.handle_drone_command(&to_remove, DroneCommand::RemoveSender(*node_id));
                 Ok(())
             }
             Err(e) => Err(e),
@@ -162,18 +162,18 @@ pub fn remove_sender(
 
 pub fn add_sender(
     sim_ctrl: &mut SimulationController,
-    drone: &NodeId,
+    node_id: &NodeId,
     to_add: &NodeId,
 ) -> Result<(), SimulationControllerError> {
     // Check if it exists a neighbor with this id
-    match verify::has_neighbors(sim_ctrl, &drone) {
-        Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_add, &drone, true) {
+    match verify::has_neighbors(sim_ctrl, &node_id) {
+        Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_add, &node_id, true) {
             Ok(()) => {
-                let (_, drone_packet_send) = sim_ctrl.drones.get(&drone).unwrap().clone();
+                let (_, drone_packet_send) = sim_ctrl.drones.get(&node_id).unwrap().clone();
 
                 sim_ctrl.handle_command(
                     &to_add,
-                    DroneCommand::AddSender(*drone, drone_packet_send.clone()),
+                    DroneCommand::AddSender(*node_id, drone_packet_send.clone()),
                 );
 
                 Ok(())
@@ -182,4 +182,31 @@ pub fn add_sender(
         },
         Err(e) => Err(e),
     }
+}
+
+pub fn send_message(
+    sim_ctrl: &mut SimulationController,
+    client: &NodeId,
+    server: &NodeId,
+) -> Result<(), SimulationControllerError> {
+    // verify nodes connected
+    Ok(())
+}
+
+pub fn register(
+    sim_ctrl: &mut SimulationController,
+    client: &NodeId,
+    server: &NodeId,
+) -> Result<(), SimulationControllerError> {
+    // verify it is really a server
+    Ok(())
+}
+
+pub fn logout(
+    sim_ctrl: &mut SimulationController,
+    client: &NodeId,
+    server: &NodeId,
+) -> Result<(), SimulationControllerError> {
+    // verify it is a server and it is the one it is connected to
+    Ok(())
 }

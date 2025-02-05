@@ -11,50 +11,55 @@ use wg_2024::{
     packet::{Packet, PacketType},
 };
 
-use gui::commands::{GUICommands, GUIEvents};
 use chat_client::ChatClient;
-use messages::client_commands::{ChatClientCommand, ChatClientEvent, MediaClientCommand, MediaClientEvent};
+use gui::commands::{GUICommands, GUIEvents};
+use messages::client_commands::{
+    ChatClientCommand, ChatClientEvent, MediaClientCommand, MediaClientEvent,
+};
 
 use crate::{action, verify};
 
 pub struct SimulationController {
     pub drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
-    receiver: Receiver<DroneEvent>,
+    drone_recv: Receiver<DroneEvent>,
     pub neighbor: HashMap<NodeId, Vec<NodeId>>,
     pub event_send: Sender<DroneEvent>,
     pub new_drones: Vec<Box<dyn Drone>>,
+
     gui_send: Sender<GUIEvents>,
     gui_recv: Receiver<GUICommands>,
-    cclient_send: HashMap<NodeId, Sender<ChatClientCommand>>,
+
+    pub cclients: HashMap<NodeId, Sender<ChatClientCommand>>,
     cclient_recv: Receiver<ChatClientEvent>,
-    mclient_send: HashMap<NodeId, Sender<MediaClientCommand>>,
-    mclient_recv: Receiver<MediaClientEvent>
+
+    pub mclients: HashMap<NodeId, Sender<MediaClientCommand>>,
+    mclient_recv: Receiver<MediaClientEvent>,
 }
 
 impl SimulationController {
     pub fn new(
         drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
-        receiver: Receiver<DroneEvent>,
+        drone_recv: Receiver<DroneEvent>,
         neighbor: HashMap<NodeId, Vec<NodeId>>,
         event_send: Sender<DroneEvent>,
         gui_send: Sender<GUIEvents>,
         gui_recv: Receiver<GUICommands>,
-        cclient_send: HashMap<NodeId, Sender<ChatClientCommand>>,
+        cclients: HashMap<NodeId, Sender<ChatClientCommand>>,
         cclient_recv: Receiver<ChatClientEvent>,
-        mclient_send: HashMap<NodeId, Sender<MediaClientCommand>>,
-        mclient_recv: Receiver<MediaClientEvent>
+        mclients: HashMap<NodeId, Sender<MediaClientCommand>>,
+        mclient_recv: Receiver<MediaClientEvent>,
     ) -> Self {
         return Self {
             drones,
-            receiver,
+            drone_recv,
             neighbor,
             event_send,
             new_drones: Vec::new(),
             gui_send,
             gui_recv,
-            cclient_send,
+            cclients,
             cclient_recv,
-            mclient_send,
+            mclients,
             mclient_recv,
         };
     }
@@ -64,10 +69,17 @@ impl SimulationController {
             "[ {} ] Starting Simulation Controller",
             "Simulation Controller".green()
         );
+
+        // Init ChatClient
+        for (chat_client, sender) in self.cclients.iter() {
+            self.handle_cclient_command(chat_client, ChatClientCommand::StartChatClient);
+            self.handle_cclient_command(chat_client, ChatClientCommand::InitFlooding);
+        }
+
         // Start loop
         loop {
             // Check if any Drone events are received
-            match self.receiver.try_recv() {
+            match self.drone_recv.try_recv() {
                 Ok(drone_event) => {
                     info!(
                         "[ {} ]: DroneEvent received",
@@ -101,7 +113,7 @@ impl SimulationController {
                         "Simulation Controller".red(),
                         e
                     ),
-                }
+                },
             }
 
             // Check if any MediaClient events are received
@@ -120,7 +132,7 @@ impl SimulationController {
                         "Simulation Controller".red(),
                         e
                     ),
-                }
+                },
             }
 
             // Check if any GUI commands are received
@@ -261,8 +273,8 @@ impl SimulationController {
         }
     }
 
-    // Handle Drone Commands 
-    pub fn handle_command(&mut self, drone: &NodeId, drone_command: DroneCommand) {
+    // Handle Drone Commands
+    pub fn handle_drone_command(&mut self, drone: &NodeId, drone_command: DroneCommand) {
         // Get drone channel
         if let Some((command_channel, _)) = self.drones.get(drone) {
             match drone_command {
@@ -389,27 +401,74 @@ impl SimulationController {
                 }
             }
             GUICommands::Crash(drone) => match action::crash(self, drone) {
-                Ok(()) => self.handle_command(&drone, DroneCommand::Crash),
+                Ok(()) => self.handle_drone_command(&drone, DroneCommand::Crash),
                 Err(e) => error!("{}", e),
             },
-            GUICommands::RemoveSender(drone, to_remove) => {
-                match action::remove_sender(self, &drone, &to_remove) {
-                    Ok(()) => self.handle_command(&drone, DroneCommand::RemoveSender(to_remove)),
+            GUICommands::RemoveSender(node_id, to_remove) => {
+                match action::remove_sender(self, &node_id, &to_remove) {
+                    Ok(()) => {
+                        if self.drones.contains_key(*node_id) {
+                            self.handle_drone_command(
+                                &node_id,
+                                DroneCommand::RemoveSender(to_remove),
+                            )
+                        } else {
+                            self.handle_cclient_command(
+                                &node_id,
+                                ChatClient::RemoveSender(to_remove),
+                            )
+                        }
+                    }
                     Err(e) => error!("{}", e),
                 }
             }
-            GUICommands::AddSender(drone, to_add) => {
-                match action::add_sender(self, &drone, &to_add) {
+            GUICommands::AddSender(node_id, to_add) => {
+                match action::add_sender(self, &node_id, &to_add) {
                     Ok(()) => {
-                        let (_, sender) = self.drones.get(&to_add).unwrap().clone();
-                        self.handle_command(&drone, DroneCommand::AddSender(to_add, sender));
+                        if self.drones.contains_key(&node_id) {
+                            let (_, sender) = self.drones.get(&to_add).unwrap().clone();
+                            self.handle_drone_command(
+                                &node_id,
+                                DroneCommand::AddSender(to_add, sender),
+                            );
+                        } else {
+                            let (_, sender) = self.drones.get(&to_add).unwrap().clone();
+                            self.handle_cclient_command(
+                                &node_id,
+                                ChatClientCommand::AddSender(to_add, sender),
+                            );
+                        }
                     }
                     Err(e) => error!("{}", e),
                 }
             }
             GUICommands::SetPDR(drone, pdr) => match verify::valid_pdr(pdr) {
-                Ok(value) => self.handle_command(&drone, DroneCommand::SetPacketDropRate(value)),
+                Ok(value) => {
+                    self.handle_drone_command(&drone, DroneCommand::SetPacketDropRate(value))
+                }
                 Err(e) => error!("{}", e),
+            },
+
+            GUICommands::SendMessageTo(src, dest, msg) => {
+                match action::send_message(self, client, server) {
+                    Ok(()) => self
+                        .handle_cclient_command(&src, ChatClientCommand::SendMessageTo(dest, msg)),
+                    Err(_) => error!("{}", e),
+                }
+            }
+            GUICommands::RegisterTo(client, server) => {
+                match action::register(self, &client, &server) {
+                    Ok(()) => {
+                        self.handle_cclient_command(&client, ChatClientCommand::RegisterTo(server))
+                    }
+                    Err(e) => error!("{}", e),
+                }
+            }
+            GUICommands::LogOut(client, server) => { 
+                match action::logout(self, &client, &server) {
+                    Ok(()) => self.handle_cclient_command(&client, ChatClientCommand::LogOut),
+                    Err(e) => error!("{}", e),
+                }    
             },
         }
     }
@@ -417,20 +476,43 @@ impl SimulationController {
     // Handle ChatClient Event
     fn handle_cclient_event(&mut self, event: ChatClientEvent) {
         match event {
-            ChatClientEvent::CommunicationServerList(items) => (),
-            ChatClientEvent::MessageReceived(src, msg) => {
-                match self.gui_send.send(GUIEvents::MessageReceived(src, src, msg.clone())) {
+            ChatClientEvent::CommunicationServerList(items) => {
+                match self
+                    .gui_send
+                    .send(GUIEvents::CommunicationServerList(items))
+                {
                     Ok(()) => info!(
-                        "[ {} ]: sent a GUIEvent::PacketReceived({}, {}, {}) to GUI",
+                        "[ {} ]: sent a GUIEvent::CommunicationServerList({}) to GUI",
                         "Simulation Controller".green(),
-                        src,
+                        items,
+                    ),
+                    Err(e) => error!(
+                        "[ {} ]: failed to send GUIEvent::CommunicationServerList({}) to GUI: {}",
+                        "Simulation Controller".red(),
+                        items,
+                        e
+                    ),
+                }
+
+                info!(
+                    "The Client retrieved the CommunicationServers list: {:?}",
+                    items
+                );
+            }
+            ChatClientEvent::MessageReceived(src, msg) => {
+                match self
+                    .gui_send
+                    .send(GUIEvents::MessageReceived(src, msg.clone()))
+                {
+                    Ok(()) => info!(
+                        "[ {} ]: sent a GUIEvent::PacketReceived({}, {}) to GUI",
+                        "Simulation Controller".green(),
                         src,
                         msg,
                     ),
                     Err(e) => error!(
-                        "[ {} ]: failed to send GUIEvent::PacketReceived({}, {}, {}) to GUI: {}",
+                        "[ {} ]: failed to send GUIEvent::PacketReceived({}, {}) to GUI: {}",
                         "Simulation Controller".red(),
-                        src,
                         src,
                         msg,
                         e
@@ -439,14 +521,35 @@ impl SimulationController {
 
                 info!(
                     "[ Client: {} ]: received the message {:?} from [ Server {} ]",
-                    src,
-                    msg,
-                    src
+                    src, msg, src
                 );
-            },
-            ChatClientEvent::SuccessfulRegistration(_) => (),
-            ChatClientEvent::ClientList(items) => (),
-            ChatClientEvent::SuccessfulLogOut => (),
+            }
+            ChatClientEvent::SuccessfulRegistration(server) => !info!(
+                "[ {} ]: The Client successfully register to [ Server {}]",
+                "Simulation Controller".green(),
+                server
+            ),
+            ChatClientEvent::ClientList(client_list) => {
+                match self.gui_send.send(GUIEvents::ClientList(client_list)) {
+                    Ok(()) => info!(
+                        "[ {} ]: sent a GUIEvent::ClientList({:?}) to GUI",
+                        "Simulation Controller".green(),
+                        client_list,
+                    ),
+                    Err(e) => error!(
+                        "[ {} ]: failed to send GUIEvent::ClientList({:?}) to GUI: {}",
+                        "Simulation Controller".red(),
+                        client_list,
+                        e
+                    ),
+                }
+
+                info!("The Client retrieved the Client list: {:?}", client_list);
+            }
+            ChatClientEvent::SuccessfulLogOut => info!(
+                "[ {} ]: The Client successfully logged out from server",
+                "Simulation Controller".green(),
+            ),
             ChatClientEvent::UnreachableClient(client) => {
                 match self.gui_send.send(GUIEvents::UnreachableClient(client)) {
                     Ok(()) => info!(
@@ -463,12 +566,12 @@ impl SimulationController {
                 }
 
                 error!(
-                    "[ {} ]: received an error message: [ Client {} ] is unreachable",
+                    "[ {} ]: received an error message: [ Client {} ] is not register on the selected server",
                     "Simulation Controller".red(),
                     client,
                 );
-            },
-            ChatClientEvent::ErrorNotRunning =>  {
+            }
+            ChatClientEvent::ErrorNotRunning => {
                 match self.gui_send.send(GUIEvents::ErrorNotRunning) {
                     Ok(()) => info!(
                         "[ {} ]: sent a GUIEvent::ErrorNotRunning to GUI",
@@ -482,11 +585,28 @@ impl SimulationController {
                 }
 
                 error!(
-                    "[ {} ]: received an error message: The Client is not running",
+                    "[ {} ]: received an error message: The Client tried to register without previously running ChatClientCommand::StartChatClient",
                     "Simulation Controller".red(),
                 );
-            },
-            ChatClientEvent::ErrorNotRegistered => (),
+            }
+            ChatClientEvent::ErrorNotRegistered => {
+                match self.gui_send.send(GUIEvents::ErrorNotRegistered) {
+                    Ok(()) => info!(
+                        "[ {} ]: sent a GUIEvent::ErrorNotRegistered to GUI",
+                        "Simulation Controller".green(),
+                    ),
+                    Err(e) => error!(
+                        "[ {} ]: failed to send GUIEvent::ErrorNotRegistered to GUI: {}",
+                        "Simulation Controller".red(),
+                        e
+                    ),
+                }
+
+                error!(
+                    "[ {} ]: received an error message: The Client is not register to a server",
+                    "Simulation Controller".red(),
+                );
+            }
             ChatClientEvent::ControllerShortcut(packet) => {
                 if let Some(dest) = packet
                     .routing_header
@@ -517,15 +637,15 @@ impl SimulationController {
                         "Simulation Controller".red()
                     );
                 }
-            },
+            }
         }
     }
 
     // Handle ChatClient Command
-    fn handle_cclient_command(&mut self, chat_client: &NodeId, command: ChatClientCommand) {
+    pub fn handle_cclient_command(&mut self, chat_client: &NodeId, command: ChatClientCommand) {
         match command {
             ChatClientCommand::InitFlooding => {
-                if let Some(client) = self.cclient_send.get(chat_client) {
+                if let Some(client) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::InitFlooding) {
                         Ok(()) => info!(
                             "[ {} ]: sent a ChatClientCommand::InitFlo0ding to [ Client {} ]",
@@ -546,9 +666,9 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            },
+            }
             ChatClientCommand::StartChatClient => {
-                if let Some(client) = self.cclient_send.get(chat_client) {
+                if let Some(client) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::StartChatClient) {
                         Ok(()) => info!(
                             "[ {} ]: sent a ChatClientCommand::StartChatClient to [ Client {} ]",
@@ -569,12 +689,12 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            },
+            }
             ChatClientCommand::RemoveSender(drone) => {
                 if let Some(neighbors) = self.neighbor.get(chat_client) {
                     // Max 2 neighbor, Min 1 neighbor
                     if neighbors.len() == 2 {
-                        if let Some(client) = self.cclient_send.get(chat_client) {
+                        if let Some(client) = self.cclients.get(chat_client) {
                             match client.send(ChatClientCommand::RemoveSender(drone)) {
                                 Ok(()) => info!(
                                     "[ {} ]: sent a ChatClientCommand::RemoveSender({}) to [ Client {} ]",
@@ -613,14 +733,15 @@ impl SimulationController {
                         drone
                     );
                 }
-            },
+            }
             ChatClientCommand::AddSender(drone, sender) => {
                 // Can't connect to a client
-                if !self.cclient_send.contains_key(&drone) {
-                    if let Some(neighbors) = self.neighbor.get(chat_client) {
+                if !self.cclients.contains_key(&drone) {
+                    if let Some(neighbors) = self.neighbor.get_mut(chat_client) {
                         // Max 2 neighbor, Min 1 neighbor
                         if neighbors.len() == 1 {
-                            if let Some(client) = self.cclient_send.get(chat_client) {
+                            neighbors.push(drone);
+                            if let Some(client) = self.cclients.get(chat_client) {
                                 match client.send(ChatClientCommand::AddSender(drone, sender.clone())) {
                                     Ok(()) => info!(
                                         "[ {} ]: sent a ChatClientCommand::AddSender({}, {:?}) to [ Client {} ]",
@@ -668,9 +789,9 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            },
+            }
             ChatClientCommand::SendMessageTo(dest, msg) => {
-                if let Some(client) = self.cclient_send.get(chat_client) {
+                if let Some(client) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::SendMessageTo(dest, msg.clone())) {
                         Ok(()) => info!(
                             "[ {} ]: sent a ChatClientCommand::SendMessageTo({}, {}) to [ Client {} ]",
@@ -695,10 +816,81 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            },
-            ChatClientCommand::RegisterTo(server) => (),
-            ChatClientCommand::GetClientList => (),
-            ChatClientCommand::LogOut => (),
+            }
+            ChatClientCommand::RegisterTo(server) => {
+                /////////////// add check to see if server exists
+                ///
+                ///
+                if let Some(client) = self.cclients.get(chat_client) {
+                    match client.send(ChatClientCommand::RegisterTo(server)) {
+                        Ok(()) => info!(
+                            "[ {} ]: sent a ChatClientCommand::RegisterTo({}) to [ Client {} ]",
+                            "Simulation Controller".green(),
+                            server,
+                            chat_client
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to send a ChatClientCommand::RegisterTo({}) to the [ Client {} ]: {}",
+                            "Simulation Controller".red(),
+                            server,
+                            chat_client,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ Client {} ]",
+                        "Simulation Controller".red(),
+                        chat_client
+                    );
+                }
+            }
+            ChatClientCommand::GetClientList => {
+                if let Some(client) = self.cclients.get(chat_client) {
+                    match client.send(ChatClientCommand::GetClientList) {
+                        Ok(()) => info!(
+                            "[ {} ]: sent a ChatClientCommand::GetClientList to [ Client {} ]",
+                            "Simulation Controller".green(),
+                            chat_client
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to send a ChatClientCommand::GetClientList to the [ Client {} ]: {}",
+                            "Simulation Controller".red(),
+                            chat_client,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ Client {} ]",
+                        "Simulation Controller".red(),
+                        chat_client
+                    );
+                }
+            }
+            ChatClientCommand::LogOut => {
+                if let Some(client) = self.cclients.get(chat_client) {
+                    match client.send(ChatClientCommand::LogOut) {
+                        Ok(()) => info!(
+                            "[ {} ]: sent a ChatClientCommand::LogOut to [ Client {} ]",
+                            "Simulation Controller".green(),
+                            chat_client
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to send a ChatClientCommand::LogOut to the [ Client {} ]: {}",
+                            "Simulation Controller".red(),
+                            chat_client,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ Client {} ]",
+                        "Simulation Controller".red(),
+                        chat_client
+                    );
+                }
+            }
         }
     }
 
