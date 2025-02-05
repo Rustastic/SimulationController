@@ -85,7 +85,7 @@ impl SimulationController {
                         "[ {} ]: DroneEvent received",
                         "Simulation Controller".green()
                     );
-                    self.handle_event(drone_event);
+                    self.handle_drone_event(drone_event);
                 }
                 Err(e) => match e {
                     crossbeam_channel::TryRecvError::Empty => (),
@@ -160,8 +160,8 @@ impl SimulationController {
     }
 
     // Handle Drone Events
-    pub fn handle_event(&self, drone_event: DroneEvent) {
-        match drone_event {
+    pub fn handle_drone_event(&self, drone_event: DroneEvent) {
+        match drone_event {value
             DroneEvent::PacketSent(packet) => {
                 let gui_packet = packet.clone();
 
