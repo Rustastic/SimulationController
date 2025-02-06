@@ -645,7 +645,7 @@ impl SimulationController {
 
     // Handle ChatClient Command
     pub fn handle_cclient_command(&mut self, chat_client: &NodeId, command: ChatClientCommand) {
-        /*match command {
+        match command {
             ChatClientCommand::InitFlooding => {
                 if let Some(client) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::InitFlooding) {
@@ -893,7 +893,7 @@ impl SimulationController {
                     );
                 }
             }
-        }*/
+        }
     }
 
     // Handle MediaClient Event
