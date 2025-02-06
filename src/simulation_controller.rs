@@ -775,7 +775,7 @@ impl SimulationController {
                                 "Simulation Controller".red(),
                                 drone,
                                 sender,
-                                chat_client,3
+                                chat_client,
                                 "Each client must be connected to at most two drones"
                             );
                         }
