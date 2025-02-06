@@ -897,7 +897,7 @@ impl SimulationController {
     }
 
     // Handle MediaClient Event
-    fn handle_mclient_event(&mut self, event: MediaClientEvent) {
+    /*fn handle_mclient_event(&mut self, event: MediaClientEvent) {
         match event {
             MediaClientEvent::ReceveidFloodResponse => todo!(),
             MediaClientEvent::RemovedSender(_) => todo!(),
@@ -909,7 +909,7 @@ impl SimulationController {
             MediaClientEvent::ReceveidFile(_, buf_reader) => todo!(),
             MediaClientEvent::ReceivedMedia(_, buf_reader) => todo!(),
         }
-    }
+    }*/
 
     // Handle MediaClient Command
     /*fn handle_mclient_command(&mut self, client: media_client::MediaClient, command: MediaClientCommand) {
