@@ -23,4 +23,6 @@ pub enum SimulationControllerError {
     PacketDropRateOutOfRange,
     #[error("[ ERROR ]: Please insert a valid f32 value: {0}")]
     InvalidPacketDropRate(ParseFloatError),
+    #[error("[ ERROR ]: Can't connect two clients together")]
+    ClientOnClient,
 }
