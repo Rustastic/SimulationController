@@ -185,11 +185,11 @@ pub fn add_sender(
 
                     Ok(())
                 } else {
-                    let (_, client_packet_send) = sim_ctrl.cclients.get(&node_id).unwrap().clone();
+                    let client_command_send = sim_ctrl.cclients.get(&node_id).unwrap().clone();
 
                     sim_ctrl.handle_cclient_command(
                         &to_add,
-                        ChatClientCommand::AddSender(*node_id, client_packet_send.clone()),
+                        ChatClientCommand::AddSender(*node_id, client_command_send.clone()),
                     );
 
                     Ok(())
