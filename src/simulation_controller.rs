@@ -70,6 +70,8 @@ impl SimulationController {
             "Simulation Controller".green()
         );
 
+        thread::sleep(std::time::Duration::from_secs(5));
+
         // Init ChatClient
         for (chat_client, sender) in self.cclients.clone().iter() {
             self.handle_cclient_command(chat_client, ChatClientCommand::StartChatClient);
