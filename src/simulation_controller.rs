@@ -770,7 +770,7 @@ impl SimulationController {
                             }
                         } else {
                             error!(
-                                "[ {} ]: failed to send a ChatClientCommand::AddSender({}, {}) to the [ Client {} ]: {}",
+                                "[ {} ]: failed to send a ChatClientCommand::AddSender({}, {:?}) to the [ Client {} ]: {}",
                                 "Simulation Controller".red(),
                                 drone,
                                 sender,
