@@ -152,8 +152,18 @@ pub fn remove_sender(
     match verify::has_neighbors(sim_ctrl, &node_id) {
         Ok(neighbor) => match verify::is_a_neighbor(neighbor, to_remove, node_id, false) {
             Ok(()) => {
-                sim_ctrl.handle_drone_command(&to_remove, DroneCommand::RemoveSender(*node_id));
-                Ok(())
+                if !sim_ctrl.drones.contains_key(node_id) {
+                    sim_ctrl.handle_drone_command(&to_remove, DroneCommand::RemoveSender(*node_id));
+                    Ok(())
+                } else {
+                    if sim_ctrl.cclients.contains_key(to_remove) {
+                        sim_ctrl.handle_cclient_command(&to_remove, ChatClientCommand::RemoveSender(*node_id));
+                        Ok(())
+                    } else {
+                        sim_ctrl.handle_drone_command(&to_remove, DroneCommand::RemoveSender(*node_id));
+                        Ok(())
+                    }
+                }
             }
             Err(e) => Err(e),
         },
