@@ -73,7 +73,7 @@ impl SimulationController {
         // Init ChatClient
         for (chat_client, sender) in self.cclients.clone().iter() {
             self.handle_cclient_command(chat_client, ChatClientCommand::StartChatClient);
-            //self.handle_cclient_command(chat_client, ChatClientCommand::InitFlooding);
+            self.handle_cclient_command(chat_client, ChatClientCommand::InitFlooding);
         }
 
         // Start loop
