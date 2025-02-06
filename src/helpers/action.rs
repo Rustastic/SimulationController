@@ -1,4 +1,5 @@
 use crossbeam_channel::{unbounded, Receiver, Sender};
+use messages::client_commands::ChatClientCommand;
 use rand::Rng;
 use std::collections::HashMap;
 
@@ -151,8 +152,13 @@ pub fn remove_sender(
     match verify::has_neighbors(sim_ctrl, &node_id) {
         Ok(neighbor) => match verify::is_a_neighbor(neighbor, to_remove, node_id, false) {
             Ok(()) => {
-                sim_ctrl.handle_drone_command(&to_remove, DroneCommand::RemoveSender(*node_id));
-                Ok(())
+                if sim_ctrl.drones.contains_key(node_id) {
+                    sim_ctrl.handle_drone_command(&to_remove, DroneCommand::RemoveSender(*node_id));
+                    Ok(())
+                } else {
+                    sim_ctrl.handle_cclient_command(&to_remove, ChatClientCommand::RemoveSender(*node_id));
+                    Ok(())
+                }
             }
             Err(e) => Err(e),
         },
@@ -169,14 +175,25 @@ pub fn add_sender(
     match verify::has_neighbors(sim_ctrl, &node_id) {
         Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_add, &node_id, true) {
             Ok(()) => {
-                let (_, drone_packet_send) = sim_ctrl.drones.get(&node_id).unwrap().clone();
+                if sim_ctrl.drones.contains_key(node_id) {
+                    let (_, drone_packet_send) = sim_ctrl.drones.get(&node_id).unwrap().clone();
 
-                sim_ctrl.handle_drone_command(
-                    &to_add,
-                    DroneCommand::AddSender(*node_id, drone_packet_send.clone()),
-                );
+                    sim_ctrl.handle_drone_command(
+                        &to_add,
+                        DroneCommand::AddSender(*node_id, drone_packet_send.clone()),
+                    );
 
-                Ok(())
+                    Ok(())
+                } else {
+                    let (_, client_packet_send) = sim_ctrl.cclients.get(&node_id).unwrap().clone();
+
+                    sim_ctrl.handle_cclient_command(
+                        &to_add,
+                        ChatClientCommand::AddSender(*node_id, client_packet_send.clone()),
+                    );
+
+                    Ok(())
+                }
             }
             Err(e) => Err(e),
         },
