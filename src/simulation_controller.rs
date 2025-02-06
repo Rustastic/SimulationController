@@ -725,7 +725,7 @@ impl SimulationController {
                             "Simulation Controller".red(),
                             drone,
                             chat_client,
-                            "Each client must remain connected to at least one and at most two drones"
+                            "Each client must remain connected to at least one drone"
                         );
                     }
                 } else {
@@ -770,11 +770,12 @@ impl SimulationController {
                             }
                         } else {
                             error!(
-                                "[ {} ]: failed to send a ChatClientCommand::RemoveSender({}) to the [ Client {} ]: {}",
+                                "[ {} ]: failed to send a ChatClientCommand::AddSender({}, {}) to the [ Client {} ]: {}",
                                 "Simulation Controller".red(),
                                 drone,
+                                sender
                                 chat_client,
-                                "Each client must remain connected to at least one and at most two drones"
+                                "Each client must be connected to at most two drones"
                             );
                         }
                     } else {
