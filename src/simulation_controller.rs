@@ -773,7 +773,7 @@ impl SimulationController {
                                 "[ {} ]: failed to send a ChatClientCommand::AddSender({}, {}) to the [ Client {} ]: {}",
                                 "Simulation Controller".red(),
                                 drone,
-                                sender
+                                sender,
                                 chat_client,
                                 "Each client must be connected to at most two drones"
                             );
