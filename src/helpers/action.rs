@@ -135,7 +135,7 @@ pub fn crash(
     if let Some(neighbor_ids) = sim_ctrl.neighbor.get_mut(&drone).cloned() {
         for neighbor in neighbor_ids {
             // Send command to neighbors
-            sim_ctrl.handle_command(&neighbor, DroneCommand::RemoveSender(drone));
+            sim_ctrl.handle_drone_command(&neighbor, DroneCommand::RemoveSender(drone));
         }
     }
 
@@ -171,7 +171,7 @@ pub fn add_sender(
             Ok(()) => {
                 let (_, drone_packet_send) = sim_ctrl.drones.get(&node_id).unwrap().clone();
 
-                sim_ctrl.handle_command(
+                sim_ctrl.handle_drone_command(
                     &to_add,
                     DroneCommand::AddSender(*node_id, drone_packet_send.clone()),
                 );
@@ -186,8 +186,8 @@ pub fn add_sender(
 
 pub fn send_message(
     sim_ctrl: &mut SimulationController,
-    client: &NodeId,
-    server: &NodeId,
+    src: &NodeId,
+    dest: &NodeId,
 ) -> Result<(), SimulationControllerError> {
     // verify nodes connected
     Ok(())

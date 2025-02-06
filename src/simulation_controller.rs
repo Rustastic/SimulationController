@@ -71,7 +71,7 @@ impl SimulationController {
         );
 
         // Init ChatClient
-        for (chat_client, sender) in self.cclients.iter() {
+        for (chat_client, sender) in self.cclients.clone().iter() {
             self.handle_cclient_command(chat_client, ChatClientCommand::StartChatClient);
             self.handle_cclient_command(chat_client, ChatClientCommand::InitFlooding);
         }
@@ -161,7 +161,7 @@ impl SimulationController {
 
     // Handle Drone Events
     pub fn handle_drone_event(&self, drone_event: DroneEvent) {
-        match drone_event {value
+        match drone_event {
             DroneEvent::PacketSent(packet) => {
                 let gui_packet = packet.clone();
 
@@ -349,8 +349,8 @@ impl SimulationController {
                 }
                 DroneCommand::Crash => {
                     if let Some((command_send, packet_send)) = self.drones.get(drone) {
-                        drop(command_send);
-                        drop(packet_send);
+                        let _ = drop(command_send);
+                        let _ = drop(packet_send);
                     }
 
                     let drone_entry = self.drones.remove(drone);
@@ -407,7 +407,7 @@ impl SimulationController {
             GUICommands::RemoveSender(node_id, to_remove) => {
                 match action::remove_sender(self, &node_id, &to_remove) {
                     Ok(()) => {
-                        if self.drones.contains_key(*node_id) {
+                        if self.drones.contains_key(&node_id) {
                             self.handle_drone_command(
                                 &node_id,
                                 DroneCommand::RemoveSender(to_remove),
@@ -415,7 +415,7 @@ impl SimulationController {
                         } else {
                             self.handle_cclient_command(
                                 &node_id,
-                                ChatClient::RemoveSender(to_remove),
+                                ChatClientCommand::RemoveSender(to_remove),
                             )
                         }
                     }
@@ -450,10 +450,10 @@ impl SimulationController {
             },
 
             GUICommands::SendMessageTo(src, dest, msg) => {
-                match action::send_message(self, client, server) {
+                match action::send_message(self, &src, &dest) {
                     Ok(()) => self
                         .handle_cclient_command(&src, ChatClientCommand::SendMessageTo(dest, msg)),
-                    Err(_) => error!("{}", e),
+                    Err(e) => error!("{}", e),
                 }
             }
             GUICommands::RegisterTo(client, server) => {
@@ -479,15 +479,15 @@ impl SimulationController {
             ChatClientEvent::CommunicationServerList(items) => {
                 match self
                     .gui_send
-                    .send(GUIEvents::CommunicationServerList(items))
+                    .send(GUIEvents::CommunicationServerList(items.clone()))
                 {
                     Ok(()) => info!(
-                        "[ {} ]: sent a GUIEvent::CommunicationServerList({}) to GUI",
+                        "[ {} ]: sent a GUIEvent::CommunicationServerList({:?}) to GUI",
                         "Simulation Controller".green(),
                         items,
                     ),
                     Err(e) => error!(
-                        "[ {} ]: failed to send GUIEvent::CommunicationServerList({}) to GUI: {}",
+                        "[ {} ]: failed to send GUIEvent::CommunicationServerList({:?}) to GUI: {}",
                         "Simulation Controller".red(),
                         items,
                         e
@@ -524,13 +524,13 @@ impl SimulationController {
                     src, msg, src
                 );
             }
-            ChatClientEvent::SuccessfulRegistration(server) => !info!(
+            ChatClientEvent::SuccessfulRegistration(server) => info!(
                 "[ {} ]: The Client successfully register to [ Server {}]",
                 "Simulation Controller".green(),
                 server
             ),
             ChatClientEvent::ClientList(client_list) => {
-                match self.gui_send.send(GUIEvents::ClientList(client_list)) {
+                match self.gui_send.send(GUIEvents::ClientList(client_list.clone())) {
                     Ok(()) => info!(
                         "[ {} ]: sent a GUIEvent::ClientList({:?}) to GUI",
                         "Simulation Controller".green(),
@@ -551,7 +551,7 @@ impl SimulationController {
                 "Simulation Controller".green(),
             ),
             ChatClientEvent::UnreachableClient(client) => {
-                match self.gui_send.send(GUIEvents::UnreachableClient(client)) {
+                /*match self.gui_send.send(GUIEvents::UnreachableClient(client)) {
                     Ok(()) => info!(
                         "[ {} ]: sent a GUIEvent::UnreachableClient({}) to GUI",
                         "Simulation Controller".green(),
@@ -563,7 +563,7 @@ impl SimulationController {
                         client,
                         e
                     ),
-                }
+                }*/
 
                 error!(
                     "[ {} ]: received an error message: [ Client {} ] is not register on the selected server",
@@ -572,7 +572,7 @@ impl SimulationController {
                 );
             }
             ChatClientEvent::ErrorNotRunning => {
-                match self.gui_send.send(GUIEvents::ErrorNotRunning) {
+                /*match self.gui_send.send(GUIEvents::ErrorNotRunning) {
                     Ok(()) => info!(
                         "[ {} ]: sent a GUIEvent::ErrorNotRunning to GUI",
                         "Simulation Controller".green(),
@@ -582,7 +582,7 @@ impl SimulationController {
                         "Simulation Controller".red(),
                         e
                     ),
-                }
+                }*/
 
                 error!(
                     "[ {} ]: received an error message: The Client tried to register without previously running ChatClientCommand::StartChatClient",
@@ -590,7 +590,7 @@ impl SimulationController {
                 );
             }
             ChatClientEvent::ErrorNotRegistered => {
-                match self.gui_send.send(GUIEvents::ErrorNotRegistered) {
+                /*match self.gui_send.send(GUIEvents::ErrorNotRegistered) {
                     Ok(()) => info!(
                         "[ {} ]: sent a GUIEvent::ErrorNotRegistered to GUI",
                         "Simulation Controller".green(),
@@ -600,7 +600,7 @@ impl SimulationController {
                         "Simulation Controller".red(),
                         e
                     ),
-                }
+                }*/
 
                 error!(
                     "[ {} ]: received an error message: The Client is not register to a server",
@@ -910,7 +910,7 @@ impl SimulationController {
     }
 
     // Handle MediaClient Command
-    fn handle_mclient_command(&mut self, client: MediaClient, command: MediaClientCommand) {
+    /*fn handle_mclient_command(&mut self, client: media_client::MediaClient, command: MediaClientCommand) {
         match command {
             MediaClientCommand::InitFlooding => todo!(),
             MediaClientCommand::RemoveSender(_) => todo!(),
@@ -920,5 +920,5 @@ impl SimulationController {
             MediaClientCommand::AskForFile(_, _) => todo!(),
             MediaClientCommand::AskForMedia(_, _) => todo!(),
         }
-    }
+    }*/
 }
