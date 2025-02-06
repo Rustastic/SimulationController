@@ -117,7 +117,7 @@ impl SimulationController {
             }
 
             // Check if any MediaClient events are received
-            match self.mclient_recv.try_recv() {
+            /*match self.mclient_recv.try_recv() {
                 Ok(mclient_command) => {
                     info!(
                         "[ {} ]: MediaClientEvent received",
@@ -133,7 +133,7 @@ impl SimulationController {
                         e
                     ),
                 },
-            }
+            }*/
 
             // Check if any GUI commands are received
             match self.gui_recv.try_recv() {
