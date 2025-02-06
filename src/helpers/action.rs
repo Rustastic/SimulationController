@@ -185,7 +185,7 @@ pub fn add_sender(
 
                     Ok(())
                 } else {
-                    let client_command_send = sim_ctrl.cclients.get(&node_id).unwrap().clone();
+                    let (_, client_command_send) = sim_ctrl.cclients.get(&node_id).unwrap().clone();
 
                     sim_ctrl.handle_cclient_command(
                         &to_add,

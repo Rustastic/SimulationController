@@ -29,7 +29,7 @@ pub struct SimulationController {
     gui_send: Sender<GUIEvents>,
     gui_recv: Receiver<GUICommands>,
 
-    pub cclients: HashMap<NodeId, Sender<ChatClientCommand>>,
+    pub cclients: HashMap<NodeId, (Sender<ChatClientCommand>, Sender<Packet>)>,
     cclient_recv: Receiver<ChatClientEvent>,
 
     pub mclients: HashMap<NodeId, Sender<MediaClientCommand>>,
@@ -44,7 +44,7 @@ impl SimulationController {
         event_send: Sender<DroneEvent>,
         gui_send: Sender<GUIEvents>,
         gui_recv: Receiver<GUICommands>,
-        cclients: HashMap<NodeId, Sender<ChatClientCommand>>,
+        cclients: HashMap<NodeId, (Sender<ChatClientCommand>, Sender<Packet>)>,
         cclient_recv: Receiver<ChatClientEvent>,
         mclients: HashMap<NodeId, Sender<MediaClientCommand>>,
         mclient_recv: Receiver<MediaClientEvent>,
