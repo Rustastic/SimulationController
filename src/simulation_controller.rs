@@ -647,7 +647,7 @@ impl SimulationController {
     pub fn handle_cclient_command(&mut self, chat_client: &NodeId, command: ChatClientCommand) {
         match command {
             ChatClientCommand::InitFlooding => {
-                if let Some(client) = self.cclients.get(chat_client) {
+                if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::InitFlooding) {
                         Ok(()) => info!(
                             "[ {} ]: sent a ChatClientCommand::InitFlo0ding to [ Client {} ]",
@@ -670,7 +670,7 @@ impl SimulationController {
                 }
             }
             ChatClientCommand::StartChatClient => {
-                if let Some(client) = self.cclients.get(chat_client) {
+                if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::StartChatClient) {
                         Ok(()) => info!(
                             "[ {} ]: sent a ChatClientCommand::StartChatClient to [ Client {} ]",
@@ -696,7 +696,7 @@ impl SimulationController {
                 if let Some(neighbors) = self.neighbor.get(chat_client) {
                     // Max 2 neighbor, Min 1 neighbor
                     if neighbors.len() == 2 {
-                        if let Some(client) = self.cclients.get(chat_client) {
+                        if let Some((client, _)) = self.cclients.get(chat_client) {
                             match client.send(ChatClientCommand::RemoveSender(drone)) {
                                 Ok(()) => info!(
                                     "[ {} ]: sent a ChatClientCommand::RemoveSender({}) to [ Client {} ]",
@@ -743,7 +743,7 @@ impl SimulationController {
                         // Max 2 neighbor, Min 1 neighbor
                         if neighbors.len() == 1 {
                             neighbors.push(drone);
-                            if let Some(client) = self.cclients.get(chat_client) {
+                            if let Some((client, _)) = self.cclients.get(chat_client) {
                                 match client.send(ChatClientCommand::AddSender(drone, sender.clone())) {
                                     Ok(()) => info!(
                                         "[ {} ]: sent a ChatClientCommand::AddSender({}, {:?}) to [ Client {} ]",
@@ -793,7 +793,7 @@ impl SimulationController {
                 }
             }
             ChatClientCommand::SendMessageTo(dest, msg) => {
-                if let Some(client) = self.cclients.get(chat_client) {
+                if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::SendMessageTo(dest, msg.clone())) {
                         Ok(()) => info!(
                             "[ {} ]: sent a ChatClientCommand::SendMessageTo({}, {}) to [ Client {} ]",
@@ -823,7 +823,7 @@ impl SimulationController {
                 /////////////// add check to see if server exists
                 ///
                 ///
-                if let Some(client) = self.cclients.get(chat_client) {
+                if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::RegisterTo(server)) {
                         Ok(()) => info!(
                             "[ {} ]: sent a ChatClientCommand::RegisterTo({}) to [ Client {} ]",
@@ -848,7 +848,7 @@ impl SimulationController {
                 }
             }
             ChatClientCommand::GetClientList => {
-                if let Some(client) = self.cclients.get(chat_client) {
+                if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::GetClientList) {
                         Ok(()) => info!(
                             "[ {} ]: sent a ChatClientCommand::GetClientList to [ Client {} ]",
@@ -871,7 +871,7 @@ impl SimulationController {
                 }
             }
             ChatClientCommand::LogOut => {
-                if let Some(client) = self.cclients.get(chat_client) {
+                if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::LogOut) {
                         Ok(()) => info!(
                             "[ {} ]: sent a ChatClientCommand::LogOut to [ Client {} ]",
