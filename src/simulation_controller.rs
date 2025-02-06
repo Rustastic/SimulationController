@@ -696,7 +696,7 @@ impl SimulationController {
                 if let Some(neighbors) = self.neighbor.get_mut(chat_client) {
                     // Max 2 neighbor, Min 1 neighbor
                     if neighbors.len() == 2 {
-                        neighbors.retain(|x| *x != node_id);
+                        neighbors.retain(|x| *x != drone);
                         if let Some((client, _)) = self.cclients.get(chat_client) {
                             match client.send(ChatClientCommand::RemoveSender(drone)) {
                                 Ok(()) => info!(
