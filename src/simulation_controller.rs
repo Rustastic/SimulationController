@@ -100,7 +100,7 @@ impl SimulationController {
             }
 
             // Check if any ChatClient events are received
-            /*match self.cclient_recv.try_recv() {
+            match self.cclient_recv.try_recv() {
                 Ok(cclient_command) => {
                     info!(
                         "[ {} ]: ChatClientEvent received",
@@ -116,7 +116,7 @@ impl SimulationController {
                         e
                     ),
                 },
-            }*/
+            }
 
             // Check if any MediaClient events are received
             /*match self.mclient_recv.try_recv() {
@@ -477,7 +477,7 @@ impl SimulationController {
 
     // Handle ChatClient Event
     fn handle_cclient_event(&mut self, event: ChatClientEvent) {
-        match event {
+        /*match event {
             ChatClientEvent::CommunicationServerList(items) => {
                 match self
                     .gui_send
@@ -640,12 +640,12 @@ impl SimulationController {
                     );
                 }
             }
-        }
+        }*/
     }
 
     // Handle ChatClient Command
     pub fn handle_cclient_command(&mut self, chat_client: &NodeId, command: ChatClientCommand) {
-        match command {
+        /*match command {
             ChatClientCommand::InitFlooding => {
                 if let Some(client) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::InitFlooding) {
@@ -893,7 +893,7 @@ impl SimulationController {
                     );
                 }
             }
-        }
+        }*/
     }
 
     // Handle MediaClient Event
