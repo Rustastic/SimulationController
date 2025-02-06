@@ -693,10 +693,10 @@ impl SimulationController {
                 }
             }
             ChatClientCommand::RemoveSender(drone) => {
-                if let Some(neighbors) = self.neighbor.get(chat_client) {
+                if let Some(neighbors) = self.neighbor.get_mut(chat_client) {
                     // Max 2 neighbor, Min 1 neighbor
-                    println!("{}", neighbors.len());
                     if neighbors.len() == 2 {
+                        neighbors.retain(|x| *x != node_id);
                         if let Some((client, _)) = self.cclients.get(chat_client) {
                             match client.send(ChatClientCommand::RemoveSender(drone)) {
                                 Ok(()) => info!(
@@ -742,7 +742,6 @@ impl SimulationController {
                 if !self.cclients.contains_key(&drone) {
                     if let Some(neighbors) = self.neighbor.get_mut(chat_client) {
                         // Max 2 neighbor, Min 1 neighbor
-                        println!("{}", neighbors.len());
                         if neighbors.len() == 1 {
                             neighbors.push(drone);
                             if let Some((client, _)) = self.cclients.get(chat_client) {
