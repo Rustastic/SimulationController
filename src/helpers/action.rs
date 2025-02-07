@@ -126,19 +126,19 @@ pub fn spawn(
 
 pub fn crash(
     sim_ctrl: &mut SimulationController,
-    drone: NodeId,
+    node_id: NodeId,
 ) -> Result<(), SimulationControllerError> {
-    if let Err(e) = verify::check_drone_existence(&sim_ctrl, &drone) {
+    if let Err(e) = verify::check_drone_existence(&sim_ctrl, &node_id) {
         return Err(e);
     }
 
     // If the drone has any neighbors
-    if let Some(neighbor_ids) = sim_ctrl.neighbor.get_mut(&drone).cloned() {
+    if let Some(neighbor_ids) = sim_ctrl.neighbor.get(&node_id).cloned() {
         for neighbor in neighbor_ids {
-            if sim_ctrl.drones.contains_key(&drone) {
-                sim_ctrl.handle_drone_command(&neighbor, DroneCommand::RemoveSender(drone));
+            if sim_ctrl.drones.contains_key(&neighbor) {
+                sim_ctrl.handle_drone_command(&neighbor, DroneCommand::RemoveSender(node_id));
             } else {
-                sim_ctrl.handle_cclient_command(&neighbor, ChatClientCommand::RemoveSender(drone));
+                sim_ctrl.handle_cclient_command(&neighbor, ChatClientCommand::RemoveSender(node_id));
             }
         }
     }
