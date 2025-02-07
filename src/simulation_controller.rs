@@ -163,11 +163,11 @@ impl SimulationController {
 
     // Handle Drone Events
     pub fn handle_drone_event(&self, drone_event: DroneEvent) {
-        /*match drone_event {
+        match drone_event {
             DroneEvent::PacketSent(packet) => {
                 let gui_packet = packet.clone();
 
-                let src = packet
+                /*let src = packet
                     .routing_header
                     .hops
                     .get(packet.routing_header.hop_index)
@@ -179,7 +179,7 @@ impl SimulationController {
                     .get(packet.routing_header.hop_index + 1)
                     .unwrap();
 
-                let packet_type = packet.clone().pack_type;
+                let packet_type = packet.clone().pack_type;*/
 
                 // GUI
                 match self
@@ -201,21 +201,18 @@ impl SimulationController {
                     ),
                 }
 
-                info!(
-                    "[ Drone: {} ]: Sent a Packet: {} to Drone {}",
-                    src, packet_type, dest
-                );
+                //info!("[ Drone: {} ]: Sent a Packet: {} to Drone {}", src, packet_type, dest);
             }
             DroneEvent::PacketDropped(packet) => {
                 let gui_packet = packet.clone();
 
-                let drone = packet
+                /*let drone = packet
                     .routing_header
                     .hops
                     .get(packet.routing_header.hop_index)
                     .unwrap();
 
-                let session_id = packet.session_id;
+                let session_id = packet.session_id;*/
 
                 // GUI
                 match self
@@ -235,10 +232,10 @@ impl SimulationController {
                     ),
                 }
 
-                info!(
+                /*info!(
                     "[ Drone: {} ]: Dropped the packet with session_id: {}",
                     drone, session_id
-                );
+                );*/
             }
             DroneEvent::ControllerShortcut(packet) => {
                 // Get packet destination node
@@ -272,7 +269,7 @@ impl SimulationController {
                     );
                 }
             }
-        }*/
+        }
     }
 
     // Handle Drone Commands
