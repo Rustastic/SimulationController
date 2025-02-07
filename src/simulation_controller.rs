@@ -165,6 +165,7 @@ impl SimulationController {
     pub fn handle_drone_event(&self, drone_event: DroneEvent) {
         match drone_event {
             DroneEvent::PacketSent(packet) => {
+                info!("{}", packet.pack_type);
                 /*let gui_packet = packet.clone();
 
                 if let Some(src) = packet
