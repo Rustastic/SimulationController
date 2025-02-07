@@ -84,8 +84,8 @@ impl SimulationController {
             match self.drone_recv.try_recv() {
                 Ok(drone_event) => {
                     info!(
-                        "[ {} ]: DroneEvent received -> {:?}",
-                        "Simulation Controller".green(), drone_event
+                        "[ {} ]: DroneEvent received",
+                        "Simulation Controller".green()
                     );
                     self.handle_drone_event(drone_event);
                 }
