@@ -157,7 +157,7 @@ impl SimulationController {
             }
 
             //////////////////////////////////////////////////////////// REMOVE
-            thread::sleep(std::time::Duration::from_secs_f32(0.01));
+            thread::sleep(std::time::Duration::from_secs_f32(0.25));
         }
     }
 

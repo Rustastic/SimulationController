@@ -135,8 +135,11 @@ pub fn crash(
     // If the drone has any neighbors
     if let Some(neighbor_ids) = sim_ctrl.neighbor.get_mut(&drone).cloned() {
         for neighbor in neighbor_ids {
-            // Send command to neighbors
-            sim_ctrl.handle_drone_command(&neighbor, DroneCommand::RemoveSender(drone));
+            if sim_ctrl.drones.contains_key(&drone) {
+                sim_ctrl.handle_drone_command(&neighbor, DroneCommand::RemoveSender(drone));
+            } else {
+                sim_ctrl.handle_cclient_command(&neighbor, ChatClientCommand::RemoveSender(drone));
+            }
         }
     }
 
