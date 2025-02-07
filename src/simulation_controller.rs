@@ -70,7 +70,7 @@ impl SimulationController {
             "Simulation Controller".green()
         );
 
-        thread::sleep(std::time::Duration::from_secs(5));
+        thread::sleep(std::time::Duration::from_secs(2));
 
         // Init ChatClient
         for (chat_client, sender) in self.cclients.clone().iter() {
@@ -157,7 +157,7 @@ impl SimulationController {
             }
 
             //////////////////////////////////////////////////////////// REMOVE
-            thread::sleep(std::time::Duration::from_secs(1));
+            //thread::sleep(std::time::Duration::from_secs(1));
         }
     }
 
@@ -165,59 +165,53 @@ impl SimulationController {
     pub fn handle_drone_event(&self, drone_event: DroneEvent) {
         match drone_event {
             DroneEvent::PacketSent(packet) => {
-                let gui_packet = packet.clone();
+                /*let gui_packet = packet.clone();
 
                 if let Some(src) = packet
                     .routing_header
                     .hops
-                    .get(packet.routing_header.hop_index) {
-                        if let Some(dest) = packet
-                        .routing_header
-                        .hops
-                        .get(packet.routing_header.hop_index + 1) {
-                            let packet_type = packet.clone().pack_type;
+                    .get(packet.routing_header.hop_index){
 
-                            // GUI
-                            match self
-                                .gui_send
-                                .send(GUIEvents::PacketSent(*src, *dest, gui_packet))
-                            {
-                                Ok(()) => info!(
-                                    "[ {} ]: sent a GUIEvent::PacketSent({}, {}) to GUI",
-                                    "Simulation Controller".green(),
-                                    src,
-                                    dest
-                                ),
-                                Err(e) => error!(
-                                    "[ {} ]: failed to send GUIEvent::PacketSent({}, {}) to GUI: {}",
-                                    "Simulation Controller".red(),
-                                    src,
-                                    dest,
-                                    e
-                                ),
-                            }
-
-                            info!(
-                                "[ Drone: {} ]: Sent a Packet: {} to Drone {}",
-                                src, packet_type, dest
-                            );
-                        } else {
-                            error!(
-                                "[ {} ]: Received a Packet: {:?} with a None value",
-                                "Simulation Controller".red(),
-                                packet
-                            );
-                        }
                 } else {
-                    error!(
-                        "[ {} ]: Received a Packet: {:?} with a None value",
-                        "Simulation Controller".red(),
-                        packet
-                    );
+                    let src = packet.pack_type.
                 }
+
+                if let Some(dest) = packet
+                    .routing_header
+                    .hops
+                    .get(packet.routing_header.hop_index + 1) {
+                        
+                }
+
+                let packet_type = packet.clone().pack_type;
+
+                // GUI
+                match self
+                    .gui_send
+                    .send(GUIEvents::PacketSent(*src, *dest, gui_packet))
+                {
+                    Ok(()) => info!(
+                        "[ {} ]: sent a GUIEvent::PacketSent({}, {}) to GUI",
+                        "Simulation Controller".green(),
+                        src,
+                        dest
+                    ),
+                    Err(e) => error!(
+                        "[ {} ]: failed to send GUIEvent::PacketSent({}, {}) to GUI: {}",
+                        "Simulation Controller".red(),
+                        src,
+                        dest,
+                        e
+                    ),
+                }
+
+                info!(
+                    "[ Drone: {} ]: Sent a Packet: {} to Drone {}",
+                    src, packet_type, dest
+                );*/
             }
             DroneEvent::PacketDropped(packet) => {
-                let gui_packet = packet.clone();
+                /*let gui_packet = packet.clone();
 
                 let drone = packet
                     .routing_header
@@ -248,7 +242,7 @@ impl SimulationController {
                 info!(
                     "[ Drone: {} ]: Dropped the packet with session_id: {}",
                     drone, session_id
-                );
+                );*/
             }
             DroneEvent::ControllerShortcut(packet) => {
                 // Get packet destination node
