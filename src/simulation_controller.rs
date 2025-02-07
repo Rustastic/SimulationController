@@ -163,7 +163,7 @@ impl SimulationController {
 
     // Handle Drone Events
     pub fn handle_drone_event(&self, drone_event: DroneEvent) {
-        match drone_event {
+        /*match drone_event {
             DroneEvent::PacketSent(packet) => {
                 let gui_packet = packet.clone();
 
@@ -272,7 +272,7 @@ impl SimulationController {
                     );
                 }
             }
-        }
+        }*/
     }
 
     // Handle Drone Commands
