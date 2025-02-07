@@ -84,8 +84,8 @@ impl SimulationController {
             match self.drone_recv.try_recv() {
                 Ok(drone_event) => {
                     info!(
-                        "[ {} ]: DroneEvent received",
-                        "Simulation Controller".green()
+                        "[ {} ]: DroneEvent received -> {:?}",
+                        "Simulation Controller".green(), drone_event
                     );
                     self.handle_drone_event(drone_event);
                 }
@@ -246,6 +246,8 @@ impl SimulationController {
                 );*/
             }
             DroneEvent::ControllerShortcut(packet) => {
+                info!("[ {} ] Is a {}", "Simulation Controller".yellow(), packet.pack_type);
+
                 // Get packet destination node
                 if let Some(dest) = packet
                     .routing_header
