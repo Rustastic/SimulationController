@@ -101,12 +101,12 @@ impl SimulationController {
 
             // Check if any ChatClient events are received
             match self.cclient_recv.try_recv() {
-                Ok(cclient_command) => {
+                Ok(cclient_event) => {
                     info!(
                         "[ {} ]: ChatClientEvent received",
                         "Simulation Controller".green()
                     );
-                    self.handle_cclient_event(cclient_command);
+                    self.handle_cclient_event(cclient_event);
                 }
                 Err(e) => match e {
                     crossbeam_channel::TryRecvError::Empty => (),
@@ -484,7 +484,7 @@ impl SimulationController {
 
     // Handle ChatClient Event
     fn handle_cclient_event(&mut self, event: ChatClientEvent) {
-        /*match event {
+        match event {
             ChatClientEvent::CommunicationServerList(items) => {
                 match self
                     .gui_send
@@ -647,7 +647,7 @@ impl SimulationController {
                     );
                 }
             }
-        }*/
+        }
     }
 
     // Handle ChatClient Command
