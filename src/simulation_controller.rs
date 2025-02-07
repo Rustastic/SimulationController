@@ -166,7 +166,7 @@ impl SimulationController {
         match drone_event {
             DroneEvent::PacketSent(packet) => {
                 info!("[ {} ] Is a {}", "Simulation Controller".yellow(), packet.pack_type);
-                let gui_packet = packet.clone();
+                /*let gui_packet = packet.clone();
 
                 let src = packet
                     .routing_header
@@ -174,7 +174,7 @@ impl SimulationController {
                     .get(packet.routing_header.hop_index)
                     .unwrap();
 
-                /*if let Some(dest) = packet
+                if let Some(dest) = packet
                     .routing_header
                     .hops
                     .get(packet.routing_header.hop_index + 1) {
