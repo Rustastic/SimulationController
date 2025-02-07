@@ -32,7 +32,7 @@ pub struct SimulationController {
     pub cclients: HashMap<NodeId, (Sender<ChatClientCommand>, Sender<Packet>)>,
     cclient_recv: Receiver<ChatClientEvent>,
 
-    pub mclients: HashMap<NodeId, Sender<MediaClientCommand>>,
+    pub mclients: HashMap<NodeId, (Sender<MediaClientCommand>, Sender<Packet>)>,
     mclient_recv: Receiver<MediaClientEvent>,
 }
 
@@ -46,7 +46,7 @@ impl SimulationController {
         gui_recv: Receiver<GUICommands>,
         cclients: HashMap<NodeId, (Sender<ChatClientCommand>, Sender<Packet>)>,
         cclient_recv: Receiver<ChatClientEvent>,
-        mclients: HashMap<NodeId, Sender<MediaClientCommand>>,
+        mclients: HashMap<NodeId, (Sender<MediaClientCommand>, Sender<Packet>)>,
         mclient_recv: Receiver<MediaClientEvent>,
     ) -> Self {
         return Self {
@@ -924,7 +924,7 @@ impl SimulationController {
     }
 
     // Handle MediaClient Command
-    fn handle_mclient_command(&mut self, media_client: MediaClient, command: MediaClientCommand) {
+    /*fn handle_mclient_command(&mut self, media_client: MediaClient, command: MediaClientCommand) {
         match command {
             MediaClientCommand::InitFlooding => {
                 if let Some((client, _)) = self.cclients.get(media_client) {
@@ -1056,5 +1056,5 @@ impl SimulationController {
             MediaClientCommand::AskFilesList(_) => (),
             MediaClientCommand::AskForFile(_, _) => (),
         }
-    }
+    }*/
 }
