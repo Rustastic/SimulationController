@@ -13,7 +13,7 @@ thiserror = "2.0.11"
 
 gui = { git = "https://github.com/Rustastic/GUI"}
 chat-client = { git = "https://github.com/Rustastic/ChatClient" }
-media_client = { git = "https://github.com/Rustastic/media_client" }
+#media_client = { git = "https://github.com/Rustastic/media_client" }
 messages = { git = "https://github.com/Rustastic/Messages" }
 
 rusty_drones = { git = "https://github.com/rusty-drone-2024/rusty-drone.git" }
