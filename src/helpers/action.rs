@@ -213,7 +213,7 @@ pub fn add_sender(
                 } else if sim_ctrl.mclients.contains_key(node_id){
                     (_, packet_send) = sim_ctrl.mclients.get(&node_id).unwrap().clone();
                 } else /*if sim_ctrl.cclients.contains_key(node_id)*/ {
-                    (_, command_send) = sim_ctrl.cclients.get(&node_id).unwrap().clone();
+                    (_, packet_send) = sim_ctrl.cclients.get(&node_id).unwrap().clone();
                 }
 
                 if sim_ctrl.drones.contains_key(to_add) {
