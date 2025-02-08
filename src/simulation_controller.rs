@@ -5,6 +5,7 @@ use std::{collections::HashMap, thread};
 use colored::Colorize;
 
 use wg_2024::{
+    config::Client,
     controller::{DroneCommand, DroneEvent},
     drone::Drone,
     network::NodeId,
@@ -13,8 +14,9 @@ use wg_2024::{
 
 use chat_client::ChatClient;
 use gui::commands::{GUICommands, GUIEvents};
-use messages::client_commands::{
-    ChatClientCommand, ChatClientEvent, MediaClientCommand, MediaClientEvent,
+use messages::{
+    client_commands::{ChatClientCommand, ChatClientEvent, MediaClientCommand, MediaClientEvent},
+    server_commands::{CommunicationServerCommand, CommunicationServerEvent},
 };
 
 use crate::{action, verify};
@@ -34,6 +36,9 @@ pub struct SimulationController {
 
     pub mclients: HashMap<NodeId, (Sender<MediaClientCommand>, Sender<Packet>)>,
     mclient_recv: Receiver<MediaClientEvent>,
+
+    pub comm_server: HashMap<NodeId, (Sender<CommunicationServerCommand>, Sender<Packet>)>,
+    comm_server_recv: Receiver<CommunicationServerEvent>,
 }
 
 impl SimulationController {
@@ -48,6 +53,8 @@ impl SimulationController {
         cclient_recv: Receiver<ChatClientEvent>,
         mclients: HashMap<NodeId, (Sender<MediaClientCommand>, Sender<Packet>)>,
         mclient_recv: Receiver<MediaClientEvent>,
+        comm_server: HashMap<NodeId, (Sender<CommunicationServerCommand>, Sender<Packet>)>,
+        comm_server_recv: Receiver<CommunicationServerEvent>,
     ) -> Self {
         return Self {
             drones,
@@ -61,6 +68,8 @@ impl SimulationController {
             cclient_recv,
             mclients,
             mclient_recv,
+            comm_server,
+            comm_server_recv,
         };
     }
 
@@ -132,88 +141,30 @@ impl SimulationController {
     pub fn handle_drone_event(&self, drone_event: DroneEvent) {
         match drone_event {
             DroneEvent::PacketSent(packet) => {
-                info!("[ {} ] Is a {}", "Simulation Controller".yellow(), packet.pack_type);
-
-                /*let gui_packet = packet.clone();
-
-                let src = packet
-                    .routing_header
-                    .hops
-                    .get(packet.routing_header.hop_index)
-                    .unwrap();
-
-                if let Some(dest) = packet
-                    .routing_header
-                    .hops
-                    .get(packet.routing_header.hop_index + 1) {
-                        
-                }
-
-                let packet_type = packet.clone().pack_type;
-
-                // GUI
-                match self
-                    .gui_send
-                    .send(GUIEvents::PacketSent(*src, *dest, gui_packet))
-                {
-                    Ok(()) => info!(
-                        "[ {} ]: sent a GUIEvent::PacketSent({}, {}) to GUI",
-                        "Simulation Controller".green(),
-                        src,
-                        dest
-                    ),
-                    Err(e) => error!(
-                        "[ {} ]: failed to send GUIEvent::PacketSent({}, {}) to GUI: {}",
-                        "Simulation Controller".red(),
-                        src,
-                        dest,
-                        e
-                    ),
-                }
-
                 info!(
-                    "[ Drone: {} ]: Sent a Packet: {} to Drone {}",
-                    src, packet_type, dest
-                );*/
+                    "[ {} ] Is a {}",
+                    "Simulation Controller".yellow(),
+                    packet.pack_type
+                );
             }
             DroneEvent::PacketDropped(packet) => {
-                info!("[ {} ] Is a {}", "Simulation Controller".yellow(), packet.pack_type);
-
-                /*let gui_packet = packet.clone();
-
-                let drone = packet
-                    .routing_header
-                    .hops
-                    .get(packet.routing_header.hop_index)
-                    .unwrap();
-
-                let session_id = packet.session_id;
-
-                // GUI
-                match self
-                    .gui_send
-                    .send(GUIEvents::PacketDropped(*drone, gui_packet))
-                {
-                    Ok(()) => info!(
-                        "[ {} ]: sent a GUIEvent::PacketDropped({}) sent to GUI",
-                        "Simulation Controller".green(),
-                        drone
-                    ),
-                    Err(e) => error!(
-                        "[ {} ]: failed to send GUIEvent::PacketDropped({}) sent to GUI: {}",
-                        "Simulation Controller".red(),
-                        drone,
-                        e
-                    ),
-                }
-
                 info!(
-                    "[ Drone: {} ]: Dropped the packet with session_id: {}",
-                    drone, session_id
-                );*/
+                    "[ {} ] Is a {}",
+                    "Simulation Controller".yellow(),
+                    packet.pack_type
+                );
             }
+
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////
+            // check ControllerShortcut
+            ///////////////////////////////////////////////////////////////////////////////////////////////
             DroneEvent::ControllerShortcut(packet) => {
-                info!("[ {} ] Is a {}", "Simulation Controller".yellow(), packet.pack_type);
+                info!(
+                    "[ {} ] Is a {}",
+                    "Simulation Controller".yellow(),
+                    packet.pack_type
+                );
 
                 // Get packet destination node
                 if let Some(dest) = packet
@@ -440,11 +391,9 @@ impl SimulationController {
                     Err(e) => error!("{}", e),
                 }
             }
-            GUICommands::LogOut(client, server) => { 
-                match action::logout(self, &client, &server) {
-                    Ok(()) => self.handle_cclient_command(&client, ChatClientCommand::LogOut),
-                    Err(e) => error!("{}", e),
-                }    
+            GUICommands::LogOut(client, server) => match action::logout(self, &client, &server) {
+                Ok(()) => self.handle_cclient_command(&client, ChatClientCommand::LogOut),
+                Err(e) => error!("{}", e),
             },
         }
     }
@@ -453,48 +402,12 @@ impl SimulationController {
     fn handle_cclient_event(&mut self, event: ChatClientEvent) {
         match event {
             ChatClientEvent::CommunicationServerList(items) => {
-                match self
-                    .gui_send
-                    .send(GUIEvents::CommunicationServerList(items.clone()))
-                {
-                    Ok(()) => info!(
-                        "[ {} ]: sent a GUIEvent::CommunicationServerList({:?}) to GUI",
-                        "Simulation Controller".green(),
-                        items,
-                    ),
-                    Err(e) => error!(
-                        "[ {} ]: failed to send GUIEvent::CommunicationServerList({:?}) to GUI: {}",
-                        "Simulation Controller".red(),
-                        items,
-                        e
-                    ),
-                }
-
                 info!(
                     "The Client retrieved the CommunicationServers list: {:?}",
                     items
                 );
             }
             ChatClientEvent::MessageReceived(src, msg) => {
-                match self
-                    .gui_send
-                    .send(GUIEvents::MessageReceived(src, msg.clone()))
-                {
-                    Ok(()) => info!(
-                        "[ {} ]: sent a GUIEvent::PacketReceived({}, {}) to GUI",
-                        "Simulation Controller".green(),
-                        src,
-                        msg,
-                    ),
-                    Err(e) => error!(
-                        "[ {} ]: failed to send GUIEvent::PacketReceived({}, {}) to GUI: {}",
-                        "Simulation Controller".red(),
-                        src,
-                        msg,
-                        e
-                    ),
-                }
-
                 info!(
                     "[ Client: {} ]: received the message {:?} from [ Server {} ]",
                     src, msg, src
@@ -506,20 +419,6 @@ impl SimulationController {
                 server
             ),
             ChatClientEvent::ClientList(client_list) => {
-                match self.gui_send.send(GUIEvents::ClientList(client_list.clone())) {
-                    Ok(()) => info!(
-                        "[ {} ]: sent a GUIEvent::ClientList({:?}) to GUI",
-                        "Simulation Controller".green(),
-                        client_list,
-                    ),
-                    Err(e) => error!(
-                        "[ {} ]: failed to send GUIEvent::ClientList({:?}) to GUI: {}",
-                        "Simulation Controller".red(),
-                        client_list,
-                        e
-                    ),
-                }
-
                 info!("The Client retrieved the Client list: {:?}", client_list);
             }
             ChatClientEvent::SuccessfulLogOut => info!(
@@ -527,20 +426,6 @@ impl SimulationController {
                 "Simulation Controller".green(),
             ),
             ChatClientEvent::UnreachableClient(client) => {
-                /*match self.gui_send.send(GUIEvents::UnreachableClient(client)) {
-                    Ok(()) => info!(
-                        "[ {} ]: sent a GUIEvent::UnreachableClient({}) to GUI",
-                        "Simulation Controller".green(),
-                        client
-                    ),
-                    Err(e) => error!(
-                        "[ {} ]: failed to send GUIEvent::UnreachableClient({}) to GUI: {}",
-                        "Simulation Controller".red(),
-                        client,
-                        e
-                    ),
-                }*/
-
                 error!(
                     "[ {} ]: received an error message: [ Client {} ] is not register on the selected server",
                     "Simulation Controller".red(),
@@ -548,41 +433,22 @@ impl SimulationController {
                 );
             }
             ChatClientEvent::ErrorNotRunning => {
-                /*match self.gui_send.send(GUIEvents::ErrorNotRunning) {
-                    Ok(()) => info!(
-                        "[ {} ]: sent a GUIEvent::ErrorNotRunning to GUI",
-                        "Simulation Controller".green(),
-                    ),
-                    Err(e) => error!(
-                        "[ {} ]: failed to send GUIEvent::ErrorNotRunning to GUI: {}",
-                        "Simulation Controller".red(),
-                        e
-                    ),
-                }*/
-
                 error!(
                     "[ {} ]: received an error message: The Client tried to register without previously running ChatClientCommand::StartChatClient",
                     "Simulation Controller".red(),
                 );
             }
             ChatClientEvent::ErrorNotRegistered => {
-                /*match self.gui_send.send(GUIEvents::ErrorNotRegistered) {
-                    Ok(()) => info!(
-                        "[ {} ]: sent a GUIEvent::ErrorNotRegistered to GUI",
-                        "Simulation Controller".green(),
-                    ),
-                    Err(e) => error!(
-                        "[ {} ]: failed to send GUIEvent::ErrorNotRegistered to GUI: {}",
-                        "Simulation Controller".red(),
-                        e
-                    ),
-                }*/
-
                 error!(
                     "[ {} ]: received an error message: The Client is not register to a server",
                     "Simulation Controller".red(),
                 );
             }
+
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////
+            // check ControllerShortcut
+            ///////////////////////////////////////////////////////////////////////////////////////////////
             ChatClientEvent::ControllerShortcut(packet) => {
                 if let Some(dest) = packet
                     .routing_header
@@ -590,7 +456,7 @@ impl SimulationController {
                     .get(packet.routing_header.len() - 1)
                 {
                     // Get destination node channel
-                    if let Some((_, packet_channel)) = self.drones.get(dest) {
+                    if let Some((_, packet_channel)) = self.cclients.get(dest) {
                         // Send Packet t destination
                         match packet.pack_type {
                             PacketType::MsgFragment(_) => {
@@ -875,18 +741,86 @@ impl SimulationController {
     // Handle MediaClient Event
     fn handle_mclient_event(&mut self, event: MediaClientEvent) {
         match event {
-            MediaClientEvent::ReceveidFloodResponse => info!("The MediaClient retrieved a FloodResponse"),
-            MediaClientEvent::RemovedSender(_) => (),
-            MediaClientEvent::AddedSender(_) => (),
-            MediaClientEvent::UnreachableNode(_) => (),
-            MediaClientEvent::DestinationIsDrone => (),
-            MediaClientEvent::ErrorPacketCache(_, _) => (),
-            MediaClientEvent::SendError(send_error) => (),
-            MediaClientEvent::ControllerShortcut(packet) => (),
-            MediaClientEvent::ServerList(items) => (),
-            MediaClientEvent::ReceveidServerType(_, server_type) => (),
-            MediaClientEvent::ReceveidFileList(_, items) => (),
-            MediaClientEvent::ReceveidFile(_, _, _) => (),
+            MediaClientEvent::ReceveidFloodResponse => {
+                info!(
+                    "[ {} ]: The media client retrieved a FloodResponse",
+                    "Simulation Controller".green()
+                )
+            },
+            MediaClientEvent::RemovedSender(drone) => {
+                info!(
+                    "[ {} ]: The media client removed the neighbor [ Drone {} ]",
+                    "Simulation Controller".green(),
+                    drone
+                )
+            },
+            MediaClientEvent::AddedSender(drone) => {
+                info!(
+                    "[ {} ]: The media client added the neighbor [ Drone {} ]",
+                    "Simulation Controller".green(),
+                    drone
+                )
+            },
+            MediaClientEvent::UnreachableNode(node) => {
+                error!(
+                    "[ {} ]: received an error message: The [ Node {} ] is not reachable",
+                    "Simulation Controller".red(),
+                    node
+                );
+            },
+            MediaClientEvent::DestinationIsDrone => {
+                error!(
+                    "[ {} ]: received an error message: The selected destination is a drone",
+                    "Simulation Controller".red(),
+                    node
+                );
+            },
+            MediaClientEvent::ErrorPacketCache(, _) => (),
+            MediaClientEvent::SendError(e) => {
+                error!(
+                    "[ {} ]: received an error message: It has verified a SenderError: {}",
+                    "Simulation Controller".red(),
+                    e
+                );
+            },
+            MediaClientEvent::ReceveidFile(node_id, file_id, file_response) => (),
+            
+            
+            ///////////////////////////////////////////////////////////////////////////////////////////////
+            // check ControllerShortcut
+            ///////////////////////////////////////////////////////////////////////////////////////////////
+            MediaClientEvent::ControllerShortcut(packet) => {
+                if let Some(dest) = packet
+                    .routing_header
+                    .hops
+                    .get(packet.routing_header.len() - 1)
+                {
+                    // Get destination node channel
+                    if let Some((_, packet_channel)) = self.mclients.get(dest) {
+                        // Send Packet t destination
+                        match packet.pack_type {
+                            PacketType::MsgFragment(_) => {
+                                panic!("Impossible how the hell did u do this")
+                            }
+                            _ => {
+                                packet_channel.send(packet.clone()).unwrap();
+                            }
+                        }
+                    } else {
+                        error!(
+                            "[ {} ]: failed to find a Sender<Packet> channel for the [ Drone {} ]",
+                            "Simulation Controller".red(),
+                            dest
+                        );
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Drone to send the ChatClientCommand::ControllerShortcut",
+                        "Simulation Controller".red()
+                    );
+                }
+            },
+            _ => (),
         }
     }
 
@@ -999,7 +933,7 @@ impl SimulationController {
                                 "Simulation Controller".red(),
                                 drone,
                                 sender,
-                                media_client,   
+                                media_client,
                                 "Each client must be connected to at most two drones"
                             );
                         }
@@ -1018,10 +952,201 @@ impl SimulationController {
                     );
                 }
             },
-            MediaClientCommand::GetServerList => (),
-            MediaClientCommand::AskServerType(_) => (),
-            MediaClientCommand::AskFilesList(_) => (),
-            MediaClientCommand::AskForFile(_, _) => (),
+            _ => (),
         }*/
+    }
+
+    // Handle Server Command
+    fn handle_commserver_event(&mut self, event: CommunicationServerEvent) {
+        match event {
+            CommunicationServerEvent::ServerStarted => {
+                info!(
+                    "[ {} ]: Server started successfully"
+                    "Simulation Controller".green(),
+                )
+            }
+            CommunicationServerEvent::ServerStopped => {
+                info!(
+                    "[ {} ]: Server stopped successfully"
+                    "Simulation Controller".green(),
+                )
+            }
+            CommunicationServerEvent::ClientRegistered(client) => {
+                info!(
+                    "[ {} ]: Server registered [ Client {} ]"
+                    "Simulation Controller".green(),
+                    client,
+                )
+            }
+            CommunicationServerEvent::ClientDeregistered(client) => {
+                info!(
+                    "[ {} ]: Server deregistered [ Client {} ]"
+                    "Simulation Controller".green(),
+                    client,
+                )
+            }
+            CommunicationServerEvent::MessageForwarded(dest, msg) => {
+                info!(
+                    "[ {} ]: Server forwarded the message {:?} to [ Client {} ]"
+                    "Simulation Controller".green(),
+                    msg,
+                    dest
+                )
+            }
+            CommunicationServerEvent::MessageReceived(src, msg) => info!(
+                "[ {} ]: Server received the message {:?} from [ Client {} ]"
+                "Simulation Controller".green(),
+                msg,
+                src
+            ),
+            CommunicationServerEvent::UnreachableClient(client) => {
+                error!(
+                    "[ {} ]: received an error message: [ Client {} ] is unreachable",
+                    "Simulation Controller".red(),
+                    client,
+                );
+            }
+            CommunicationServerEvent::SendError(e) => {
+                error!(
+                    "[ {} ]: received an error message: It has verified a SenderError: {}",
+                    "Simulation Controller".red(),
+                    e
+                );
+            }
+        }
+    }
+
+    // Handle Server Command
+    pub fn handle_commserver_command(
+        &mut self,
+        comm_server: &NodeId,
+        command: CommunicationServerCommand,
+    ) {
+        match command {
+            CommunicationServerCommand::InitFlooding => {
+                if let Some((client, _)) = self.cclients.get(comm_server) {
+                    match client.send(CommunicationServerCommand::InitFlooding) {
+                        Ok(()) => info!(
+                            "[ {} ]: sent a CommunicationServerCommand::InitFlooding to [ Server {} ]",
+                            "Simulation Controller".green(),
+                            comm_server
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to send a CommunicationServerCommand::InitFlooding to the [ Server {} ]: {}",
+                            "Simulation Controller".red(),
+                            comm_server,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
+                        "Simulation Controller".red(),
+                        comm_server
+                    );
+                }
+            }
+            CommunicationServerCommand::StartServer => {
+                if let Some((client, _)) = self.cclients.get(comm_server) {
+                    match client.send(CommunicationServerCommand::StartServer) {
+                        Ok(()) => info!(
+                            "[ {} ]: sent a CommunicationServerCommand::StartServer to [ Server {} ]",
+                            "Simulation Controller".green(),
+                            comm_server
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to send a CommunicationServerCommand::StartServer to the [ Server {} ]: {}",
+                            "Simulation Controller".red(),
+                            comm_server,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
+                        "Simulation Controller".red(),
+                        comm_server
+                    );
+                }
+            }
+            CommunicationServerCommand::StopServer => {
+                if let Some((client, _)) = self.cclients.get(comm_server) {
+                    match client.send(CommunicationServerCommand::StopServer) {
+                        Ok(()) => info!(
+                            "[ {} ]: sent a CommunicationServerCommand::StopServer to [ Server {} ]",
+                            "Simulation Controller".green(),
+                            comm_server
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to send a CommunicationServerCommand::StopServer to the [ Server {} ]: {}",
+                            "Simulation Controller".red(),
+                            comm_server,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
+                        "Simulation Controller".red(),
+                        comm_server
+                    );
+                }
+            }
+            CommunicationServerCommand::AddSender(node_id, sender) => {
+                if let Some(vec) = self.neighbor.get_mut(comm_server) {
+                    vec.push(node_id);
+                    match command_channel.send(CommunicationServerCommand::AddSender(node_id, sender)) {
+                        Ok(()) => info!(
+                            "[ {} ]: sent a CommunicationServerCommand::AddSender({}, sender_channel) to [ Drone {} ]",
+                            "Simulation Controller".green(),
+                            node_id,
+                            drone
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to send a CommunicationServerCommand::AddSender({}, sender_channel) to the [ Drone {} ]: {}",
+                            "Simulation Controller".red(),
+                            node_id,
+                            drone,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
+                        "Simulation Controller".red(),
+                        comm_server
+                    );
+                }
+            }
+            CommunicationServerCommand::RemoveSender(_) => {
+                if let Some(vec) = self.neighbor.get_mut(drone) {
+                    if vec.len() > 2 {
+                        vec.retain(|x| *x != node_id);
+                        match command_channel.send(CommunicationServerCommand::RemoveSender(node_id)) {
+                            Ok(()) => info!(
+                                "[ {} ]: sent a CommunicationServerCommand::RemoveSender({}) to [ Drone {} ]",
+                                "Simulation Controller".green(),
+                                node_id,
+                                drone
+                            ),
+                            Err(e) => error!(
+                                "[ {} ]: failed to send a CommunicationServerCommand::RemoveSender({}) to the [ Drone {} ]: {}",
+                                "Simulation Controller".red(),
+                                node_id,
+                                drone,
+                                e
+                            ),
+                        }
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
+                        "Simulation Controller".red(),
+                        comm_server
+                    );
+                }
+            }
+            _ => (),
+        }
     }
 }
