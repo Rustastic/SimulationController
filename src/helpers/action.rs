@@ -159,33 +159,31 @@ pub fn remove_sender(
     match verify::has_neighbors(sim_ctrl, &node_id) {
         Ok(neighbor) => match verify::is_a_neighbor(neighbor, to_remove, node_id, false) {
             Ok(()) => {
-                if !sim_ctrl.drones.contains_key(node_id) {
+                if sim_ctrl.drones.contains_key(to_remove) {
                     sim_ctrl.handle_drone_command(&to_remove, DroneCommand::RemoveSender(*node_id));
                     Ok(())
+                } else if sim_ctrl.cclients.contains_key(to_remove) {
+                    sim_ctrl.handle_cclient_command(
+                        &to_remove,
+                        ChatClientCommand::RemoveSender(*node_id),
+                    );
+                    Ok(())
+                } else if sim_ctrl.mclients.contains_key(to_remove) {
+                    sim_ctrl.handle_mclient_command(
+                        &to_remove,
+                        MediaClientCommand::RemoveSender(*node_id),
+                    );
+                    Ok(())
+                } else if sim_ctrl.comm_servers.contains_key(to_remove) {
+                    sim_ctrl.handle_commserver_command(
+                        &to_remove,
+                        CommunicationServerCommand::RemoveSender(*node_id),
+                    );
+                    Ok(())
                 } else {
-                    if sim_ctrl.cclients.contains_key(to_remove) {
-                        sim_ctrl.handle_cclient_command(
-                            &to_remove,
-                            ChatClientCommand::RemoveSender(*node_id),
-                        );
-                        Ok(())
-                    } else if sim_ctrl.mclients.contains_key(to_remove) {
-                        sim_ctrl.handle_mclient_command(
-                            &to_remove,
-                            MediaClientCommand::RemoveSender(*node_id),
-                        );
-                        Ok(())
-                    } else if sim_ctrl.comm_servers.contains_key(to_remove) {
-                        sim_ctrl.handle_commserver_command(
-                            &to_remove,
-                            CommunicationServerCommand::RemoveSender(*node_id),
-                        );
-                        Ok(())
-                    } else {
-                        sim_ctrl
-                            .handle_drone_command(&to_remove, DroneCommand::RemoveSender(*node_id));
-                        Ok(())
-                    }
+                    sim_ctrl
+                        .handle_drone_command(&to_remove, DroneCommand::RemoveSender(*node_id));
+                    Ok(())
                 }
             }
             Err(e) => Err(e),
