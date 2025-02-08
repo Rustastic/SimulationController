@@ -1115,13 +1115,13 @@ impl SimulationController {
                         vec.push(node_id);
                         match server.send(CommunicationServerCommand::AddSender(node_id, sender)) {
                             Ok(()) => info!(
-                                "[ {} ]: sent a CommunicationServerCommand::AddSender({}, sender_channel) to [ Drone {} ]",
+                                "[ {} ]: sent a CommunicationServerCommand::AddSender({}, sender_channel) to [ Server {} ]",
                                 "Simulation Controller".green(),
                                 node_id,
                                 comm_server
                             ),
                             Err(e) => error!(
-                                "[ {} ]: failed to send a CommunicationServerCommand::AddSender({}, sender_channel) to the [ Drone {} ]: {}",
+                                "[ {} ]: failed to send a CommunicationServerCommand::AddSender({}, sender_channel) to the [ Server {} ]: {}",
                                 "Simulation Controller".red(),
                                 node_id,
                                 comm_server,
@@ -1145,13 +1145,13 @@ impl SimulationController {
                             vec.retain(|x| *x != node_id);
                             match server.send(CommunicationServerCommand::RemoveSender(node_id)) {
                                 Ok(()) => info!(
-                                    "[ {} ]: sent a CommunicationServerCommand::RemoveSender({}) to [ Drone {} ]",
+                                    "[ {} ]: sent a CommunicationServerCommand::RemoveSender({}) to [ Server {} ]",
                                     "Simulation Controller".green(),
                                     node_id,
                                     comm_server
                                 ),
                                 Err(e) => error!(
-                                    "[ {} ]: failed to send a CommunicationServerCommand::RemoveSender({}) to the [ Drone {} ]: {}",
+                                    "[ {} ]: failed to send a CommunicationServerCommand::RemoveSender({}) to the [ Server {} ]: {}",
                                     "Simulation Controller".red(),
                                     node_id,
                                     comm_server,
