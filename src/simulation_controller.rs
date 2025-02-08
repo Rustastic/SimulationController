@@ -1,4 +1,4 @@
-use crossbeam_channel::{Receiver, Sender};
+use crossbeam_channel::{select, Receiver, Sender};
 use log::{error, info, warn};
 use std::{collections::HashMap, thread};
 
@@ -80,79 +80,46 @@ impl SimulationController {
 
         // Start loop
         loop {
-            // Check if any Drone events are received
-            match self.drone_recv.try_recv() {
-                Ok(drone_event) => {
-                    info!(
-                        "[ {} ]: DroneEvent received",
-                        "Simulation Controller".green()
-                    );
-                    self.handle_drone_event(drone_event);
-                }
-                Err(e) => match e {
-                    crossbeam_channel::TryRecvError::Empty => (),
-                    crossbeam_channel::TryRecvError::Disconnected => error!(
-                        "[ {} ]: DroneEvent receiver channel disconnected: {}",
-                        "Simulation Controller".red(),
-                        e
-                    ),
+            select! {
+                recv(self.drone_recv) -> drone_event => match drone_event {
+                    Ok(drone_event) => {
+                        info!("[ {} ]: DroneEvent received", "Simulation Controller".green());
+                        self.handle_drone_event(drone_event);
+                    }
+                    Err(e) => {
+                        error!("[ {} ]: DroneEvent receiver channel disconnected: {}", "Simulation Controller".red(), e);
+                        break;
+                    }
                 },
-            }
-
-            // Check if any ChatClient events are received
-            match self.cclient_recv.try_recv() {
-                Ok(cclient_event) => {
-                    info!(
-                        "[ {} ]: ChatClientEvent received",
-                        "Simulation Controller".green()
-                    );
-                    self.handle_cclient_event(cclient_event);
-                }
-                Err(e) => match e {
-                    crossbeam_channel::TryRecvError::Empty => (),
-                    crossbeam_channel::TryRecvError::Disconnected => error!(
-                        "[ {} ]: ChatClientEvent receiver channel disconnected: {}",
-                        "Simulation Controller".red(),
-                        e
-                    ),
+                recv(self.cclient_recv) -> cclient_event => match cclient_event {
+                    Ok(cclient_event) => {
+                        info!("[ {} ]: ChatClientEvent received", "Simulation Controller".green());
+                        self.handle_cclient_event(cclient_event);
+                    }
+                    Err(e) => {
+                        error!("[ {} ]: ChatClientEvent receiver channel disconnected: {}", "Simulation Controller".red(), e);
+                        break;
+                    }
                 },
-            }
-
-            // Check if any MediaClient events are received
-            /*match self.mclient_recv.try_recv() {
-                Ok(mclient_command) => {
-                    info!(
-                        "[ {} ]: MediaClientEvent received",
-                        "Simulation Controller".green()
-                    );
-                    self.handle_mclient_event(mclient_command);
-                }
-                Err(e) => match e {
-                    crossbeam_channel::TryRecvError::Empty => (),
-                    crossbeam_channel::TryRecvError::Disconnected => error!(
-                        "[ {} ]: MediaClientEvent receiver channel disconnected: {}",
-                        "Simulation Controller".red(),
-                        e
-                    ),
-                },
-            }*/
-
-            // Check if any GUI commands are received
-            match self.gui_recv.try_recv() {
-                Ok(gui_command) => {
-                    info!(
-                        "[ {} ]: GUICommand received",
-                        "Simulation Controller".green()
-                    );
-                    self.handle_gui_command(gui_command);
-                }
-                Err(e) => match e {
-                    crossbeam_channel::TryRecvError::Empty => (),
-                    crossbeam_channel::TryRecvError::Disconnected => error!(
-                        "[ {} ]: GUICommands receiver channel disconnected: {}",
-                        "Simulation Controller".red(),
-                        e
-                    ),
+                /*recv(self.mclient_recv) -> mclient_command => match mclient_command { // Uncommented if needed
+                    Ok(mclient_command) => {
+                        info!("[ {} ]: MediaClientEvent received", "Simulation Controller".green());
+                        self.handle_mclient_event(mclient_command);
+                    }
+                    Err(e) => {
+                        error!("[ {} ]: MediaClientEvent receiver channel disconnected: {}", "Simulation Controller".red(), e);
+                        break;
+                    }
+                },*/
+                recv(self.gui_recv) -> gui_command => match gui_command {
+                    Ok(gui_command) => {
+                        info!("[ {} ]: GUICommand received", "Simulation Controller".green());
+                        self.handle_gui_command(gui_command);
+                    }
+                    Err(e) => {
+                        error!("[ {} ]: GUICommands receiver channel disconnected: {}", "Simulation Controller".red(), e);
+                        break;
+                    }
                 },
             }
 
