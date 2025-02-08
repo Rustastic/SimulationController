@@ -153,7 +153,6 @@ impl SimulationController {
                 );
             }
 
-
             ///////////////////////////////////////////////////////////////////////////////////////////////
             // check ControllerShortcut
             ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -443,7 +442,6 @@ impl SimulationController {
                 );
             }
 
-
             ///////////////////////////////////////////////////////////////////////////////////////////////
             // check ControllerShortcut
             ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -613,7 +611,7 @@ impl SimulationController {
                                 "Simulation Controller".red(),
                                 drone,
                                 sender,
-                                chat_client,   
+                                chat_client,
                                 "Each client must be connected to at most two drones"
                             );
                         }
@@ -744,34 +742,34 @@ impl SimulationController {
                     "[ {} ]: The media client retrieved a FloodResponse",
                     "Simulation Controller".green()
                 )
-            },
+            }
             MediaClientEvent::RemovedSender(drone) => {
                 info!(
                     "[ {} ]: The media client removed the neighbor [ Drone {} ]",
                     "Simulation Controller".green(),
                     drone
                 )
-            },
+            }
             MediaClientEvent::AddedSender(drone) => {
                 info!(
                     "[ {} ]: The media client added the neighbor [ Drone {} ]",
                     "Simulation Controller".green(),
                     drone
                 )
-            },
+            }
             MediaClientEvent::UnreachableNode(node) => {
                 error!(
                     "[ {} ]: received an error message: The [ Node {} ] is not reachable",
                     "Simulation Controller".red(),
                     node
                 );
-            },
+            }
             MediaClientEvent::DestinationIsDrone => {
                 error!(
                     "[ {} ]: received an error message: The selected destination is a drone",
                     "Simulation Controller".red(),
                 );
-            },
+            }
             MediaClientEvent::ErrorPacketCache(_, _) => (),
             MediaClientEvent::SendError(e) => {
                 error!(
@@ -779,10 +777,9 @@ impl SimulationController {
                     "Simulation Controller".red(),
                     e
                 );
-            },
+            }
             MediaClientEvent::ReceveidFile(node_id, file_id, file_response) => (),
-            
-            
+
             ///////////////////////////////////////////////////////////////////////////////////////////////
             // check ControllerShortcut
             ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -816,7 +813,7 @@ impl SimulationController {
                         "Simulation Controller".red()
                     );
                 }
-            },
+            }
             _ => (),
         }
     }
