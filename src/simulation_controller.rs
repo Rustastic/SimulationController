@@ -336,10 +336,20 @@ impl SimulationController {
                                 &node_id,
                                 DroneCommand::RemoveSender(to_remove),
                             )
-                        } else {
+                        } else if self.cclients.contains_key(&node_id) {
                             self.handle_cclient_command(
                                 &node_id,
                                 ChatClientCommand::RemoveSender(to_remove),
+                            )
+                        } else if self.mclients.contains_key(&node_id) {
+                            self.handle_mclient_command(
+                                &node_id,
+                                MediaClientCommand::RemoveSender(to_remove),
+                            )
+                        } else {
+                            self.handle_commserver_command(
+                                &node_id,
+                                CommunicationServerCommand::RemoveSender(to_remove),
                             )
                         }
                     }
@@ -355,11 +365,23 @@ impl SimulationController {
                                 &node_id,
                                 DroneCommand::AddSender(to_add, sender),
                             );
-                        } else {
+                        } else if self.cclients.contains_key(&node_id) {
                             let (_, sender) = self.drones.get(&to_add).unwrap().clone();
                             self.handle_cclient_command(
                                 &node_id,
                                 ChatClientCommand::AddSender(to_add, sender),
+                            );
+                        } else if self.mclients.contains_key(&node_id) {
+                            let (_, sender) = self.drones.get(&to_add).unwrap().clone();
+                            self.handle_mclient_command(
+                                &node_id,
+                                MediaClientCommand::AddSender(to_add, sender),
+                            );
+                        } else {
+                            let (_, sender) = self.drones.get(&to_add).unwrap().clone();
+                            self.handle_commserver_command(
+                                &node_id,
+                                CommunicationServerCommand::AddSender(to_add, sender),
                             );
                         }
                     }
