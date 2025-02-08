@@ -162,6 +162,9 @@ pub fn remove_sender(
                     if sim_ctrl.cclients.contains_key(to_remove) {
                         sim_ctrl.handle_cclient_command(&to_remove, ChatClientCommand::RemoveSender(*node_id));
                         Ok(())
+                    } else if sim_ctrl.mclients.contains_key(to_remove) {
+                        sim_ctrl.handle_mclient_command(&to_remove, ChatClientCommand::RemoveSender(*node_id));
+                        Ok(())
                     } else {
                         sim_ctrl.handle_drone_command(&to_remove, DroneCommand::RemoveSender(*node_id));
                         Ok(())
@@ -193,10 +196,19 @@ pub fn add_sender(
                         );
 
                         Ok(())
-                    } else {
+                    } else if sim_ctrl.cclients.contains_key(node_id) {
                         let (_, client_packet_send) = sim_ctrl.cclients.get(&node_id).unwrap().clone();
 
                         sim_ctrl.handle_cclient_command(
+                            &to_add,
+                            ChatClientCommand::AddSender(*node_id, client_packet_send.clone()),
+                        );
+
+                        Ok(())
+                    } else {
+                        let (_, client_packet_send) = sim_ctrl.mclients.get(&node_id).unwrap().clone();
+
+                        sim_ctrl.handle_mclient_command(
                             &to_add,
                             ChatClientCommand::AddSender(*node_id, client_packet_send.clone()),
                         );
