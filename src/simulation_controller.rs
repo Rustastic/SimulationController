@@ -359,26 +359,34 @@ impl SimulationController {
             GUICommands::AddSender(node_id, to_add) => {
                 match action::add_sender(self, &node_id, &to_add) {
                     Ok(()) => {
+                        let sender;
+                        if self.drones.contains_key(&to_add) {
+                            (_, sender) = self.drones.get(&to_add).unwrap().clone();
+                        } else if self.cclients.contains_key(&to_add) {
+                            (_, sender) = self.drones.get(&to_add).unwrap().clone();
+                        } else if self.mclients.contains_key(&to_add) {
+                            (_, sender) = self.drones.get(&to_add).unwrap().clone();
+                        } else {
+                            (_, sender) = self.drones.get(&to_add).unwrap().clone();
+                        }
+
+
                         if self.drones.contains_key(&node_id) {
-                            let (_, sender) = self.drones.get(&to_add).unwrap().clone();
                             self.handle_drone_command(
                                 &node_id,
                                 DroneCommand::AddSender(to_add, sender),
                             );
                         } else if self.cclients.contains_key(&node_id) {
-                            let (_, sender) = self.drones.get(&to_add).unwrap().clone();
                             self.handle_cclient_command(
                                 &node_id,
                                 ChatClientCommand::AddSender(to_add, sender),
                             );
                         } else if self.mclients.contains_key(&node_id) {
-                            let (_, sender) = self.drones.get(&to_add).unwrap().clone();
                             self.handle_mclient_command(
                                 &node_id,
                                 MediaClientCommand::AddSender(to_add, sender),
                             );
                         } else {
-                            let (_, sender) = self.drones.get(&to_add).unwrap().clone();
                             self.handle_commserver_command(
                                 &node_id,
                                 CommunicationServerCommand::AddSender(to_add, sender),
