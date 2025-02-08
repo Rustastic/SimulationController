@@ -924,8 +924,8 @@ impl SimulationController {
     }
 
     // Handle MediaClient Command
-    /*fn handle_mclient_command(&mut self, media_client: MediaClient, command: MediaClientCommand) {
-        match command {
+    fn handle_mclient_command(&mut self, media_client: MediaClient, command: MediaClientCommand) {
+        /*match command {
             MediaClientCommand::InitFlooding => {
                 if let Some((client, _)) = self.cclients.get(media_client) {
                     match client.send(MediaClientCommand::InitFlooding) {
@@ -1055,6 +1055,6 @@ impl SimulationController {
             MediaClientCommand::AskServerType(_) => (),
             MediaClientCommand::AskFilesList(_) => (),
             MediaClientCommand::AskForFile(_, _) => (),
-        }
-    }*/
+        }*/
+    }
 }
