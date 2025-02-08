@@ -205,46 +205,47 @@ pub fn add_sender(
     match verify::has_neighbors(sim_ctrl, &node_id) {
         Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_add, &node_id, true) {
             Ok(()) => {
-                if sim_ctrl.drones.contains_key(to_add) {
-                    let (_, drone_packet_send) = sim_ctrl.drones.get(&node_id).unwrap().clone();
+                let packet_send;
+                if sim_ctrl.drones.contains_key(node_id) {
+                    (_, packet_send) = sim_ctrl.drones.get(&node_id).unwrap().clone()
+                } else if sim_ctrl.comm_servers.contains_key(node_id) {
+                    (_, packet_send) = sim_ctrl.comm_servers.get(&node_id).unwrap().clone();
+                } else if sim_ctrl.mclients.contains_key(node_id){
+                    (_, packet_send) = sim_ctrl.mclients.get(&node_id).unwrap().clone();
+                } else /*if sim_ctrl.cclients.contains_key(node_id)*/ {
+                    (_, command_send) = sim_ctrl.cclients.get(&node_id).unwrap().clone();
+                }
 
+                if sim_ctrl.drones.contains_key(to_add) {
                     sim_ctrl.handle_drone_command(
                         &to_add,
-                        DroneCommand::AddSender(*node_id, drone_packet_send.clone()),
+                        DroneCommand::AddSender(*node_id, packet_send.clone()),
                     );
 
                     return Ok(());
                 } else if sim_ctrl.comm_servers.contains_key(to_add) {
-                    let (_, client_packet_send) =
-                        sim_ctrl.comm_servers.get(&node_id).unwrap().clone();
-
                     sim_ctrl.handle_commserver_command(
                         &to_add,
-                        CommunicationServerCommand::AddSender(*node_id, client_packet_send.clone()),
+                        CommunicationServerCommand::AddSender(*node_id, packet_send.clone()),
                     );
 
                     return Ok(());
-                } else if sim_ctrl.mclients.contains_key(to_add){
-                    let (_, client_packet_send) =
-                        sim_ctrl.mclients.get(&node_id).unwrap().clone();
+                } else if sim_ctrl.cclients.contains_key(to_add) {
+                    sim_ctrl.handle_cclient_command(
+                        &to_add,
+                        ChatClientCommand::AddSender(*node_id, packet_send.clone()),
+                    );
 
+                    return Ok(());
+                } else {
                     sim_ctrl.handle_mclient_command(
                         &to_add,
-                        MediaClientCommand::AddSender(*node_id, client_packet_send.clone()),
-                    );
-
-                    return Ok(());
-                } else if sim_ctrl.comm_servers.contains_key(to_add) {
-                    let (_, client_command_send) =
-                        sim_ctrl.cclients.get(&node_id).unwrap().clone();
-
-                    sim_ctrl.handle_drone_command(
-                        &to_add,
-                        DroneCommand::AddSender(*node_id, client_command_send.clone()),
+                        MediaClientCommand::AddSender(*node_id, packet_send.clone())
                     );
 
                     return Ok(());
                 }
+
                 Err(SimulationControllerError::ClientOnClient)
             }
             Err(e) => Err(e),
