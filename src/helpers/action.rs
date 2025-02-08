@@ -1,5 +1,5 @@
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use messages::client_commands::{ChatClientCommand, MediaClientCommand};
+use messages::{client_commands::{ChatClientCommand, MediaClientCommand}, server_commands::CommunicationServerCommand};
 use rand::Rng;
 use std::collections::HashMap;
 
@@ -175,6 +175,12 @@ pub fn remove_sender(
                             MediaClientCommand::RemoveSender(*node_id),
                         );
                         Ok(())
+                    } else if sim_ctrl.comm_servers.contains_key(to_remove) {
+                        sim_ctrl.handle_commserver_command(
+                            &to_remove,
+                            CommunicationServerCommand::RemoveSender(*node_id),
+                        );
+                        Ok(())
                     } else {
                         sim_ctrl
                             .handle_drone_command(&to_remove, DroneCommand::RemoveSender(*node_id));
@@ -217,13 +223,23 @@ pub fn add_sender(
                         );
 
                         Ok(())
-                    } else {
+                    } else if sim_ctrl.mclients.contains_key(node_id){
                         let (_, client_packet_send) =
                             sim_ctrl.mclients.get(&node_id).unwrap().clone();
 
                         sim_ctrl.handle_mclient_command(
                             &to_add,
                             MediaClientCommand::AddSender(*node_id, client_packet_send.clone()),
+                        );
+
+                        Ok(())
+                    } else {
+                        let (_, client_packet_send) =
+                            sim_ctrl.comm_servers.get(&node_id).unwrap().clone();
+
+                        sim_ctrl.handle_commserver_command(
+                            &to_add,
+                            CommunicationServerCommand::AddSender(*node_id, client_packet_send.clone()),
                         );
 
                         Ok(())
