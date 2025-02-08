@@ -205,7 +205,7 @@ pub fn add_sender(
     match verify::has_neighbors(sim_ctrl, &node_id) {
         Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_add, &node_id, true) {
             Ok(()) => {
-                if sim_ctrl.drones.contains_key(to_add) {
+                if sim_ctrl.drones.contains_key(node_id) {
                     let (_, drone_packet_send) = sim_ctrl.drones.get(&node_id).unwrap().clone();
 
                     sim_ctrl.handle_drone_command(
@@ -214,7 +214,7 @@ pub fn add_sender(
                     );
 
                     return Ok(());
-                } else if sim_ctrl.comm_servers.contains_key(to_add) {
+                } else if sim_ctrl.comm_servers.contains_key(node_id) {
                     let (_, client_packet_send) =
                         sim_ctrl.comm_servers.get(&node_id).unwrap().clone();
 
@@ -224,7 +224,7 @@ pub fn add_sender(
                     );
 
                     return Ok(());
-                } else if sim_ctrl.mclients.contains_key(to_add){
+                } else if sim_ctrl.mclients.contains_key(node_id){
                     let (_, client_packet_send) =
                         sim_ctrl.mclients.get(&node_id).unwrap().clone();
 
@@ -234,7 +234,7 @@ pub fn add_sender(
                     );
 
                     return Ok(());
-                } else if sim_ctrl.drones.contains_key(to_add) {
+                } else if sim_ctrl.comm_servers.contains_key(node_id) {
                     let (_, client_command_send) =
                         sim_ctrl.cclients.get(&node_id).unwrap().clone();
 
