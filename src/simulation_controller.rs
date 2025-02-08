@@ -924,7 +924,7 @@ impl SimulationController {
     }
 
     // Handle MediaClient Command
-    pub fn handle_mclient_command(&mut self, media_client: ChatClient, command: MediaClientCommand) {
+    pub fn handle_mclient_command(&mut self, media_client: &NodeId, command: MediaClientCommand) {
         /*match command {
             MediaClientCommand::InitFlooding => {
                 if let Some((client, _)) = self.cclients.get(media_client) {
