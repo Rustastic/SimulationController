@@ -823,8 +823,7 @@ impl SimulationController {
                 info!(
                     "[ {} ]: received a file from [ Client {} ]",
                     "Simulation Controller".green(),
-                    session_id,
-                    fragment_index
+                    node_id,
                 );
             },
 
@@ -1056,7 +1055,8 @@ impl SimulationController {
                 );
             }
             CommunicationServerEvent::ControllerShortcut(packet) => (),
-            CommunicationServerEvent::DestinationIsDrone(drone) => todo!(),
+            CommunicationServerEvent::DestinationIsDrone(drone) => (),
+            CommunicationServerEvent::ErrorPacketCache(_, _) => ()
         }
     }
 
