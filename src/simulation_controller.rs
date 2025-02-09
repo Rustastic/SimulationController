@@ -1157,12 +1157,14 @@ impl SimulationController {
                         if vec.len() > 2 {
                             vec.retain(|x| *x != node_id);
                             match server.send(CommunicationServerCommand::RemoveSender(node_id)) {
-                                Ok(()) => info!(
+                                Ok(()) => {
+                                    println!("\nsend it\n");
+                                    info!(
                                     "[ {} ]: sent a CommunicationServerCommand::RemoveSender({}) to [ Server {} ]",
                                     "Simulation Controller".green(),
                                     node_id,
                                     comm_server
-                                ),
+                                );},
                                 Err(e) => error!(
                                     "[ {} ]: failed to send a CommunicationServerCommand::RemoveSender({}) to the [ Server {} ]: {}",
                                     "Simulation Controller".red(),
