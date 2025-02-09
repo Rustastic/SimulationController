@@ -180,7 +180,7 @@ pub fn remove_sender(
                 } else {
                     sim_ctrl.handle_commserver_command(
                         &to_remove,
-                        CommunicationServerCommand::RemoveSender(node_id*),
+                        CommunicationServerCommand::RemoveSender(*node_id),
                     )
                 }
                 Err(SimulationControllerError::ClientOnClient)
