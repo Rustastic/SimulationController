@@ -1118,9 +1118,6 @@ impl SimulationController {
                 }
             }
             CommunicationServerCommand::AddSender(node_id, sender) => {
-                if self.comm_servers.contains_key(comm_server) {
-                    println!("\nciao\n")
-                }
                 if let Some((server, _)) = self.comm_servers.get(comm_server) {
                     if let Some(vec) = self.neighbor.get_mut(comm_server) {
                         vec.push(node_id);
@@ -1143,7 +1140,7 @@ impl SimulationController {
                     }
                 } else {
                     error!(
-                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
+                        "FIGA [ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
                         "Simulation Controller".red(),
                         comm_server
                 );
