@@ -154,10 +154,6 @@ impl SimulationController {
                     packet.pack_type
                 );
             }
-
-            ///////////////////////////////////////////////////////////////////////////////////////////////
-            // check ControllerShortcut
-            ///////////////////////////////////////////////////////////////////////////////////////////////
             DroneEvent::ControllerShortcut(packet) => {
                 info!(
                     "[ {} ] Is a {}",
@@ -172,22 +168,32 @@ impl SimulationController {
                     .get(packet.routing_header.len() - 1)
                 {
                     // Get destination node channel
-                    if let Some((_, packet_channel)) = self.drones.get(dest) {
-                        // Send Packet t destination
-                        match packet.pack_type {
-                            PacketType::MsgFragment(_) => {
-                                panic!("Impossible how the hell did u do this")
-                            }
-                            _ => {
-                                packet_channel.send(packet.clone()).unwrap();
-                            }
-                        }
+                    let packet_channel;
+                    if self.drones.contains_key(dest) {
+                        (_, packet_channel) = self.drones.get(dest).unwrap().clone();
+                    } else if self.cclients.contains_key(dest) {
+                        (_, packet_channel) = self.cclients.get(dest).unwrap().clone();
+                    } else if self.mclients.contains_key(dest) {
+                        (_, packet_channel) = self.mclients.get(dest).unwrap().clone();
+                    } else if self.comm_servers.contains_key(dest) {
+                        (_, packet_channel) = self.comm_servers.get(dest).unwrap().clone();
                     } else {
                         error!(
                             "[ {} ]: failed to find a Sender<Packet> channel for the [ Drone {} ]",
                             "Simulation Controller".red(),
                             dest
                         );
+                        return;
+                    }
+                    
+                    // Send Packet to destination
+                    match packet.pack_type {
+                        PacketType::MsgFragment(_) => {
+                            panic!("Impossible how the hell did u do this")
+                        }
+                        _ => {
+                            packet_channel.send(packet.clone()).unwrap();
+                        }
                     }
                 } else {
                     error!(
@@ -462,10 +468,6 @@ impl SimulationController {
                     "Simulation Controller".red(),
                 );
             }
-
-            ///////////////////////////////////////////////////////////////////////////////////////////////
-            // check ControllerShortcut
-            ///////////////////////////////////////////////////////////////////////////////////////////////
             ChatClientEvent::ControllerShortcut(packet) => {
                 if let Some(dest) = packet
                     .routing_header
@@ -473,26 +475,36 @@ impl SimulationController {
                     .get(packet.routing_header.len() - 1)
                 {
                     // Get destination node channel
-                    if let Some((_, packet_channel)) = self.cclients.get(dest) {
-                        // Send Packet t destination
-                        match packet.pack_type {
-                            PacketType::MsgFragment(_) => {
-                                panic!("Impossible how the hell did u do this")
-                            }
-                            _ => {
-                                packet_channel.send(packet.clone()).unwrap();
-                            }
-                        }
+                    let packet_channel;
+                    if self.drones.contains_key(dest) {
+                        (_, packet_channel) = self.drones.get(dest).unwrap().clone();
+                    } else if self.cclients.contains_key(dest) {
+                        (_, packet_channel) = self.cclients.get(dest).unwrap().clone();
+                    } else if self.mclients.contains_key(dest) {
+                        (_, packet_channel) = self.mclients.get(dest).unwrap().clone();
+                    } else if self.comm_servers.contains_key(dest) {
+                        (_, packet_channel) = self.comm_servers.get(dest).unwrap().clone();
                     } else {
                         error!(
-                            "[ {} ]: failed to find a Sender<Packet> channel for the [ Client {} ]",
+                            "[ {} ]: failed to find a Sender<Packet> channel for the [ ChatClient {} ]",
                             "Simulation Controller".red(),
                             dest
                         );
+                        return;
+                    }
+                    
+                    // Send Packet to destination
+                    match packet.pack_type {
+                        PacketType::MsgFragment(_) => {
+                            panic!("Impossible how the hell did u do this")
+                        }
+                        _ => {
+                            packet_channel.send(packet.clone()).unwrap();
+                        }
                     }
                 } else {
                     error!(
-                        "[ {} ]: failed to find a Drone to send the ChatClientCommand::ControllerShortcut",
+                        "[ {} ]: failed to find a ChatClient to send the ChatClientCommand::ControllerShortcut",
                         "Simulation Controller".red()
                     );
                 }
@@ -512,7 +524,7 @@ impl SimulationController {
                             chat_client
                         ),
                         Err(e) => error!(
-                            "[ {} ]: failed to send a ChatClientCommand::InitFlooding to the [ Client {} ]: {}",
+                            "[ {} ]: failed to send a ChatClientCommand::InitFlooding to the [ ChatClient {} ]: {}",
                             "Simulation Controller".red(),
                             chat_client,
                             e
@@ -520,7 +532,7 @@ impl SimulationController {
                     }
                 } else {
                     error!(
-                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ Client {} ]",
+                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ ChatClient {} ]",
                         "Simulation Controller".red(),
                         chat_client
                     );
@@ -530,12 +542,12 @@ impl SimulationController {
                 if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::StartChatClient) {
                         Ok(()) => info!(
-                            "[ {} ]: sent a ChatClientCommand::StartChatClient to [ Client {} ]",
+                            "[ {} ]: sent a ChatClientCommand::StartChatClient to [ ChatClient {} ]",
                             "Simulation Controller".green(),
                             chat_client
                         ),
                         Err(e) => error!(
-                            "[ {} ]: failed to send a ChatClientCommand::StartChatClient to the [ Client {} ]: {}",
+                            "[ {} ]: failed to send a ChatClientCommand::StartChatClient to the [ ChatClient {} ]: {}",
                             "Simulation Controller".red(),
                             chat_client,
                             e
@@ -543,7 +555,7 @@ impl SimulationController {
                     }
                 } else {
                     error!(
-                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ Client {} ]",
+                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ ChatClient {} ]",
                         "Simulation Controller".red(),
                         chat_client
                     );
@@ -557,13 +569,13 @@ impl SimulationController {
                         if let Some((client, _)) = self.cclients.get(chat_client) {
                             match client.send(ChatClientCommand::RemoveSender(drone)) {
                                 Ok(()) => info!(
-                                    "[ {} ]: sent a ChatClientCommand::RemoveSender({}) to [ Client {} ]",
+                                    "[ {} ]: sent a ChatClientCommand::RemoveSender({}) to [ ChatClient {} ]",
                                     "Simulation Controller".green(),
                                     drone,
                                     chat_client
                                 ),
                                 Err(e) => error!(
-                                    "[ {} ]: failed to send a ChatClientCommand::RemoveSender({}) to the [ Client {} ]: {}",
+                                    "[ {} ]: failed to send a ChatClientCommand::RemoveSender({}) to the [ ChatClient {} ]: {}",
                                     "Simulation Controller".red(),
                                     drone,
                                     chat_client,
@@ -572,14 +584,14 @@ impl SimulationController {
                             }
                         } else {
                             error!(
-                                "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ Client {} ]",
+                                "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ ChatClient {} ]",
                                 "Simulation Controller".red(),
                                 chat_client
                             );
                         }
                     } else {
                         error!(
-                            "[ {} ]: failed to send a ChatClientCommand::RemoveSender({}) to the [ Client {} ]: {}",
+                            "[ {} ]: failed to send a ChatClientCommand::RemoveSender({}) to the [ ChatClient {} ]: {}",
                             "Simulation Controller".red(),
                             drone,
                             chat_client,
@@ -604,14 +616,14 @@ impl SimulationController {
                             if let Some((client, _)) = self.cclients.get(chat_client) {
                                 match client.send(ChatClientCommand::AddSender(drone, sender.clone())) {
                                     Ok(()) => info!(
-                                        "[ {} ]: sent a ChatClientCommand::AddSender({}, {:?}) to [ Client {} ]",
+                                        "[ {} ]: sent a ChatClientCommand::AddSender({}, {:?}) to [ ChatClient {} ]",
                                         "Simulation Controller".green(),
                                         drone,
                                         sender,
                                         chat_client
                                     ),
                                     Err(e) => error!(
-                                        "[ {} ]: failed to send a ChatClientCommand::AddSender({}, {:?}) to the [ Client {} ]: {}",
+                                        "[ {} ]: failed to send a ChatClientCommand::AddSender({}, {:?}) to the [ ChatClient {} ]: {}",
                                         "Simulation Controller".red(),
                                         drone,
                                         sender,
@@ -621,14 +633,14 @@ impl SimulationController {
                                 }
                             } else {
                                 error!(
-                                    "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ Client {} ]",
+                                    "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ ChatClient {} ]",
                                     "Simulation Controller".red(),
                                     chat_client
                                 );
                             }
                         } else {
                             error!(
-                                "[ {} ]: failed to send a ChatClientCommand::AddSender({}, {:?}) to the [ Client {} ]: {}",
+                                "[ {} ]: failed to send a ChatClientCommand::AddSender({}, {:?}) to the [ ChatClient {} ]: {}",
                                 "Simulation Controller".red(),
                                 drone,
                                 sender,
@@ -655,14 +667,14 @@ impl SimulationController {
                 if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::SendMessageTo(dest, msg.clone())) {
                         Ok(()) => info!(
-                            "[ {} ]: sent a ChatClientCommand::SendMessageTo({}, {}) to [ Client {} ]",
+                            "[ {} ]: sent a ChatClientCommand::SendMessageTo({}, {}) to [ ChatClient {} ]",
                             "Simulation Controller".green(),
                             dest,
                             msg,
                             chat_client
                         ),
                         Err(e) => error!(
-                            "[ {} ]: failed to send a ChatClientCommand::SendMessageTo({}, {}) to the [ Client {} ]: {}",
+                            "[ {} ]: failed to send a ChatClientCommand::SendMessageTo({}, {}) to the [ ChatClient {} ]: {}",
                             "Simulation Controller".red(),
                             dest,
                             msg,
@@ -672,7 +684,7 @@ impl SimulationController {
                     }
                 } else {
                     error!(
-                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ Client {} ]",
+                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ ChatClient {} ]",
                         "Simulation Controller".red(),
                         chat_client
                     );
@@ -683,13 +695,13 @@ impl SimulationController {
                     if let Some((client, _)) = self.cclients.get(chat_client) {
                         match client.send(ChatClientCommand::RegisterTo(server)) {
                             Ok(()) => info!(
-                                "[ {} ]: sent a ChatClientCommand::RegisterTo({}) to [ Client {} ]",
+                                "[ {} ]: sent a ChatClientCommand::RegisterTo({}) to [ ChatClient {} ]",
                                 "Simulation Controller".green(),
                                 server,
                                 chat_client
                             ),
                             Err(e) => error!(
-                                "[ {} ]: failed to send a ChatClientCommand::RegisterTo({}) to the [ Client {} ]: {}",
+                                "[ {} ]: failed to send a ChatClientCommand::RegisterTo({}) to the [ ChatClient {} ]: {}",
                                 "Simulation Controller".red(),
                                 server,
                                 chat_client,
@@ -698,7 +710,7 @@ impl SimulationController {
                         }
                     } else {
                         error!(
-                            "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ Client {} ]",
+                            "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ ChatClient {} ]",
                             "Simulation Controller".red(),
                             chat_client
                         );
@@ -709,12 +721,12 @@ impl SimulationController {
                 if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::GetClientList) {
                         Ok(()) => info!(
-                            "[ {} ]: sent a ChatClientCommand::GetClientList to [ Client {} ]",
+                            "[ {} ]: sent a ChatClientCommand::GetClientList to [ ChatClient {} ]",
                             "Simulation Controller".green(),
                             chat_client
                         ),
                         Err(e) => error!(
-                            "[ {} ]: failed to send a ChatClientCommand::GetClientList to the [ Client {} ]: {}",
+                            "[ {} ]: failed to send a ChatClientCommand::GetClientList to the [ ChatClient {} ]: {}",
                             "Simulation Controller".red(),
                             chat_client,
                             e
@@ -722,7 +734,7 @@ impl SimulationController {
                     }
                 } else {
                     error!(
-                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ Client {} ]",
+                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ ChatClient {} ]",
                         "Simulation Controller".red(),
                         chat_client
                     );
@@ -732,12 +744,12 @@ impl SimulationController {
                 if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::LogOut) {
                         Ok(()) => info!(
-                            "[ {} ]: sent a ChatClientCommand::LogOut to [ Client {} ]",
+                            "[ {} ]: sent a ChatClientCommand::LogOut to [ ChatClient {} ]",
                             "Simulation Controller".green(),
                             chat_client
                         ),
                         Err(e) => error!(
-                            "[ {} ]: failed to send a ChatClientCommand::LogOut to the [ Client {} ]: {}",
+                            "[ {} ]: failed to send a ChatClientCommand::LogOut to the [ ChatClient {} ]: {}",
                             "Simulation Controller".red(),
                             chat_client,
                             e
@@ -745,7 +757,7 @@ impl SimulationController {
                     }
                 } else {
                     error!(
-                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ Client {} ]",
+                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ ChatClient {} ]",
                         "Simulation Controller".red(),
                         chat_client
                     );
@@ -807,15 +819,11 @@ impl SimulationController {
             }
             MediaClientEvent::ReceveidFile(node_id, file_id, file_response) => {
                 info!(
-                    "[ {} ]: received a file from [ Client {} ]",
+                    "[ {} ]: received a file from [ MediaClient {} ]",
                     "Simulation Controller".green(),
                     node_id,
                 );
             }
-
-            ///////////////////////////////////////////////////////////////////////////////////////////////
-            // check ControllerShortcut
-            ///////////////////////////////////////////////////////////////////////////////////////////////
             MediaClientEvent::ControllerShortcut(packet) => {
                 if let Some(dest) = packet
                     .routing_header
@@ -823,26 +831,36 @@ impl SimulationController {
                     .get(packet.routing_header.len() - 1)
                 {
                     // Get destination node channel
-                    if let Some((_, packet_channel)) = self.mclients.get(dest) {
-                        // Send Packet t destination
-                        match packet.pack_type {
-                            PacketType::MsgFragment(_) => {
-                                panic!("Impossible how the hell did u do this")
-                            }
-                            _ => {
-                                packet_channel.send(packet.clone()).unwrap();
-                            }
-                        }
+                    let packet_channel;
+                    if self.drones.contains_key(dest) {
+                        (_, packet_channel) = self.drones.get(dest).unwrap().clone();
+                    } else if self.cclients.contains_key(dest) {
+                        (_, packet_channel) = self.cclients.get(dest).unwrap().clone();
+                    } else if self.mclients.contains_key(dest) {
+                        (_, packet_channel) = self.mclients.get(dest).unwrap().clone();
+                    } else if self.comm_servers.contains_key(dest) {
+                        (_, packet_channel) = self.comm_servers.get(dest).unwrap().clone();
                     } else {
                         error!(
-                            "[ {} ]: failed to find a Sender<Packet> channel for the [ Client {} ]",
+                            "[ {} ]: failed to find a Sender<Packet> channel for the [ Drone {} ]",
                             "Simulation Controller".red(),
                             dest
                         );
+                        return;
+                    }
+                    
+                    // Send Packet to destination
+                    match packet.pack_type {
+                        PacketType::MsgFragment(_) => {
+                            panic!("Impossible how the hell did u do this")
+                        }
+                        _ => {
+                            packet_channel.send(packet.clone()).unwrap();
+                        }
                     }
                 } else {
                     error!(
-                        "[ {} ]: failed to find a Drone to send the ChatClientCommand::ControllerShortcut",
+                        "[ {} ]: failed to find a MediaClient to send the MediaClientCommand::ControllerShortcut",
                         "Simulation Controller".red()
                     );
                 }
@@ -1040,7 +1058,47 @@ impl SimulationController {
                     e
                 );
             }
-            CommunicationServerEvent::ControllerShortcut(packet) => (),
+            CommunicationServerEvent::ControllerShortcut(packet) => {
+                if let Some(dest) = packet
+                    .routing_header
+                    .hops
+                    .get(packet.routing_header.len() - 1)
+                {
+                    // Get destination node channel
+                    let packet_channel;
+                    if self.drones.contains_key(dest) {
+                        (_, packet_channel) = self.drones.get(dest).unwrap().clone();
+                    } else if self.cclients.contains_key(dest) {
+                        (_, packet_channel) = self.cclients.get(dest).unwrap().clone();
+                    } else if self.mclients.contains_key(dest) {
+                        (_, packet_channel) = self.mclients.get(dest).unwrap().clone();
+                    } else if self.comm_servers.contains_key(dest) {
+                        (_, packet_channel) = self.comm_servers.get(dest).unwrap().clone();
+                    } else {
+                        error!(
+                            "[ {} ]: failed to find a Sender<Packet> channel for the [ CommunicationServer {} ]",
+                            "Simulation Controller".red(),
+                            dest
+                        );
+                        return;
+                    }
+                    
+                    // Send Packet to destination
+                    match packet.pack_type {
+                        PacketType::MsgFragment(_) => {
+                            panic!("Impossible how the hell did u do this")
+                        }
+                        _ => {
+                            packet_channel.send(packet.clone()).unwrap();
+                        }
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a CommunicationServer to send the CommunicationServerCommand::ControllerShortcut",
+                        "Simulation Controller".red()
+                    );
+                }
+            },
             CommunicationServerEvent::DestinationIsDrone(drone) => (),
             CommunicationServerEvent::ErrorPacketCache(_, _) => (),
         }
