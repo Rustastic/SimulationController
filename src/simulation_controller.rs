@@ -363,11 +363,11 @@ impl SimulationController {
                         if self.drones.contains_key(&to_add) {
                             (_, sender) = self.drones.get(&to_add).unwrap().clone();
                         } else if self.cclients.contains_key(&to_add) {
-                            (_, sender) = self.drones.get(&to_add).unwrap().clone();
+                            (_, sender) = self.cclients.get(&to_add).unwrap().clone();
                         } else if self.mclients.contains_key(&to_add) {
-                            (_, sender) = self.drones.get(&to_add).unwrap().clone();
+                            (_, sender) = self.mclients.get(&to_add).unwrap().clone();
                         } else {
-                            (_, sender) = self.drones.get(&to_add).unwrap().clone();
+                            (_, sender) = self.comm_servers.get(&to_add).unwrap().clone();
                         }
 
 
