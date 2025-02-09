@@ -485,7 +485,7 @@ impl SimulationController {
                         }
                     } else {
                         error!(
-                            "[ {} ]: failed to find a Sender<Packet> channel for the [ Drone {} ]",
+                            "[ {} ]: failed to find a Sender<Packet> channel for the [ Client {} ]",
                             "Simulation Controller".red(),
                             dest
                         );
@@ -835,7 +835,7 @@ impl SimulationController {
                         }
                     } else {
                         error!(
-                            "[ {} ]: failed to find a Sender<Packet> channel for the [ Drone {} ]",
+                            "[ {} ]: failed to find a Sender<Packet> channel for the [ Client {} ]",
                             "Simulation Controller".red(),
                             dest
                         );
