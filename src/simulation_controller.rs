@@ -412,12 +412,7 @@ impl SimulationController {
                 self.handle_cclient_command(&src, ChatClientCommand::SendMessageTo(dest, msg));
             }
             GUICommands::RegisterTo(client, server) => {
-                match action::register(self, &client, &server) {
-                    Ok(()) => {
-                        self.handle_cclient_command(&client, ChatClientCommand::RegisterTo(server))
-                    }
-                    Err(e) => error!("{}", e),
-                }
+                self.handle_cclient_command(&client, ChatClientCommand::RegisterTo(server))
             }
             GUICommands::LogOut(client, server) => match action::logout(self, &client, &server) {
                 Ok(()) => self.handle_cclient_command(&client, ChatClientCommand::LogOut),

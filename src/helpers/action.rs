@@ -265,20 +265,3 @@ pub fn register(
         Err(SimulationControllerError::NotAServer(*server))
     }
 }
-
-pub fn logout(
-    sim_ctrl: &mut SimulationController,
-    client: &NodeId,
-    server: &NodeId,
-) -> Result<(), SimulationControllerError> {
-    if sim_ctrl.comm_servers.contains_key(server) {
-        if let Some((_server_channel, _)) = sim_ctrl.comm_servers.get(server) {
-            sim_ctrl.handle_commserver_command(server, CommunicationServerCommand::DeregisterClient(*client));
-            Ok(())
-        } else {
-            Err(SimulationControllerError::ServerNotFound(*server))
-        }
-    } else {
-        Err(SimulationControllerError::NotAServer(*server))
-    }
-}
