@@ -82,9 +82,9 @@ impl SimulationController {
         // Init ChatClient
         for (chat_client, _) in self.cclients.clone().iter() {
             self.handle_cclient_command(chat_client, ChatClientCommand::InitFlooding);
-            thread::sleep(std::time::Duration::from_secs(2));
+            thread::sleep(std::time::Duration::from_secs(5));
             self.handle_cclient_command(chat_client, ChatClientCommand::StartChatClient);
-
+            thread::sleep(std::time::Duration::from_secs(5));
         }
 
         // Start loop
