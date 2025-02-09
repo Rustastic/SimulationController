@@ -181,6 +181,7 @@ pub fn remove_sender(
                     );
                     return Ok(());
                 } else if sim_ctrl.comm_servers.contains_key(&to_remove){
+                    println!("\nciaoooo\n");
                     sim_ctrl.handle_commserver_command(
                         &to_remove,
                         CommunicationServerCommand::RemoveSender(*node_id),
