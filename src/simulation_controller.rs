@@ -85,11 +85,6 @@ impl SimulationController {
             self.handle_cclient_command(chat_client, ChatClientCommand::InitFlooding);
         }
 
-        /*for (comm_server, _) in self.comm_servers.clone().iter() {
-            self.handle_commserver_command(comm_server, CommunicationServerCommand::StartServer);
-            self.handle_commserver_command(comm_server, CommunicationServerCommand::InitFlooding);
-        }*/
-
         // Start loop
         loop {
             select! {
@@ -1067,52 +1062,6 @@ impl SimulationController {
                         ),
                         Err(e) => error!(
                             "[ {} ]: failed to send a CommunicationServerCommand::InitFlooding to the [ Server {} ]: {}",
-                            "Simulation Controller".red(),
-                            comm_server,
-                            e
-                        ),
-                    }
-                } else {
-                    error!(
-                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
-                        "Simulation Controller".red(),
-                        comm_server
-                    );
-                }
-            }
-            CommunicationServerCommand::StartServer => {
-                if let Some((server, _)) = self.comm_servers.get(comm_server) {
-                    match server.send(CommunicationServerCommand::StartServer) {
-                        Ok(()) => info!(
-                            "[ {} ]: sent a CommunicationServerCommand::StartServer to [ Server {} ]",
-                            "Simulation Controller".green(),
-                            comm_server
-                        ),
-                        Err(e) => error!(
-                            "[ {} ]: failed to send a CommunicationServerCommand::StartServer to the [ Server {} ]: {}",
-                            "Simulation Controller".red(),
-                            comm_server,
-                            e
-                        ),
-                    }
-                } else {
-                    error!(
-                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
-                        "Simulation Controller".red(),
-                        comm_server
-                    );
-                }
-            }
-            CommunicationServerCommand::StopServer => {
-                if let Some((server, _)) = self.comm_servers.get(comm_server) {
-                    match server.send(CommunicationServerCommand::StopServer) {
-                        Ok(()) => info!(
-                            "[ {} ]: sent a CommunicationServerCommand::StopServer to [ Server {} ]",
-                            "Simulation Controller".green(),
-                            comm_server
-                        ),
-                        Err(e) => error!(
-                            "[ {} ]: failed to send a CommunicationServerCommand::StopServer to the [ Server {} ]: {}",
                             "Simulation Controller".red(),
                             comm_server,
                             e
