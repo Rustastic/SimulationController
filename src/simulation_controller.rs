@@ -352,7 +352,6 @@ impl SimulationController {
                                 MediaClientCommand::RemoveSender(to_remove),
                             )
                         } else if self.comm_servers.contains_key(&node_id) {
-                            println!("\nremoving as node_id\n");
                             self.handle_commserver_command(
                                 &node_id,
                                 CommunicationServerCommand::RemoveSender(to_remove),
@@ -393,7 +392,6 @@ impl SimulationController {
                                 MediaClientCommand::AddSender(to_add, sender),
                             );
                         } else if self.comm_servers.contains_key(&node_id) {
-                            println!("\nadding as to_remove\n");
                             self.handle_commserver_command(
                                 &node_id,
                                 CommunicationServerCommand::AddSender(to_add, sender),
@@ -1128,7 +1126,6 @@ impl SimulationController {
                 if let Some((server, _)) = self.comm_servers.get(comm_server) {
                     if let Some(vec) = self.neighbor.get_mut(comm_server) {
                         vec.push(node_id);
-                        println!("\ntrying to send\n");
                         match server.send(CommunicationServerCommand::AddSender(node_id, sender)) {
                             Ok(()) => info!(
                                 "[ {} ]: sent a CommunicationServerCommand::AddSender({}, sender_channel) to [ Server {} ]",
@@ -1160,16 +1157,12 @@ impl SimulationController {
                 }
             }
             CommunicationServerCommand::RemoveSender(node_id) => {
-                println!("\n1\n");
                 if let Some((server, _)) = self.comm_servers.get(comm_server) {
-                println!("\n2\n");
                     if let Some(vec) = self.neighbor.get_mut(comm_server) {
                         if vec.len() > 2 {
                             vec.retain(|x| *x != node_id);
-                            println!("\ntrying to send\n");
                             match server.send(CommunicationServerCommand::RemoveSender(node_id)) {
                                 Ok(()) => {
-                                    println!("\nsend it\n");
                                     info!(
                                     "[ {} ]: sent a CommunicationServerCommand::RemoveSender({}) to [ Server {} ]",
                                     "Simulation Controller".green(),

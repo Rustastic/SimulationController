@@ -181,8 +181,6 @@ pub fn remove_sender(
                     );
                     return Ok(());
                 } else if sim_ctrl.comm_servers.contains_key(&to_remove) {
-                    println!("\nremoving as to_remove\n");
-
                     sim_ctrl.handle_commserver_command(
                         &to_remove,
                         CommunicationServerCommand::RemoveSender(*node_id),
@@ -224,11 +222,10 @@ pub fn add_sender(
                     );
 
                     return Ok(());
-                } else if sim_ctrl.comm_servers.contains_key(to_add) {
-                    println!("\nadding as to_add\n");
-                    sim_ctrl.handle_commserver_command(
+                } else if sim_ctrl.mclients.contains_key(to_add) {
+                    sim_ctrl.handle_mclient_command(
                         &to_add,
-                        CommunicationServerCommand::AddSender(*node_id, packet_send.clone()),
+                        MediaClientCommand::AddSender(*node_id, packet_send.clone())
                     );
 
                     return Ok(());
@@ -239,14 +236,15 @@ pub fn add_sender(
                     );
 
                     return Ok(());
-                } else if sim_ctrl.mclients.contains_key(to_add) {
-                    sim_ctrl.handle_mclient_command(
+                } else if sim_ctrl.comm_servers.contains_key(to_add) {
+                    sim_ctrl.handle_commserver_command(
                         &to_add,
-                        MediaClientCommand::AddSender(*node_id, packet_send.clone())
+                        CommunicationServerCommand::AddSender(*node_id, packet_send.clone()),
                     );
 
                     return Ok(());
                 }
+                
 
                 Err(SimulationControllerError::ClientOnClient)
             }
