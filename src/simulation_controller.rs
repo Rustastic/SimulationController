@@ -1129,7 +1129,7 @@ impl SimulationController {
                                 comm_server
                             ),
                             Err(e) => error!(
-                                "[ {} ]: failed to send a CommunicationServerCommand::AddSender({}, sender_channel) to the [ Server {} ]: {}",
+                                "FIGA [ {} ]: failed to send a CommunicationServerCommand::AddSender({}, sender_channel) to the [ Server {} ]: {}",
                                 "Simulation Controller".red(),
                                 node_id,
                                 comm_server,
@@ -1140,7 +1140,7 @@ impl SimulationController {
                     }
                 } else {
                     error!(
-                        "FIGA [ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
+                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
                         "Simulation Controller".red(),
                         comm_server
                 );
