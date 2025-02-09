@@ -141,11 +141,11 @@ impl SimulationController {
     pub fn handle_drone_event(&self, drone_event: DroneEvent) {
         match drone_event {
             DroneEvent::PacketSent(packet) => {
-                info!(
+                /*info!(
                     "[ {} ] Is a {}",
                     "Simulation Controller".yellow(),
                     packet.pack_type
-                );
+                );*/
             }
             DroneEvent::PacketDropped(packet) => {
                 info!(
