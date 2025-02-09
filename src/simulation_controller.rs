@@ -693,31 +693,30 @@ impl SimulationController {
                 }
             }
             ChatClientCommand::RegisterTo(server) => {
-                /////////////// add check to see if server exists
-                ///
-                ///
-                if let Some((client, _)) = self.cclients.get(chat_client) {
-                    match client.send(ChatClientCommand::RegisterTo(server)) {
-                        Ok(()) => info!(
-                            "[ {} ]: sent a ChatClientCommand::RegisterTo({}) to [ Client {} ]",
-                            "Simulation Controller".green(),
-                            server,
-                            chat_client
-                        ),
-                        Err(e) => error!(
-                            "[ {} ]: failed to send a ChatClientCommand::RegisterTo({}) to the [ Client {} ]: {}",
+                if self.comm_servers.contains_key(&server) {
+                    if let Some((client, _)) = self.cclients.get(chat_client) {
+                        match client.send(ChatClientCommand::RegisterTo(server)) {
+                            Ok(()) => info!(
+                                "[ {} ]: sent a ChatClientCommand::RegisterTo({}) to [ Client {} ]",
+                                "Simulation Controller".green(),
+                                server,
+                                chat_client
+                            ),
+                            Err(e) => error!(
+                                "[ {} ]: failed to send a ChatClientCommand::RegisterTo({}) to the [ Client {} ]: {}",
+                                "Simulation Controller".red(),
+                                server,
+                                chat_client,
+                                e
+                            ),
+                        }
+                    } else {
+                        error!(
+                            "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ Client {} ]",
                             "Simulation Controller".red(),
-                            server,
-                            chat_client,
-                            e
-                        ),
+                            chat_client
+                        );
                     }
-                } else {
-                    error!(
-                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ Client {} ]",
-                        "Simulation Controller".red(),
-                        chat_client
-                    );
                 }
             }
             ChatClientCommand::GetClientList => {
@@ -805,7 +804,14 @@ impl SimulationController {
                     "Simulation Controller".red(),
                 );
             }
-            MediaClientEvent::ErrorPacketCache(_, _) => (),
+            MediaClientEvent::ErrorPacketCache(session_id, fragment_index) => {
+                error!(
+                    "[ {} ]: received an error message: Error in the packet cache [ session_id : {}, fragment_index: {} ]",
+                    "Simulation Controller".red(),
+                    session_id,
+                    fragment_index
+                );
+            },
             MediaClientEvent::SendError(e) => {
                 error!(
                     "[ {} ]: received an error message: It has verified a SenderError: {}",
@@ -813,7 +819,14 @@ impl SimulationController {
                     e
                 );
             }
-            MediaClientEvent::ReceveidFile(node_id, file_id, file_response) => (),
+            MediaClientEvent::ReceveidFile(node_id, file_id, file_response) => {
+                info!(
+                    "[ {} ]: received a file from [ Client {} ]",
+                    "Simulation Controller".green(),
+                    session_id,
+                    fragment_index
+                );
+            },
 
             ///////////////////////////////////////////////////////////////////////////////////////////////
             // check ControllerShortcut
