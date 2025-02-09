@@ -165,30 +165,27 @@ pub fn remove_sender(
             Ok(()) => {
                 if sim_ctrl.drones.contains_key(to_remove) {
                     sim_ctrl.handle_drone_command(&to_remove, DroneCommand::RemoveSender(*node_id));
-                    Ok(())
+                    return Ok(());
                 } else if sim_ctrl.cclients.contains_key(to_remove) {
                     sim_ctrl.handle_cclient_command(
                         &to_remove,
                         ChatClientCommand::RemoveSender(*node_id),
                     );
-                    Ok(())
+                    return Ok(());
                 } else if sim_ctrl.mclients.contains_key(to_remove) {
                     sim_ctrl.handle_mclient_command(
                         &to_remove,
                         MediaClientCommand::RemoveSender(*node_id),
                     );
-                    Ok(())
+                    return Ok(());
                 } else if sim_ctrl.comm_servers.contains_key(to_remove) {
                     sim_ctrl.handle_commserver_command(
                         &to_remove,
                         CommunicationServerCommand::RemoveSender(*node_id),
                     );
-                    Ok(())
-                } else {
-                    sim_ctrl
-                        .handle_drone_command(&to_remove, DroneCommand::RemoveSender(*node_id));
-                    Ok(())
+                    return Ok(());
                 }
+                Err("Ma che ne so io");
             }
             Err(e) => Err(e),
         },
