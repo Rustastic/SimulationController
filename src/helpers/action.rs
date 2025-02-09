@@ -181,7 +181,7 @@ pub fn remove_sender(
                     );
                     return Ok(());
                 } else if sim_ctrl.comm_servers.contains_key(&to_remove) {
-                    println!("\ntrying to send\n");
+                    println!("\nremoving as to_remove\n");
 
                     sim_ctrl.handle_commserver_command(
                         &to_remove,
@@ -225,7 +225,7 @@ pub fn add_sender(
 
                     return Ok(());
                 } else if sim_ctrl.comm_servers.contains_key(to_add) {
-                    println!("\ntrying to send\n");
+                    println!("\nadding as to_add\n");
                     sim_ctrl.handle_commserver_command(
                         &to_add,
                         CommunicationServerCommand::AddSender(*node_id, packet_send.clone()),

@@ -352,7 +352,7 @@ impl SimulationController {
                                 MediaClientCommand::RemoveSender(to_remove),
                             )
                         } else if self.comm_servers.contains_key(&node_id) {
-                            println!("\ntrying to send\n");
+                            println!("\nremoving as node_id\n");
                             self.handle_commserver_command(
                                 &node_id,
                                 CommunicationServerCommand::RemoveSender(to_remove),
@@ -393,6 +393,7 @@ impl SimulationController {
                                 MediaClientCommand::AddSender(to_add, sender),
                             );
                         } else if self.comm_servers.contains_key(&node_id) {
+                            println!("\nadding as to_remove\n");
                             self.handle_commserver_command(
                                 &node_id,
                                 CommunicationServerCommand::AddSender(to_add, sender),
