@@ -80,12 +80,12 @@ impl SimulationController {
         thread::sleep(std::time::Duration::from_secs(2));
 
         // Init ChatClient
-        /*for (chat_client, _) in self.cclients.clone().iter() {
+        for (chat_client, _) in self.cclients.clone().iter() {
             self.handle_cclient_command(chat_client, ChatClientCommand::StartChatClient);
             self.handle_cclient_command(chat_client, ChatClientCommand::InitFlooding);
         }
 
-        for (comm_server, _) in self.comm_servers.clone().iter() {
+        /*for (comm_server, _) in self.comm_servers.clone().iter() {
             self.handle_commserver_command(comm_server, CommunicationServerCommand::StartServer);
             self.handle_commserver_command(comm_server, CommunicationServerCommand::InitFlooding);
         }*/
