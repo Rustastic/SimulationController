@@ -412,13 +412,15 @@ impl SimulationController {
 
             GUICommands::SendMessageTo(src, dest, msg) => {
                 self.handle_cclient_command(&src, ChatClientCommand::SendMessageTo(dest, msg))
-            }
+            },
             GUICommands::RegisterTo(client, server) => {
                 self.handle_cclient_command(&client, ChatClientCommand::RegisterTo(server))
-            }
+            },
             GUICommands::LogOut(client, server) => {
                 self.handle_cclient_command(&client, ChatClientCommand::LogOut)
-            }
+            },
+            GUICommands::AskForFileList(_, _) => (),
+            GUICommands::GetFile(_, _, _) => ()
         }
     }
 
