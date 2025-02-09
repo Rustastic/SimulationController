@@ -254,22 +254,16 @@ pub fn add_sender(
     }
 }
 
-pub fn send_message(
-    sim_ctrl: &mut SimulationController,
-    src: &NodeId,
-    dest: &NodeId,
-) -> Result<(), SimulationControllerError> {
-    // verify nodes connected
-    Ok(())
-}
-
 pub fn register(
     sim_ctrl: &mut SimulationController,
     client: &NodeId,
     server: &NodeId,
 ) -> Result<(), SimulationControllerError> {
-    // verify it is really a server
-    Ok(())
+    if sim_ctrl.comm_servers.contains_key(server) {
+        Ok(())
+    } else {
+        Err(SimulationControllerError::NotAServer(*server))
+    }
 }
 
 pub fn logout(
@@ -277,6 +271,14 @@ pub fn logout(
     client: &NodeId,
     server: &NodeId,
 ) -> Result<(), SimulationControllerError> {
-    // verify it is a server and it is the one it is connected to
-    Ok(())
+    if sim_ctrl.comm_servers.contains_key(server) {
+        if let Some((_server_channel, _)) = sim_ctrl.comm_servers.get(server) {
+            sim_ctrl.handle_commserver_command(server, CommunicationServerCommand::DeregisterClient(*client));
+            Ok(())
+        } else {
+            Err(SimulationControllerError::ServerNotFound(*server))
+        }
+    } else {
+        Err(SimulationControllerError::NotAServer(*server))
+    }
 }

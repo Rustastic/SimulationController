@@ -25,4 +25,8 @@ pub enum SimulationControllerError {
     InvalidPacketDropRate(ParseFloatError),
     #[error("[ ERROR ]: Can't connect two clients together")]
     ClientOnClient,
+    #[error("[ ERROR ]: The node {0} is not a server")]
+    NotAServer(NodeId),
+    #[error("[ ERROR ]: A server with the NodeId: {0} does not exist")]
+    ServerNotFound(NodeId),
 }

@@ -1,5 +1,5 @@
 use crossbeam_channel::{select, Receiver, Sender};
-use log::{error, info, warn};
+use log::{error, info};
 use std::{collections::HashMap, thread};
 
 use colored::Colorize;
@@ -113,7 +113,7 @@ impl SimulationController {
                         break;
                     }
                 },
-                /*recv(self.mclient_recv) -> mclient_command => match mclient_command { // Uncommented if needed
+                recv(self.mclient_recv) -> mclient_command => match mclient_command { // Uncommented if needed
                     Ok(mclient_command) => {
                         info!("[ {} ]: MediaClientEvent received", "Simulation Controller".green());
                         self.handle_mclient_event(mclient_command);
@@ -122,7 +122,7 @@ impl SimulationController {
                         error!("[ {} ]: MediaClientEvent receiver channel disconnected: {}", "Simulation Controller".red(), e);
                         break;
                     }
-                },*/
+                },
                 recv(self.gui_recv) -> gui_command => match gui_command {
                     Ok(gui_command) => {
                         info!("[ {} ]: GUICommand received", "Simulation Controller".green());
@@ -409,11 +409,7 @@ impl SimulationController {
             },
 
             GUICommands::SendMessageTo(src, dest, msg) => {
-                match action::send_message(self, &src, &dest) {
-                    Ok(()) => self
-                        .handle_cclient_command(&src, ChatClientCommand::SendMessageTo(dest, msg)),
-                    Err(e) => error!("{}", e),
-                }
+                self.handle_cclient_command(&src, ChatClientCommand::SendMessageTo(dest, msg));
             }
             GUICommands::RegisterTo(client, server) => {
                 match action::register(self, &client, &server) {
@@ -867,9 +863,9 @@ impl SimulationController {
 
     // Handle MediaClient Command
     pub fn handle_mclient_command(&mut self, media_client: &NodeId, command: MediaClientCommand) {
-        /*match command {
+        match command {
             MediaClientCommand::InitFlooding => {
-                if let Some((client, _)) = self.cclients.get(media_client) {
+                if let Some((client, _)) = self.mclients.get(media_client) {
                     match client.send(MediaClientCommand::InitFlooding) {
                         Ok(()) => info!(
                             "[ {} ]: sent a MediaClientCommand::InitFlo0ding to [ Client {} ]",
@@ -994,7 +990,7 @@ impl SimulationController {
                 }
             },
             _ => (),
-        }*/
+        }
     }
 
     // Handle Server Command
