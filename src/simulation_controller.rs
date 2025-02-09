@@ -1099,8 +1099,21 @@ impl SimulationController {
                     );
                 }
             },
-            CommunicationServerEvent::DestinationIsDrone(drone) => (),
-            CommunicationServerEvent::ErrorPacketCache(_, _) => (),
+            CommunicationServerEvent::DestinationIsDrone(drone) => {
+                error!(
+                    "[ {} ]: received an error message: The selected destination is a drone [ Drone {} ]",
+                    "Simulation Controller".red(),
+                    drone
+                );
+            },
+            CommunicationServerEvent::ErrorPacketCache(session_id, fragment_index) => {
+                error!(
+                    "[ {} ]: received an error message: Error in the packet cache [ session_id : {}, fragment_index: {} ]",
+                    "Simulation Controller".red(),
+                    session_id,
+                    fragment_index
+                );
+            },
         }
     }
 
