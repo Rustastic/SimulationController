@@ -419,8 +419,12 @@ impl SimulationController {
             GUICommands::LogOut(client, server) => {
                 self.handle_cclient_command(&client, ChatClientCommand::LogOut)
             },
-            GUICommands::AskForFileList(_, _) => (),
-            GUICommands::GetFile(_, _, _) => ()
+            GUICommands::AskForFileList(client, server) => {
+                self.handle_mclient_command(&client, MediaClientCommand::AskFilesList(server));
+            },
+            GUICommands::GetFile(client, server, title) => {
+                self.handle_mclient_command(&client, MediaClientCommand::AskForFile(server, title));
+            }
         }
     }
 
@@ -819,12 +823,21 @@ impl SimulationController {
                     e
                 );
             }
+            MediaClientEvent::ReceveidFileList(server, items) => {
+                info!(
+                    "[ {} ]: received the file list of [ TextServer {} ]",
+                    "Simulation Controller".green(),
+                    server,
+                );
+                self.gui_send.send(GUIEvents::FileList(server, items));
+            },
             MediaClientEvent::ReceveidFile(node_id, file_id, file_response) => {
                 info!(
                     "[ {} ]: received a file from [ MediaClient {} ]",
                     "Simulation Controller".green(),
                     node_id,
                 );
+                self.gui_send.send(GUIEvents::MessageReceived(node_id, file_response));
             }
             MediaClientEvent::ControllerShortcut(packet) => {
                 if let Some(dest) = packet
