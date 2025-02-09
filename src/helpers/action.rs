@@ -180,7 +180,9 @@ pub fn remove_sender(
                         MediaClientCommand::RemoveSender(*node_id),
                     );
                     return Ok(());
-                } else if sim_ctrl.comm_servers.contains_key(&to_remove){
+                } else if sim_ctrl.comm_servers.contains_key(&to_remove) {
+                    println!("\ntrying to send\n");
+
                     sim_ctrl.handle_commserver_command(
                         &to_remove,
                         CommunicationServerCommand::RemoveSender(*node_id),
@@ -223,6 +225,7 @@ pub fn add_sender(
 
                     return Ok(());
                 } else if sim_ctrl.comm_servers.contains_key(to_add) {
+                    println!("\ntrying to send\n");
                     sim_ctrl.handle_commserver_command(
                         &to_add,
                         CommunicationServerCommand::AddSender(*node_id, packet_send.clone()),
@@ -236,7 +239,7 @@ pub fn add_sender(
                     );
 
                     return Ok(());
-                } else {
+                } else if sim_ctrl.mclients.contains_key(to_add) {
                     sim_ctrl.handle_mclient_command(
                         &to_add,
                         MediaClientCommand::AddSender(*node_id, packet_send.clone())

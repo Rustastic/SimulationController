@@ -351,7 +351,8 @@ impl SimulationController {
                                 &node_id,
                                 MediaClientCommand::RemoveSender(to_remove),
                             )
-                        } else {
+                        } else if self.comm_servers.contains_key(&node_id) {
+                            println!("\ntrying to send\n");
                             self.handle_commserver_command(
                                 &node_id,
                                 CommunicationServerCommand::RemoveSender(to_remove),
@@ -1126,6 +1127,7 @@ impl SimulationController {
                 if let Some((server, _)) = self.comm_servers.get(comm_server) {
                     if let Some(vec) = self.neighbor.get_mut(comm_server) {
                         vec.push(node_id);
+                        println!("\ntrying to send\n");
                         match server.send(CommunicationServerCommand::AddSender(node_id, sender)) {
                             Ok(()) => info!(
                                 "[ {} ]: sent a CommunicationServerCommand::AddSender({}, sender_channel) to [ Server {} ]",
@@ -1156,6 +1158,7 @@ impl SimulationController {
                     if let Some(vec) = self.neighbor.get_mut(comm_server) {
                         if vec.len() > 2 {
                             vec.retain(|x| *x != node_id);
+                            println!("\ntrying to send\n");
                             match server.send(CommunicationServerCommand::RemoveSender(node_id)) {
                                 Ok(()) => {
                                     println!("\nsend it\n");
@@ -1181,7 +1184,7 @@ impl SimulationController {
                         "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
                         "Simulation Controller".red(),
                         comm_server
-                );
+                    );
                 }
             }
             _ => (),
