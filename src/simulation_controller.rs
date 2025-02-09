@@ -80,9 +80,14 @@ impl SimulationController {
         thread::sleep(std::time::Duration::from_secs(2));
 
         // Init ChatClient
-        for (chat_client, sender) in self.cclients.clone().iter() {
+        for (chat_client, _) in self.cclients.clone().iter() {
             self.handle_cclient_command(chat_client, ChatClientCommand::StartChatClient);
             self.handle_cclient_command(chat_client, ChatClientCommand::InitFlooding);
+        }
+
+        for (comm_server, _) in self.comm_servers.clone().iter() {
+            self.handle_commserver_command(comm_server, CommunicationServerCommand::StartServer);
+            self.handle_commserver_command(comm_server, CommunicationServerCommand::InitFlooding);
         }
 
         // Start loop
@@ -1143,7 +1148,7 @@ impl SimulationController {
                         "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
                         "Simulation Controller".red(),
                         comm_server
-                );
+                    );
                 }
             }
             CommunicationServerCommand::RemoveSender(node_id) => {
