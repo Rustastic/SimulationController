@@ -386,7 +386,7 @@ impl SimulationController {
                                 &node_id,
                                 MediaClientCommand::AddSender(to_add, sender),
                             );
-                        } else {
+                        } else if self.comm_servers.contains_key(&node_id) {
                             self.handle_commserver_command(
                                 &node_id,
                                 CommunicationServerCommand::AddSender(to_add, sender),
