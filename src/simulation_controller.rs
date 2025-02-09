@@ -14,7 +14,7 @@ use wg_2024::{
 use gui::commands::{GUICommands, GUIEvents};
 use messages::{
     client_commands::{ChatClientCommand, ChatClientEvent, MediaClientCommand, MediaClientEvent},
-    server_commands::{CommunicationServerCommand, CommunicationServerEvent},
+    server_commands::{CommunicationServerCommand, CommunicationServerEvent, ContentServerCommand, ContentServerEvent},
 };
 
 use crate::{action, verify};
@@ -37,6 +37,12 @@ pub struct SimulationController {
 
     pub comm_servers: HashMap<NodeId, (Sender<CommunicationServerCommand>, Sender<Packet>)>,
     comm_server_recv: Receiver<CommunicationServerEvent>,
+
+    pub text_servers: HashMap<NodeId, (Sender<ContentServerCommand>, Sender<Packet>)>,
+    text_recv: Receiver<ContentServerEvent>,
+
+    pub media_servers: HashMap<NodeId, (Sender<ContentServerCommand>, Sender<Packet>)>,
+    media_recv: Receiver<ContentServerEvent>,
 }
 
 impl SimulationController {
@@ -53,6 +59,10 @@ impl SimulationController {
         mclient_recv: Receiver<MediaClientEvent>,
         comm_servers: HashMap<NodeId, (Sender<CommunicationServerCommand>, Sender<Packet>)>,
         comm_server_recv: Receiver<CommunicationServerEvent>,
+        text_servers: HashMap<NodeId, (Sender<ContentServerCommand>, Sender<Packet>)>,
+        text_recv: Receiver<ContentServerEvent>,
+        media_servers: HashMap<NodeId, (Sender<ContentServerCommand>, Sender<Packet>)>,
+        media_recv: Receiver<ContentServerEvent>
     ) -> Self {
         return Self {
             drones,
@@ -68,6 +78,10 @@ impl SimulationController {
             mclient_recv,
             comm_servers,
             comm_server_recv,
+            text_servers,
+            text_recv,
+            media_servers,
+            media_recv
         };
     }
 
@@ -110,10 +124,40 @@ impl SimulationController {
                         break;
                     }
                 },
-                recv(self.mclient_recv) -> mclient_command => match mclient_command { // Uncommented if needed
-                    Ok(mclient_command) => {
+                recv(self.mclient_recv) -> mclient_event => match mclient_event {
+                    Ok(mclient_event) => {
                         info!("[ {} ]: MediaClientEvent received", "Simulation Controller".green());
-                        self.handle_mclient_event(mclient_command);
+                        self.handle_mclient_event(mclient_event);
+                    }
+                    Err(e) => {
+                        error!("[ {} ]: MediaClientEvent receiver channel disconnected: {}", "Simulation Controller".red(), e);
+                        break;
+                    }
+                },
+                recv(self.comm_server_recv) -> comm_event => match comm_event {
+                    Ok(comm_event) => {
+                        info!("[ {} ]: CommunicationServer received", "Simulation Controller".green());
+                        self.handle_commserver_event(comm_event);
+                    }
+                    Err(e) => {
+                        error!("[ {} ]: MediaClientEvent receiver channel disconnected: {}", "Simulation Controller".red(), e);
+                        break;
+                    }
+                },
+                recv(self.text_recv) -> text_event => match text_event {
+                    Ok(text_event) => {
+                        info!("[ {} ]: TextContentServer received", "Simulation Controller".green());
+                        self.handle_text_event(text_event);
+                    }
+                    Err(e) => {
+                        error!("[ {} ]: MediaClientEvent receiver channel disconnected: {}", "Simulation Controller".red(), e);
+                        break;
+                    }
+                },
+                recv(self.media_recv) -> media_event => match media_event {
+                    Ok(media_event) => {
+                        info!("[ {} ]: MediaClientEvent received", "Simulation Controller".green());
+                        self.handle_media_event(media_event);
                     }
                     Err(e) => {
                         error!("[ {} ]: MediaClientEvent receiver channel disconnected: {}", "Simulation Controller".red(), e);
@@ -177,6 +221,10 @@ impl SimulationController {
                         (_, packet_channel) = self.mclients.get(dest).unwrap().clone();
                     } else if self.comm_servers.contains_key(dest) {
                         (_, packet_channel) = self.comm_servers.get(dest).unwrap().clone();
+                    } else if self.text_servers.contains_key(dest) {
+                        (_, packet_channel) = self.text_servers.get(dest).unwrap().clone();
+                    } else if self.media_servers.contains_key(dest) {
+                        (_, packet_channel) = self.media_servers.get(dest).unwrap().clone();
                     } else {
                         error!(
                             "[ {} ]: failed to find a Sender<Packet> channel for the [ Drone {} ]",
@@ -490,6 +538,10 @@ impl SimulationController {
                         (_, packet_channel) = self.mclients.get(dest).unwrap().clone();
                     } else if self.comm_servers.contains_key(dest) {
                         (_, packet_channel) = self.comm_servers.get(dest).unwrap().clone();
+                    } else if self.text_servers.contains_key(dest) {
+                        (_, packet_channel) = self.text_servers.get(dest).unwrap().clone();
+                    } else if self.media_servers.contains_key(dest) {
+                        (_, packet_channel) = self.media_servers.get(dest).unwrap().clone();
                     } else {
                         error!(
                             "[ {} ]: failed to find a Sender<Packet> channel for the [ ChatClient {} ]",
@@ -855,6 +907,10 @@ impl SimulationController {
                         (_, packet_channel) = self.mclients.get(dest).unwrap().clone();
                     } else if self.comm_servers.contains_key(dest) {
                         (_, packet_channel) = self.comm_servers.get(dest).unwrap().clone();
+                    } else if self.text_servers.contains_key(dest) {
+                        (_, packet_channel) = self.text_servers.get(dest).unwrap().clone();
+                    } else if self.media_servers.contains_key(dest) {
+                        (_, packet_channel) = self.media_servers.get(dest).unwrap().clone();
                     } else {
                         error!(
                             "[ {} ]: failed to find a Sender<Packet> channel for the [ Drone {} ]",
@@ -1021,40 +1077,40 @@ impl SimulationController {
         match event {
             CommunicationServerEvent::ServerStarted => {
                 info!(
-                    "[ {} ]: Server started successfully",
+                    "[ {} ]: CommunicationServer started successfully",
                     "Simulation Controller".green(),
                 )
             }
             CommunicationServerEvent::ServerStopped => {
                 info!(
-                    "[ {} ]: Server stopped successfully",
+                    "[ {} ]: CommunicationServer stopped successfully",
                     "Simulation Controller".green(),
                 )
             }
             CommunicationServerEvent::ClientRegistered(client) => {
                 info!(
-                    "[ {} ]: Server registered [ Client {} ]",
+                    "[ {} ]: CommunicationServer registered [ Client {} ]",
                     "Simulation Controller".green(),
                     client,
                 )
             }
             CommunicationServerEvent::ClientDeregistered(client) => {
                 info!(
-                    "[ {} ]: Server deregistered [ Client {} ]",
+                    "[ {} ]: CommunicationServer deregistered [ Client {} ]",
                     "Simulation Controller".green(),
                     client,
                 )
             }
             CommunicationServerEvent::MessageForwarded(dest, msg) => {
                 info!(
-                    "[ {} ]: Server forwarded the message {:?} to [ Client {} ]",
+                    "[ {} ]: CommunicationServer forwarded the message {:?} to [ Client {} ]",
                     "Simulation Controller".green(),
                     msg,
                     dest
                 )
             }
             CommunicationServerEvent::MessageReceived(src, msg) => info!(
-                "[ {} ]: Server received the message {:?} from [ Client {} ]",
+                "[ {} ]: CommunicationServer received the message {:?} from [ Client {} ]",
                 "Simulation Controller".green(),
                 msg,
                 src
@@ -1089,6 +1145,10 @@ impl SimulationController {
                         (_, packet_channel) = self.mclients.get(dest).unwrap().clone();
                     } else if self.comm_servers.contains_key(dest) {
                         (_, packet_channel) = self.comm_servers.get(dest).unwrap().clone();
+                    } else if self.text_servers.contains_key(dest) {
+                        (_, packet_channel) = self.text_servers.get(dest).unwrap().clone();
+                    } else if self.media_servers.contains_key(dest) {
+                        (_, packet_channel) = self.media_servers.get(dest).unwrap().clone();
                     } else {
                         error!(
                             "[ {} ]: failed to find a Sender<Packet> channel for the [ CommunicationServer {} ]",
@@ -1143,12 +1203,12 @@ impl SimulationController {
                 if let Some((server, _)) = self.comm_servers.get(comm_server) {
                     match server.send(CommunicationServerCommand::InitFlooding) {
                         Ok(()) => info!(
-                            "[ {} ]: sent a CommunicationServerCommand::InitFlooding to [ Server {} ]",
+                            "[ {} ]: sent a CommunicationServerCommand::InitFlooding to [ CommunicationServer {} ]",
                             "Simulation Controller".green(),
                             comm_server
                         ),
                         Err(e) => error!(
-                            "[ {} ]: failed to send a CommunicationServerCommand::InitFlooding to the [ Server {} ]: {}",
+                            "[ {} ]: failed to send a CommunicationServerCommand::InitFlooding to the [ CommunicationServer {} ]: {}",
                             "Simulation Controller".red(),
                             comm_server,
                             e
@@ -1156,7 +1216,7 @@ impl SimulationController {
                     }
                 } else {
                     error!(
-                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
+                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ CommunicationServer {} ]",
                         "Simulation Controller".red(),
                         comm_server
                     );
@@ -1168,13 +1228,13 @@ impl SimulationController {
                         vec.push(node_id);
                         match server.send(CommunicationServerCommand::AddSender(node_id, sender)) {
                             Ok(()) => info!(
-                                "[ {} ]: sent a CommunicationServerCommand::AddSender({}, sender_channel) to [ Server {} ]",
+                                "[ {} ]: sent a CommunicationServerCommand::AddSender({}, sender_channel) to [ CommunicationServer {} ]",
                                 "Simulation Controller".green(),
                                 node_id,
                                 comm_server
                             ),
                             Err(e) => error!(
-                                "[ {} ]: failed to send a CommunicationServerCommand::AddSender({}, sender_channel) to the [ Server {} ]: {}",
+                                "[ {} ]: failed to send a CommunicationServerCommand::AddSender({}, sender_channel) to the [ CommunicationServer {} ]: {}",
                                 "Simulation Controller".red(),
                                 node_id,
                                 comm_server,
@@ -1183,14 +1243,14 @@ impl SimulationController {
                         }
                     } else {
                         error!(
-                            "[ {} ]: the [ Server {} ] does not have any neighbor",
+                            "[ {} ]: the [ CommunicationServer {} ] does not have any neighbor",
                             "Simulation Controller".red(),
                             comm_server
                         );
                     }
                 } else {
                     error!(
-                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
+                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ CommunicationServer {} ]",
                         "Simulation Controller".red(),
                         comm_server
                     );
@@ -1204,13 +1264,13 @@ impl SimulationController {
                             match server.send(CommunicationServerCommand::RemoveSender(node_id)) {
                                 Ok(()) => {
                                     info!(
-                                    "[ {} ]: sent a CommunicationServerCommand::RemoveSender({}) to [ Server {} ]",
+                                    "[ {} ]: sent a CommunicationServerCommand::RemoveSender({}) to [ CommunicationServer {} ]",
                                     "Simulation Controller".green(),
                                     node_id,
                                     comm_server
                                 );},
                                 Err(e) => error!(
-                                    "[ {} ]: failed to send a CommunicationServerCommand::RemoveSender({}) to the [ Server {} ]: {}",
+                                    "[ {} ]: failed to send a CommunicationServerCommand::RemoveSender({}) to the [ CommunicationServer {} ]: {}",
                                     "Simulation Controller".red(),
                                     node_id,
                                     comm_server,
@@ -1219,23 +1279,429 @@ impl SimulationController {
                             }
                         } else {
                             error!(
-                                "[ {} ]: the [ Server {} ] must be connected to at least two nodes",
+                                "[ {} ]: the [ CommunicationServer {} ] must be connected to at least two nodes",
                                 "Simulation Controller".red(),
                                 comm_server
                             );
                         }
                     } else {
                         error!(
-                            "[ {} ]: the [ Server {} ] does not have any neighbor",
+                            "[ {} ]: the [ CommunicationServer {} ] does not have any neighbor",
                             "Simulation Controller".red(),
                             comm_server
                         );
                     }
                 } else {
                     error!(
-                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ Server {} ]",
+                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ CommunicationServer {} ]",
                         "Simulation Controller".red(),
                         comm_server
+                    );
+                }
+            }
+        }
+    }
+
+    fn handle_text_event(&mut self, event: ContentServerEvent) {
+        match event {
+            ContentServerEvent::ServerStarted => {
+                info!(
+                    "[ {} ]: TextContentServer started successfully",
+                    "Simulation Controller".green(),
+                )
+            }
+            ContentServerEvent::ServerStopped => {
+                info!(
+                    "[ {} ]: TextContentServer stopped successfully",
+                    "Simulation Controller".green(),
+                )
+            }
+            ContentServerEvent::MessageForwarded(dest, msg) => {
+                info!(
+                    "[ {} ]: TextContentServer forwarded the message {:?} to [ Client {} ]",
+                    "Simulation Controller".green(),
+                    msg,
+                    dest
+                )
+            }
+            ContentServerEvent::MessageReceived(src, msg) => info!(
+                "[ {} ]: TextContentServer received the message {:?} from [ Client {} ]",
+                "Simulation Controller".green(),
+                msg,
+                src
+            ),
+            ContentServerEvent::SendError(e) => {
+                error!(
+                    "[ {} ]: received an error message: It has verified a SenderError: {}",
+                    "Simulation Controller".red(),
+                    e
+                );
+            }
+            ContentServerEvent::DestinationIsDrone(drone) => {
+                error!(
+                    "[ {} ]: received an error message: The selected destination is a drone [ Drone {} ]",
+                    "Simulation Controller".red(),
+                    drone
+                );
+            },
+            ContentServerEvent::ErrorPacketCache(session_id, fragment_index) => {
+                error!(
+                    "[ {} ]: received an error message: Error in the packet cache [ session_id : {}, fragment_index: {} ]",
+                    "Simulation Controller".red(),
+                    session_id,
+                    fragment_index
+                );
+            },
+            ContentServerEvent::ControllerShortcut(packet) => {
+                if let Some(dest) = packet
+                    .routing_header
+                    .hops
+                    .get(packet.routing_header.len() - 1)
+                {
+                    // Get destination node channel
+                    let packet_channel;
+                    if self.drones.contains_key(dest) {
+                        (_, packet_channel) = self.drones.get(dest).unwrap().clone();
+                    } else if self.cclients.contains_key(dest) {
+                        (_, packet_channel) = self.cclients.get(dest).unwrap().clone();
+                    } else if self.mclients.contains_key(dest) {
+                        (_, packet_channel) = self.mclients.get(dest).unwrap().clone();
+                    } else if self.comm_servers.contains_key(dest) {
+                        (_, packet_channel) = self.comm_servers.get(dest).unwrap().clone();
+                    } else if self.text_servers.contains_key(dest) {
+                        (_, packet_channel) = self.text_servers.get(dest).unwrap().clone();
+                    } else if self.media_servers.contains_key(dest) {
+                        (_, packet_channel) = self.media_servers.get(dest).unwrap().clone();
+                    } else {
+                        error!(
+                            "[ {} ]: failed to find a Sender<Packet> channel for the [ CommunicationServer {} ]",
+                            "Simulation Controller".red(),
+                            dest
+                        );
+                        return;
+                    }
+                    
+                    // Send Packet to destination
+                    match packet.pack_type {
+                        PacketType::MsgFragment(_) => {
+                            panic!("Impossible how the hell did u do this")
+                        }
+                        _ => {
+                            packet_channel.send(packet.clone()).unwrap();
+                        }
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a CommunicationServer to send the CommunicationServerCommand::ControllerShortcut",
+                        "Simulation Controller".red()
+                    );
+                }
+            }
+        }
+    }
+
+    pub fn handle_text_command(&mut self, text_server: &NodeId, command: ContentServerCommand) {
+        match command {
+            ContentServerCommand::InitFlooding => {
+                if let Some((server, _)) = self.text_servers.get(text_server) {
+                    match server.send(ContentServerCommand::InitFlooding) {
+                        Ok(()) => info!(
+                            "[ {} ]: sent a ContentServerCommand::InitFlooding to [ TextContentServer {} ]",
+                            "Simulation Controller".green(),
+                            text_server
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to send a ContentServerCommand::InitFlooding to the [ TextContentServer {} ]: {}",
+                            "Simulation Controller".red(),
+                            text_server,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<ContentServerCommand> channel for the [ TextContentServer {} ]",
+                        "Simulation Controller".red(),
+                        text_server
+                    );
+                }
+            }
+            ContentServerCommand::AddSender(node_id, sender) => {
+                if let Some((server, _)) = self.text_servers.get(text_server) {
+                    if let Some(vec) = self.neighbor.get_mut(text_server) {
+                        vec.push(node_id);
+                        match server.send(ContentServerCommand::AddSender(node_id, sender)) {
+                            Ok(()) => info!(
+                                "[ {} ]: sent a ContentServerCommand::AddSender({}, sender_channel) to [ TextContentServer {} ]",
+                                "Simulation Controller".green(),
+                                node_id,
+                                text_server
+                            ),
+                            Err(e) => error!(
+                                "[ {} ]: failed to send a ContentServerCommand::AddSender({}, sender_channel) to the [ TextContentServer {} ]: {}",
+                                "Simulation Controller".red(),
+                                node_id,
+                                text_server,
+                                e
+                            ),
+                        }
+                    } else {
+                        error!(
+                            "[ {} ]: the [ TextContentServer {} ] does not have any neighbor",
+                            "Simulation Controller".red(),
+                            text_server
+                        );
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<ContentServerCommand> channel for the [ TextContentServer {} ]",
+                        "Simulation Controller".red(),
+                        text_server
+                    );
+                }
+            }
+            ContentServerCommand::RemoveSender(node_id) => {
+                if let Some((server, _)) = self.text_servers.get(text_server) {
+                    if let Some(vec) = self.neighbor.get_mut(text_server) {
+                        if vec.len() > 2 {
+                            vec.retain(|x| *x != node_id);
+                            match server.send(ContentServerCommand::RemoveSender(node_id)) {
+                                Ok(()) => {
+                                    info!(
+                                    "[ {} ]: sent a ContentServerCommand::RemoveSender({}) to [ TextContentServer {} ]",
+                                    "Simulation Controller".green(),
+                                    node_id,
+                                    text_server
+                                );},
+                                Err(e) => error!(
+                                    "[ {} ]: failed to send a ContentServerCommand::RemoveSender({}) to the [ TextContentServer {} ]: {}",
+                                    "Simulation Controller".red(),
+                                    node_id,
+                                    text_server,
+                                    e
+                                ),
+                            }
+                        } else {
+                            error!(
+                                "[ {} ]: the [ TextContentServer {} ] must be connected to at least two nodes",
+                                "Simulation Controller".red(),
+                                text_server
+                            );
+                        }
+                    } else {
+                        error!(
+                            "[ {} ]: the [ TextContentServer {} ] does not have any neighbor",
+                            "Simulation Controller".red(),
+                            text_server
+                        );
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<ContentServerCommand> channel for the [ TextContentServer {} ]",
+                        "Simulation Controller".red(),
+                        text_server
+                    );
+                }
+            }
+        }
+    }
+
+    fn handle_media_event(&mut self, event: ContentServerEvent) {
+        match event {
+            ContentServerEvent::ServerStarted => {
+                info!(
+                    "[ {} ]: MediaContentServer started successfully",
+                    "Simulation Controller".green(),
+                )
+            }
+            ContentServerEvent::ServerStopped => {
+                info!(
+                    "[ {} ]: MediaContentServer stopped successfully",
+                    "Simulation Controller".green(),
+                )
+            }
+            ContentServerEvent::MessageForwarded(dest, msg) => {
+                info!(
+                    "[ {} ]: MediaContentServer forwarded the message {:?} to [ Client {} ]",
+                    "Simulation Controller".green(),
+                    msg,
+                    dest
+                )
+            }
+            ContentServerEvent::MessageReceived(src, msg) => info!(
+                "[ {} ]: MediaContentServer received the message {:?} from [ Client {} ]",
+                "Simulation Controller".green(),
+                msg,
+                src
+            ),
+            ContentServerEvent::SendError(e) => {
+                error!(
+                    "[ {} ]: received an error message: It has verified a SenderError: {}",
+                    "Simulation Controller".red(),
+                    e
+                );
+            }
+            ContentServerEvent::DestinationIsDrone(drone) => {
+                error!(
+                    "[ {} ]: received an error message: The selected destination is a drone [ Drone {} ]",
+                    "Simulation Controller".red(),
+                    drone
+                );
+            },
+            ContentServerEvent::ErrorPacketCache(session_id, fragment_index) => {
+                error!(
+                    "[ {} ]: received an error message: Error in the packet cache [ session_id : {}, fragment_index: {} ]",
+                    "Simulation Controller".red(),
+                    session_id,
+                    fragment_index
+                );
+            },
+            ContentServerEvent::ControllerShortcut(packet) => {
+                if let Some(dest) = packet
+                    .routing_header
+                    .hops
+                    .get(packet.routing_header.len() - 1)
+                {
+                    // Get destination node channel
+                    let packet_channel;
+                    if self.drones.contains_key(dest) {
+                        (_, packet_channel) = self.drones.get(dest).unwrap().clone();
+                    } else if self.cclients.contains_key(dest) {
+                        (_, packet_channel) = self.cclients.get(dest).unwrap().clone();
+                    } else if self.mclients.contains_key(dest) {
+                        (_, packet_channel) = self.mclients.get(dest).unwrap().clone();
+                    } else if self.comm_servers.contains_key(dest) {
+                        (_, packet_channel) = self.comm_servers.get(dest).unwrap().clone();
+                    } else if self.text_servers.contains_key(dest) {
+                        (_, packet_channel) = self.text_servers.get(dest).unwrap().clone();
+                    } else if self.media_servers.contains_key(dest) {
+                        (_, packet_channel) = self.media_servers.get(dest).unwrap().clone();
+                    } else {
+                        error!(
+                            "[ {} ]: failed to find a Sender<Packet> channel for the [ CommunicationServer {} ]",
+                            "Simulation Controller".red(),
+                            dest
+                        );
+                        return;
+                    }
+                    
+                    // Send Packet to destination
+                    match packet.pack_type {
+                        PacketType::MsgFragment(_) => {
+                            panic!("Impossible how the hell did u do this")
+                        }
+                        _ => {
+                            packet_channel.send(packet.clone()).unwrap();
+                        }
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a CommunicationServer to send the CommunicationServerCommand::ControllerShortcut",
+                        "Simulation Controller".red()
+                    );
+                }
+            }
+        }
+    }
+
+    pub fn handle_media_command(&mut self, media_server: &NodeId, command: ContentServerCommand) {
+        match command {
+            ContentServerCommand::InitFlooding => {
+                if let Some((server, _)) = self.media_servers.get(media_server) {
+                    match server.send(ContentServerCommand::InitFlooding) {
+                        Ok(()) => info!(
+                            "[ {} ]: sent a ContentServerCommand::InitFlooding to [ MediaContentServer {} ]",
+                            "Simulation Controller".green(),
+                            media_server
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to send a ContentServerCommand::InitFlooding to the [ MediaContentServer {} ]: {}",
+                            "Simulation Controller".red(),
+                            media_server,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<ContentServerCommand> channel for the [ MediaContentServer {} ]",
+                        "Simulation Controller".red(),
+                        media_server
+                    );
+                }
+            }
+            ContentServerCommand::AddSender(node_id, sender) => {
+                if let Some((server, _)) = self.media_servers.get(media_server) {
+                    if let Some(vec) = self.neighbor.get_mut(media_server) {
+                        vec.push(node_id);
+                        match server.send(ContentServerCommand::AddSender(node_id, sender)) {
+                            Ok(()) => info!(
+                                "[ {} ]: sent a ContentServerCommand::AddSender({}, sender_channel) to [ MediaContentServer {} ]",
+                                "Simulation Controller".green(),
+                                node_id,
+                                media_server
+                            ),
+                            Err(e) => error!(
+                                "[ {} ]: failed to send a ContentServerCommand::AddSender({}, sender_channel) to the [ MediaContentServer {} ]: {}",
+                                "Simulation Controller".red(),
+                                node_id,
+                                media_server,
+                                e
+                            ),
+                        }
+                    } else {
+                        error!(
+                            "[ {} ]: the [ MediaContentServer {} ] does not have any neighbor",
+                            "Simulation Controller".red(),
+                            media_server
+                        );
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<ContentServerCommand> channel for the [ MediaContentServer {} ]",
+                        "Simulation Controller".red(),
+                        media_server
+                    );
+                }
+            }
+            ContentServerCommand::RemoveSender(node_id) => {
+                if let Some((server, _)) = self.media_servers.get(media_server) {
+                    if let Some(vec) = self.neighbor.get_mut(media_server) {
+                        if vec.len() > 2 {
+                            vec.retain(|x| *x != node_id);
+                            match server.send(ContentServerCommand::RemoveSender(node_id)) {
+                                Ok(()) => {
+                                    info!(
+                                    "[ {} ]: sent a ContentServerCommand::RemoveSender({}) to [ MediaContentServer {} ]",
+                                    "Simulation Controller".green(),
+                                    node_id,
+                                    media_server
+                                );},
+                                Err(e) => error!(
+                                    "[ {} ]: failed to send a ContentServerCommand::RemoveSender({}) to the [ MediaContentServer {} ]: {}",
+                                    "Simulation Controller".red(),
+                                    node_id,
+                                    media_server,
+                                    e
+                                ),
+                            }
+                        } else {
+                            error!(
+                                "[ {} ]: the [ MediaContentServer {} ] must be connected to at least two nodes",
+                                "Simulation Controller".red(),
+                                media_server
+                            );
+                        }
+                    } else {
+                        error!(
+                            "[ {} ]: the [ MediaContentServer {} ] does not have any neighbor",
+                            "Simulation Controller".red(),
+                            media_server
+                        );
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<ContentServerCommand> channel for the [ MediaContentServer {} ]",
+                        "Simulation Controller".red(),
+                        media_server
                     );
                 }
             }

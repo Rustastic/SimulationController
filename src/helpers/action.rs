@@ -1,7 +1,7 @@
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use messages::{
     client_commands::{ChatClientCommand, MediaClientCommand},
-    server_commands::CommunicationServerCommand,
+    server_commands::{CommunicationServerCommand, ContentServerCommand},
 };
 use rand::Rng;
 use std::collections::HashMap;
@@ -146,10 +146,20 @@ pub fn crash(
             } else if sim_ctrl.mclients.contains_key(&neighbor) {
                 sim_ctrl
                     .handle_mclient_command(&neighbor, MediaClientCommand::RemoveSender(node_id));
-            } else {
+            } else if sim_ctrl.comm_servers.contains_key(&neighbor) {
                 sim_ctrl.handle_commserver_command(
                     &neighbor,
                     CommunicationServerCommand::RemoveSender(node_id),
+                );
+            } else if sim_ctrl.text_servers.contains_key(&neighbor) {
+                sim_ctrl.handle_text_command(
+                    &neighbor,
+                    ContentServerCommand::RemoveSender(node_id),
+                );
+            } else {
+                sim_ctrl.handle_media_command(
+                    &neighbor,
+                    ContentServerCommand::RemoveSender(node_id),
                 );
             }
         }
@@ -188,6 +198,18 @@ pub fn remove_sender(
                         CommunicationServerCommand::RemoveSender(*node_id),
                     );
                     return Ok(());
+                } else if sim_ctrl.text_servers.contains_key(&to_remove) {
+                    sim_ctrl.handle_text_command(
+                        &to_remove,
+                        ContentServerCommand::RemoveSender(*node_id),
+                    );
+                    return Ok(());
+                } else if sim_ctrl.media_servers.contains_key(&to_remove) {
+                    sim_ctrl.handle_media_command(
+                        &to_remove,
+                        ContentServerCommand::RemoveSender(*node_id),
+                    );
+                    return Ok(());
                 }
                 Err(SimulationControllerError::ClientOnClient)
             }
@@ -209,14 +231,16 @@ pub fn add_sender(
                 let packet_send;
                 if sim_ctrl.drones.contains_key(node_id) {
                     (_, packet_send) = sim_ctrl.drones.get(&node_id).unwrap().clone()
-                } else if sim_ctrl.comm_servers.contains_key(node_id) {
-                    (_, packet_send) = sim_ctrl.comm_servers.get(&node_id).unwrap().clone();
+                } else if sim_ctrl.cclients.contains_key(node_id){
+                    (_, packet_send) = sim_ctrl.cclients.get(&node_id).unwrap().clone();
                 } else if sim_ctrl.mclients.contains_key(node_id) {
                     (_, packet_send) = sim_ctrl.mclients.get(&node_id).unwrap().clone();
-                } else
-                /*if sim_ctrl.cclients.contains_key(node_id)*/
-                {
-                    (_, packet_send) = sim_ctrl.cclients.get(&node_id).unwrap().clone();
+                } else if sim_ctrl.comm_servers.contains_key(node_id) {
+                    (_, packet_send) = sim_ctrl.comm_servers.get(&node_id).unwrap().clone();
+                } else if sim_ctrl.text_servers.contains_key(node_id) {
+                    (_, packet_send) = sim_ctrl.text_servers.get(&node_id).unwrap().clone();
+                } else {
+                    (_, packet_send) = sim_ctrl.media_servers.get(&node_id).unwrap().clone();
                 }
 
                 if sim_ctrl.drones.contains_key(to_add) {
@@ -244,6 +268,20 @@ pub fn add_sender(
                     sim_ctrl.handle_commserver_command(
                         &to_add,
                         CommunicationServerCommand::AddSender(*node_id, packet_send.clone()),
+                    );
+
+                    return Ok(());
+                } else if sim_ctrl.text_servers.contains_key(to_add) {
+                    sim_ctrl.handle_text_command(
+                        &to_add,
+                        ContentServerCommand::AddSender(*node_id, packet_send.clone()),
+                    );
+
+                    return Ok(());
+                }else if sim_ctrl.media_servers.contains_key(to_add) {
+                    sim_ctrl.handle_media_command(
+                        &to_add,
+                        ContentServerCommand::AddSender(*node_id, packet_send.clone()),
                     );
 
                     return Ok(());
