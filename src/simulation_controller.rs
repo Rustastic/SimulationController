@@ -1160,7 +1160,9 @@ impl SimulationController {
                 }
             }
             CommunicationServerCommand::RemoveSender(node_id) => {
+                println!("\n1\n");
                 if let Some((server, _)) = self.comm_servers.get(comm_server) {
+                println!("\n2\n");
                     if let Some(vec) = self.neighbor.get_mut(comm_server) {
                         if vec.len() > 2 {
                             vec.retain(|x| *x != node_id);
@@ -1182,6 +1184,12 @@ impl SimulationController {
                                     e
                                 ),
                             }
+                        } else {
+                            error!(
+                                "[ {} ]: the [ Server {} ] must be connected to at least two nodes",
+                                "Simulation Controller".red(),
+                                comm_server
+                            );
                         }
                     } else {
                         error!(
