@@ -1145,6 +1145,11 @@ impl SimulationController {
                             ),
                         }
                     } else {
+                        error!(
+                            "[ {} ]: the [ Server {} ] does not have any neighbor",
+                            "Simulation Controller".red(),
+                            comm_server
+                        );
                     }
                 } else {
                     error!(
@@ -1179,6 +1184,11 @@ impl SimulationController {
                             }
                         }
                     } else {
+                        error!(
+                            "[ {} ]: the [ Server {} ] does not have any neighbor",
+                            "Simulation Controller".red(),
+                            comm_server
+                        );
                     }
                 } else {
                     error!(
