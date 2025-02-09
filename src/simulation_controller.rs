@@ -1397,6 +1397,7 @@ impl SimulationController {
                     );
                 }
             }
+            ContentServerEvent::UnreachableClient(_) => ()
         }
     }
 
@@ -1600,6 +1601,7 @@ impl SimulationController {
                     );
                 }
             }
+            ContentServerEvent::UnreachableClient(_) => ()
         }
     }
 
