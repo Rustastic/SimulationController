@@ -1043,6 +1043,7 @@ impl SimulationController {
                 );
             }
             CommunicationServerEvent::ControllerShortcut(packet) => (),
+            CommunicationServerEvent::DestinationIsDrone(drone) => todo!(),
         }
     }
 
@@ -1199,7 +1200,7 @@ impl SimulationController {
                     );
                 }
             }
-            _ => (),
+            CommunicationServerCommand::DeregisterClient(client) => (),
         }
     }
 }
