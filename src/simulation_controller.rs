@@ -370,7 +370,6 @@ impl SimulationController {
                             (_, sender) = self.comm_servers.get(&to_add).unwrap().clone();
                         }
 
-
                         if self.drones.contains_key(&node_id) {
                             self.handle_drone_command(
                                 &node_id,
@@ -411,7 +410,7 @@ impl SimulationController {
             }
             GUICommands::LogOut(client, server) => {
                 self.handle_cclient_command(&client, ChatClientCommand::LogOut)
-            },
+            }
         }
     }
 
@@ -796,7 +795,7 @@ impl SimulationController {
                     session_id,
                     fragment_index
                 );
-            },
+            }
             MediaClientEvent::SendError(e) => {
                 error!(
                     "[ {} ]: received an error message: It has verified a SenderError: {}",
@@ -810,7 +809,7 @@ impl SimulationController {
                     "Simulation Controller".green(),
                     node_id,
                 );
-            },
+            }
 
             ///////////////////////////////////////////////////////////////////////////////////////////////
             // check ControllerShortcut
@@ -875,7 +874,7 @@ impl SimulationController {
                         media_client
                     );
                 }
-            },
+            }
             MediaClientCommand::RemoveSender(drone) => {
                 if let Some(neighbors) = self.neighbor.get_mut(media_client) {
                     // Max 2 neighbor, Min 1 neighbor
@@ -920,7 +919,7 @@ impl SimulationController {
                         drone
                     );
                 }
-            },
+            }
             MediaClientCommand::AddSender(drone, sender) => {
                 // cant connect to a client
                 if !self.mclients.contains_key(&drone) {
@@ -977,7 +976,7 @@ impl SimulationController {
                         media_client
                     );
                 }
-            },
+            }
             _ => (),
         }
     }
@@ -1041,7 +1040,7 @@ impl SimulationController {
             }
             CommunicationServerEvent::ControllerShortcut(packet) => (),
             CommunicationServerEvent::DestinationIsDrone(drone) => (),
-            CommunicationServerEvent::ErrorPacketCache(_, _) => ()
+            CommunicationServerEvent::ErrorPacketCache(_, _) => (),
         }
     }
 
