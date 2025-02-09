@@ -1203,7 +1203,6 @@ impl SimulationController {
                     );
                 }
             }
-            CommunicationServerCommand::DeregisterClient(client) => (),
         }
     }
 }
