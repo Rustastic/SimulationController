@@ -166,22 +166,26 @@ pub fn remove_sender(
                     sim_ctrl.handle_drone_command(
                         &to_remove,
                         DroneCommand::RemoveSender(*node_id),
-                    )
+                    );
+                    return Ok(());
                 } else if sim_ctrl.cclients.contains_key(&to_remove) {
                     sim_ctrl.handle_cclient_command(
                         &to_remove,
                         ChatClientCommand::RemoveSender(*node_id),
-                    )
+                    );
+                    return Ok(());
                 } else if sim_ctrl.mclients.contains_key(&to_remove) {
                     sim_ctrl.handle_mclient_command(
                         &to_remove,
                         MediaClientCommand::RemoveSender(*node_id),
-                    )
-                } else {
+                    );
+                    return Ok(());
+                } else if sim_ctrl.comm_servers.contains_key(&to_remove){
                     sim_ctrl.handle_commserver_command(
                         &to_remove,
                         CommunicationServerCommand::RemoveSender(*node_id),
-                    )
+                    );
+                    return Ok(());
                 }
                 Err(SimulationControllerError::ClientOnClient)
             }
