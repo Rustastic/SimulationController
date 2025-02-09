@@ -185,7 +185,7 @@ pub fn remove_sender(
                     );
                     return Ok(());
                 }
-                Err("Ma che ne so io")
+                Err(SimulationControllerError::ClientOnClient)
             }
             Err(e) => Err(e),
         },
