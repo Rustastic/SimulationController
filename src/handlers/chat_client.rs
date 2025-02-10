@@ -363,7 +363,52 @@ impl SimulationController {
                     );
                 }
             }
+            ChatClientCommand::LogNetwork => {
+                if let Some((client, _)) = self.cclients.get(chat_client) {
+                    match client.send(ChatClientCommand::LogNetwork) {
+                        Ok(()) => info!(
+                            "[ {} ]: sent a ChatClientCommand::LogNetwork to [ ChatClient {} ]",
+                            "Simulation Controller".green(),
+                            chat_client
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to send a ChatClientCommand::LogNetwork to the [ ChatClient {} ]: {}",
+                            "Simulation Controller".red(),
+                            chat_client,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ ChatClient {} ]",
+                        "Simulation Controller".red(),
+                        chat_client
+                    );
+                }
+            }
+            ChatClientCommand::LogNetwork => {
+                if let Some((client, _)) = self.cclients.get(chat_client) {
+                    match client.send(ChatClientCommand::LogNetwork) {
+                        Ok(()) => info!(
+                            "[ {} ]: sent a ChatClientCommand::LogNetwork to [ ChatClient {} ]",
+                            "Simulation Controller".green(),
+                            chat_client
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to send a ChatClientCommand::LogNetwork to the [ ChatClient {} ]: {}",
+                            "Simulation Controller".red(),
+                            chat_client,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ ChatClient {} ]",
+                        "Simulation Controller".red(),
+                        chat_client
+                    );
+                }
+            }
         }
     }
-    
 }

@@ -277,6 +277,10 @@ impl SimulationController {
             GUICommands::RegisterTo(client, server) => {
                 self.handle_cclient_command(&client, ChatClientCommand::RegisterTo(server))
             },
+            GUICommands::GetClientList(client) => {
+                self.handle_cclient_command(&client, ChatClientCommand::LogNetwork);
+                self.handle_cclient_command(&client, ChatClientCommand::GetClientList)
+            }
             GUICommands::LogOut(client, _) => {
                 self.handle_cclient_command(&client, ChatClientCommand::LogOut)
             },
