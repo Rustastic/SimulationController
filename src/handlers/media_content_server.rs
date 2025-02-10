@@ -21,13 +21,13 @@ impl SimulationController {
                     "[ {} ]: MediaContentServer started successfully",
                     "Simulation Controller".green(),
                 )
-            }
+            },
             ContentServerEvent::ServerStopped => {
                 info!(
                     "[ {} ]: MediaContentServer stopped successfully",
                     "Simulation Controller".green(),
                 )
-            }
+            },
             ContentServerEvent::MessageForwarded(dest, msg) => {
                 info!(
                     "[ {} ]: MediaContentServer forwarded the message {:?} to [ Client {} ]",
@@ -35,7 +35,7 @@ impl SimulationController {
                     msg,
                     dest
                 )
-            }
+            },
             ContentServerEvent::MessageReceived(src, msg) => info!(
                 "[ {} ]: MediaContentServer received the message {:?} from [ Client {} ]",
                 "Simulation Controller".green(),
@@ -48,7 +48,7 @@ impl SimulationController {
                     "Simulation Controller".red(),
                     e
                 );
-            }
+            },
             ContentServerEvent::DestinationIsDrone(drone) => {
                 error!(
                     "[ {} ]: received an error message: The selected destination is a drone [ Drone {} ]",
@@ -108,7 +108,7 @@ impl SimulationController {
                         "Simulation Controller".red()
                     );
                 }
-            }
+            },
             ContentServerEvent::UnreachableClient(_) => {
                 error!("NOPE -> Not Implemented");
             }
@@ -139,7 +139,7 @@ impl SimulationController {
                         media_server
                     );
                 }
-            }
+            },
             ContentServerCommand::AddSender(node_id, sender) => {
                 if let Some((server, _)) = self.media_servers.get(media_server) {
                     if let Some(vec) = self.neighbor.get_mut(media_server) {
@@ -173,7 +173,7 @@ impl SimulationController {
                         media_server
                     );
                 }
-            }
+            },
             ContentServerCommand::RemoveSender(node_id) => {
                 if let Some((server, _)) = self.media_servers.get(media_server) {
                     if let Some(vec) = self.neighbor.get_mut(media_server) {
@@ -216,7 +216,7 @@ impl SimulationController {
                         media_server
                     );
                 }
-            }
+            },
         }
     }
 }

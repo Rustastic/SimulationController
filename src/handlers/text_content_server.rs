@@ -20,13 +20,13 @@ impl SimulationController {
                     "[ {} ]: TextContentServer started successfully",
                     "Simulation Controller".green(),
                 )
-            }
+            },
             ContentServerEvent::ServerStopped => {
                 info!(
                     "[ {} ]: TextContentServer stopped successfully",
                     "Simulation Controller".green(),
                 )
-            }
+            },
             ContentServerEvent::MessageForwarded(dest, msg) => {
                 info!(
                     "[ {} ]: TextContentServer forwarded the message {:?} to [ Client {} ]",
@@ -34,20 +34,22 @@ impl SimulationController {
                     msg,
                     dest
                 )
-            }
-            ContentServerEvent::MessageReceived(src, msg) => info!(
-                "[ {} ]: TextContentServer received the message {:?} from [ Client {} ]",
-                "Simulation Controller".green(),
-                msg,
-                src
-            ),
+            },
+            ContentServerEvent::MessageReceived(src, msg) => {
+                info!(
+                    "[ {} ]: TextContentServer received the message {:?} from [ Client {} ]",
+                    "Simulation Controller".green(),
+                    msg,
+                    src
+                )
+            },
             ContentServerEvent::SendError(e) => {
                 error!(
                     "[ {} ]: received an error message: It has verified a SenderError: {}",
                     "Simulation Controller".red(),
                     e
                 );
-            }
+            },
             ContentServerEvent::DestinationIsDrone(drone) => {
                 error!(
                     "[ {} ]: received an error message: The selected destination is a drone [ Drone {} ]",
@@ -138,7 +140,7 @@ impl SimulationController {
                         text_server
                     );
                 }
-            }
+            },
             ContentServerCommand::AddSender(node_id, sender) => {
                 if let Some((server, _)) = self.text_servers.get(text_server) {
                     if let Some(vec) = self.neighbor.get_mut(text_server) {
@@ -172,7 +174,7 @@ impl SimulationController {
                         text_server
                     );
                 }
-            }
+            },
             ContentServerCommand::RemoveSender(node_id) => {
                 if let Some((server, _)) = self.text_servers.get(text_server) {
                     if let Some(vec) = self.neighbor.get_mut(text_server) {

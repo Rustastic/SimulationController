@@ -15,14 +15,14 @@ impl SimulationController {
                     "Simulation Controller".yellow(),
                     packet.pack_type
                 );
-            }
+            },
             DroneEvent::PacketDropped(packet) => {
                 info!(
                     "[ {} ] Is a {}",
                     "Simulation Controller".yellow(),
                     packet.pack_type
                 );
-            }
+            },
             DroneEvent::ControllerShortcut(packet) => {
                 info!(
                     "[ {} ] Is a {}",
@@ -74,7 +74,7 @@ impl SimulationController {
                         "Simulation Controller".red()
                     );
                 }
-            }
+            },
         }
     }
 
@@ -108,7 +108,7 @@ impl SimulationController {
                             drone
                         );
                     }
-                }
+                },
                 DroneCommand::AddSender(node_id, sender) => {
                     if let Some(vec) = self.neighbor.get_mut(drone) {
                         vec.push(node_id);
@@ -134,7 +134,7 @@ impl SimulationController {
                             drone
                         );
                     }
-                }
+                },
                 DroneCommand::SetPacketDropRate(pdr) => {
                     match command_channel.send(DroneCommand::SetPacketDropRate(pdr)) {
                         Ok(()) => info!(
@@ -151,7 +151,7 @@ impl SimulationController {
                             e
                         ),
                     }
-                }
+                },
                 DroneCommand::Crash => {
                     if let Some((command_send, packet_send)) = self.drones.get(drone) {
                         let _ = drop(command_send);

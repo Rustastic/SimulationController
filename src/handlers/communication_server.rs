@@ -20,27 +20,27 @@ impl SimulationController {
                     "[ {} ]: CommunicationServer started successfully",
                     "Simulation Controller".green(),
                 )
-            }
+            },
             CommunicationServerEvent::ServerStopped => {
                 info!(
                     "[ {} ]: CommunicationServer stopped successfully",
                     "Simulation Controller".green(),
                 )
-            }
+            },
             CommunicationServerEvent::ClientRegistered(client) => {
                 info!(
                     "[ {} ]: CommunicationServer registered [ Client {} ]",
                     "Simulation Controller".green(),
                     client,
                 )
-            }
+            },
             CommunicationServerEvent::ClientDeregistered(client) => {
                 info!(
                     "[ {} ]: CommunicationServer deregistered [ Client {} ]",
                     "Simulation Controller".green(),
                     client,
                 )
-            }
+            },
             CommunicationServerEvent::MessageForwarded(dest, msg) => {
                 info!(
                     "[ {} ]: CommunicationServer forwarded the message {:?} to [ Client {} ]",
@@ -48,7 +48,7 @@ impl SimulationController {
                     msg,
                     dest
                 )
-            }
+            },
             CommunicationServerEvent::MessageReceived(src, msg) => info!(
                 "[ {} ]: CommunicationServer received the message {:?} from [ Client {} ]",
                 "Simulation Controller".green(),
@@ -61,14 +61,14 @@ impl SimulationController {
                     "Simulation Controller".red(),
                     client,
                 );
-            }
+            },
             CommunicationServerEvent::SendError(e) => {
                 error!(
                     "[ {} ]: received an error message: It has verified a SenderError: {}",
                     "Simulation Controller".red(),
                     e
                 );
-            }
+            },
             CommunicationServerEvent::ControllerShortcut(packet) => {
                 if let Some(dest) = packet
                     .routing_header
@@ -157,7 +157,7 @@ impl SimulationController {
                         comm_server
                     );
                 }
-            }
+            },
             CommunicationServerCommand::AddSender(node_id, sender) => {
                 if let Some((server, _)) = self.comm_servers.get(comm_server) {
                     if let Some(vec) = self.neighbor.get_mut(comm_server) {
@@ -191,7 +191,7 @@ impl SimulationController {
                         comm_server
                     );
                 }
-            }
+            },
             CommunicationServerCommand::RemoveSender(node_id) => {
                 if let Some((server, _)) = self.comm_servers.get(comm_server) {
                     if let Some(vec) = self.neighbor.get_mut(comm_server) {
@@ -234,8 +234,7 @@ impl SimulationController {
                         comm_server
                     );
                 }
-            }
+            },
         }
     }
-    
 }

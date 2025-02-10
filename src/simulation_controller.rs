@@ -223,7 +223,7 @@ impl SimulationController {
                     }
                     Err(e) => error!("{}", e),
                 }
-            }
+            },
             GUICommands::AddSender(node_id, to_add) => {
                 match self.add_sender(&node_id, &to_add) {
                     Ok(()) => {
@@ -262,7 +262,7 @@ impl SimulationController {
                     }
                     Err(e) => error!("{}", e),
                 }
-            }
+            },
             GUICommands::SetPDR(drone, pdr) => {
                 if pdr >= 0.0 && pdr <= 1.0 {
                     self.handle_drone_command(&drone, DroneCommand::SetPacketDropRate(pdr))
@@ -279,8 +279,8 @@ impl SimulationController {
             },
             GUICommands::GetClientList(client) => {
                 self.handle_cclient_command(&client, ChatClientCommand::LogNetwork);
-                //self.handle_cclient_command(&client, ChatClientCommand::GetClientList)
-            }
+                self.handle_cclient_command(&client, ChatClientCommand::GetClientList);
+            },
             GUICommands::LogOut(client, _) => {
                 self.handle_cclient_command(&client, ChatClientCommand::LogOut)
             },

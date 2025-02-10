@@ -20,21 +20,23 @@ impl SimulationController {
                     "The Client retrieved the CommunicationServers list: {:?}",
                     items
                 );
-            }
+            },
             ChatClientEvent::MessageReceived(src, msg) => {
                 info!(
                     "[ Client: {} ]: received the message {:?} from [ Server {} ]",
                     src, msg, src
                 );
-            }
-            ChatClientEvent::SuccessfulRegistration(server) => info!(
-                "[ {} ]: The Client successfully register to [ Server {}]",
-                "Simulation Controller".green(),
-                server
-            ),
+            },
+            ChatClientEvent::SuccessfulRegistration(server) => {
+                info!(
+                    "[ {} ]: The Client successfully register to [ Server {}]",
+                    "Simulation Controller".green(),
+                    server
+                )
+            },
             ChatClientEvent::ClientList(client_list) => {
                 info!("The Client retrieved the Client list: {:?}", client_list);
-            }
+            },
             ChatClientEvent::SuccessfulLogOut => info!(
                 "[ {} ]: The Client successfully logged out from server",
                 "Simulation Controller".green(),
@@ -45,19 +47,19 @@ impl SimulationController {
                     "Simulation Controller".red(),
                     client,
                 );
-            }
+            },
             ChatClientEvent::ErrorNotRunning => {
                 error!(
                     "[ {} ]: received an error message: The Client tried to register without previously running ChatClientCommand::StartChatClient",
                     "Simulation Controller".red(),
                 );
-            }
+            },
             ChatClientEvent::ErrorNotRegistered => {
                 error!(
                     "[ {} ]: received an error message: The Client is not register to a server",
                     "Simulation Controller".red(),
                 );
-            }
+            },
             ChatClientEvent::ControllerShortcut(packet) => {
                 if let Some(dest) = packet
                     .routing_header
@@ -131,7 +133,7 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            }
+            },
             ChatClientCommand::StartChatClient => {
                 if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::StartChatClient) {
@@ -154,7 +156,7 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            }
+            },
             ChatClientCommand::RemoveSender(drone) => {
                 if let Some(neighbors) = self.neighbor.get_mut(chat_client) {
                     // Max 2 neighbor, Min 1 neighbor
@@ -199,7 +201,7 @@ impl SimulationController {
                         drone
                     );
                 }
-            }
+            },
             ChatClientCommand::AddSender(drone, sender) => {
                 // Can't connect to a client
                 if !self.cclients.contains_key(&drone) {
@@ -256,7 +258,7 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            }
+            },
             ChatClientCommand::SendMessageTo(dest, msg) => {
                 if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::SendMessageTo(dest, msg.clone())) {
@@ -283,7 +285,7 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            }
+            },
             ChatClientCommand::RegisterTo(server) => {
                 if self.comm_servers.contains_key(&server) {
                     if let Some((client, _)) = self.cclients.get(chat_client) {
@@ -316,7 +318,7 @@ impl SimulationController {
                         server,
                     );
                 }
-            }
+            },
             ChatClientCommand::GetClientList => {
                 if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::GetClientList) {
@@ -339,7 +341,7 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            }
+            },
             ChatClientCommand::LogOut => {
                 if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::LogOut) {
@@ -362,7 +364,7 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            }
+            },
             ChatClientCommand::LogNetwork => {
                 if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::LogNetwork) {
@@ -385,7 +387,7 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            }
+            },
             ChatClientCommand::LogNetwork => {
                 if let Some((client, _)) = self.cclients.get(chat_client) {
                     match client.send(ChatClientCommand::LogNetwork) {

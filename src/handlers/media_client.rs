@@ -22,34 +22,34 @@ impl SimulationController {
                     "[ {} ]: The media client retrieved a FloodResponse",
                     "Simulation Controller".green()
                 )
-            }
+            },
             MediaClientEvent::RemovedSender(drone) => {
                 info!(
                     "[ {} ]: The media client removed the neighbor [ Drone {} ]",
                     "Simulation Controller".green(),
                     drone
                 )
-            }
+            },
             MediaClientEvent::AddedSender(drone) => {
                 info!(
                     "[ {} ]: The media client added the neighbor [ Drone {} ]",
                     "Simulation Controller".green(),
                     drone
                 )
-            }
+            },
             MediaClientEvent::UnreachableNode(node) => {
                 error!(
                     "[ {} ]: received an error message: The [ Node {} ] is not reachable",
                     "Simulation Controller".red(),
                     node
                 );
-            }
+            },
             MediaClientEvent::DestinationIsDrone => {
                 error!(
                     "[ {} ]: received an error message: The selected destination is a drone",
                     "Simulation Controller".red(),
                 );
-            }
+            },
             MediaClientEvent::ErrorPacketCache(session_id, fragment_index) => {
                 error!(
                     "[ {} ]: received an error message: Error in the packet cache [ session_id : {}, fragment_index: {} ]",
@@ -57,14 +57,14 @@ impl SimulationController {
                     session_id,
                     fragment_index
                 );
-            }
+            },
             MediaClientEvent::SendError(e) => {
                 error!(
                     "[ {} ]: received an error message: It has verified a SenderError: {}",
                     "Simulation Controller".red(),
                     e
                 );
-            }
+            },
             MediaClientEvent::ReceveidFileList(server, items) => {
                 info!(
                     "[ {} ]: received the file list of [ TextServer {} ]",
@@ -108,7 +108,7 @@ impl SimulationController {
                         e
                     ),
                 }
-            }
+            },
             MediaClientEvent::ControllerShortcut(packet) => {
                 if let Some(dest) = packet
                     .routing_header
@@ -153,12 +153,12 @@ impl SimulationController {
                         "Simulation Controller".red()
                     );
                 }
-            }
+            },
             //MediaClientEvent::ServerList(items) => todo!(),
             //MediaClientEvent::ReceveidServerType(_, server_type) => todo!(),
             _ => {
                 error!("NOPE -> Not Implemented");
-            }            
+            }           
         }
     }
 
@@ -187,7 +187,7 @@ impl SimulationController {
                         media_client
                     );
                 }
-            }
+            },
             MediaClientCommand::RemoveSender(drone) => {
                 if let Some(neighbors) = self.neighbor.get_mut(media_client) {
                     // Max 2 neighbor, Min 1 neighbor
@@ -232,7 +232,7 @@ impl SimulationController {
                         drone
                     );
                 }
-            }
+            },
             MediaClientCommand::AddSender(drone, sender) => {
                 // cant connect to a client
                 if !self.mclients.contains_key(&drone) {
@@ -289,7 +289,7 @@ impl SimulationController {
                         media_client
                     );
                 }
-            }
+            },
             MediaClientCommand::AskFilesList(server) => {
                 if let Some((client, _)) = self.mclients.get(media_client) {
                     match client.send(MediaClientCommand::AskFilesList(server)) {
@@ -314,7 +314,7 @@ impl SimulationController {
                         media_client
                     );
                 }
-            }
+            },
             MediaClientCommand::AskForFile(server, title) => {
                 if let Some((client, _)) = self.mclients.get(media_client) {
                     match client.send(MediaClientCommand::AskForFile(server, title.clone())) {
@@ -341,7 +341,7 @@ impl SimulationController {
                         media_client
                     );
                 }
-            }
+            },
             //MediaClientCommand::GetServerList => todo!(),
             //MediaClientCommand::AskServerType(_) => todo!(),
             _ => {
