@@ -65,23 +65,25 @@ impl SimulationController {
                     e
                 );
             },
-            MediaClientEvent::ReceveidFileList(server, items) => {
+            MediaClientEvent::ReceveidFileList(server, dest, items) => {
                 info!(
                     "[ {} ]: received the file list of [ TextServer {} ]",
                     "Simulation Controller".green(),
                     server,
                 );
-                match self.gui_send.send(GUIEvents::FileList(server, items.clone())) {
+                match self.gui_send.send(GUIEvents::FileList(server, dest, items.clone())) {
                     Ok(()) => info!(
-                        "[ {} ]: successfully sent a GUIEvents::FileList({}, {:?}) from the Simulation Controller to the GUI",
+                        "[ {} ]: successfully sent a GUIEvents::FileList({}, {} {:?}) from the Simulation Controller to the GUI",
                         "Simulation Controller".green(),
                         server,
+                        dest,
                         items
                     ),
                     Err(e) => error!(
-                        "[ {} ]: failed to sent a GUIEvents::FileList({}, {:?}) from the Simulation Controller to the GUI: {}",
+                        "[ {} ]: failed to sent a GUIEvents::FileList({}, {}, {:?}) from the Simulation Controller to the GUI: {}",
                         "Simulation Controller".green(),
                         server,
+                        dest,
                         items,
                         e
                     ),
@@ -154,7 +156,7 @@ impl SimulationController {
                     );
                 }
             },
-            //MediaClientEvent::ServerList(items) => todo!(),
+            //MediaClientEvent::ServerList(items) => ,
             //MediaClientEvent::ReceveidServerType(_, server_type) => todo!(),
             _ => {
                 error!("NOPE -> Not Implemented");
