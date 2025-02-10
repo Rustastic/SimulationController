@@ -17,8 +17,6 @@ use messages::{
     server_commands::{CommunicationServerCommand, CommunicationServerEvent, ContentServerCommand, ContentServerEvent},
 };
 
-use crate::{action, verify};
-
 pub struct SimulationController {
     pub drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
     drone_recv: Receiver<DroneEvent>,
@@ -373,19 +371,21 @@ impl SimulationController {
     fn handle_gui_command(&mut self, command: GUICommands) {
         match command {
             GUICommands::Spawn(id, connected_node_ids, pdr) => {
-                match action::spawn(self, id, connected_node_ids, pdr) {
+                match self.spawn(id, connected_node_ids, pdr) {
                     Ok(()) => return,
                     Err(e) => {
                         error!("{}", e);
                     }
                 }
             }
-            GUICommands::Crash(drone) => match action::crash(self, drone) {
-                Ok(()) => self.handle_drone_command(&drone, DroneCommand::Crash),
-                Err(e) => error!("{}", e),
+            GUICommands::Crash(drone) => {
+                match self.crash(drone) {
+                    Ok(()) => self.handle_drone_command(&drone, DroneCommand::Crash),
+                    Err(e) => error!("{}", e),
+                }
             },
             GUICommands::RemoveSender(node_id, to_remove) => {
-                match action::remove_sender(self, &node_id, &to_remove) {
+                match self.remove_sender(&node_id, &to_remove) {
                     Ok(()) => {
                         if self.drones.contains_key(&node_id) {
                             self.handle_drone_command(
@@ -413,7 +413,7 @@ impl SimulationController {
                 }
             }
             GUICommands::AddSender(node_id, to_add) => {
-                match action::add_sender(self, &node_id, &to_add) {
+                match self.add_sender(&node_id, &to_add) {
                     Ok(()) => {
                         let sender;
                         if self.drones.contains_key(&to_add) {
@@ -451,11 +451,12 @@ impl SimulationController {
                     Err(e) => error!("{}", e),
                 }
             }
-            GUICommands::SetPDR(drone, pdr) => match verify::valid_pdr(pdr) {
-                Ok(value) => {
-                    self.handle_drone_command(&drone, DroneCommand::SetPacketDropRate(value))
+            GUICommands::SetPDR(drone, pdr) => {
+                if pdr >= 0.0 && pdr <= 1.0 {
+                    self.handle_drone_command(&drone, DroneCommand::SetPacketDropRate(pdr))
+                } else {
+                    error!("[ ERROR ]: The PDR number is out of range. Please enter a number between 0.00 and 1.00")      
                 }
-                Err(e) => error!("{}", e),
             },
 
             GUICommands::SendMessageTo(src, dest, msg) => {
@@ -464,7 +465,7 @@ impl SimulationController {
             GUICommands::RegisterTo(client, server) => {
                 self.handle_cclient_command(&client, ChatClientCommand::RegisterTo(server))
             },
-            GUICommands::LogOut(client, server) => {
+            GUICommands::LogOut(client, _) => {
                 self.handle_cclient_command(&client, ChatClientCommand::LogOut)
             },
             GUICommands::AskForFileList(client, server) => {
@@ -887,15 +888,43 @@ impl SimulationController {
                     "Simulation Controller".green(),
                     server,
                 );
-                self.gui_send.send(GUIEvents::FileList(server, items));
+                match self.gui_send.send(GUIEvents::FileList(server, items.clone())) {
+                    Ok(()) => info!(
+                        "[ {} ]: successfully sent a GUIEvents::FileList({}, {:?}) from the Simulation Controller to the GUI",
+                        "Simulation Controller".green(),
+                        server,
+                        items
+                    ),
+                    Err(e) => error!(
+                        "[ {} ]: failed to sent a GUIEvents::FileList({}, {:?}) from the Simulation Controller to the GUI: {}",
+                        "Simulation Controller".green(),
+                        server,
+                        items,
+                        e
+                    ),
+                }
             },
-            MediaClientEvent::ReceveidFile(node_id, file_id, file_response) => {
+            MediaClientEvent::ReceveidFile(node_id, _, file_response) => {
                 info!(
                     "[ {} ]: received a file from [ MediaClient {} ]",
                     "Simulation Controller".green(),
                     node_id,
                 );
-                self.gui_send.send(GUIEvents::MessageReceived(node_id, file_response));
+                match self.gui_send.send(GUIEvents::MessageReceived(node_id, file_response.clone())) {
+                    Ok(()) => info!(
+                        "[ {} ]: successfully sent a GUIEvents::MessageReceived({}, {:?}) from the Simulation Controller to the GUI",
+                        "Simulation Controller".green(),
+                        node_id,
+                        file_response
+                    ),
+                    Err(e) => error!(
+                        "[ {} ]: failed to sent a GUIEvents::MessageReceived({}, {:?}) from the Simulation Controller to the GUI: {}",
+                        "Simulation Controller".green(),
+                        node_id,
+                        file_response,
+                        e
+                    ),
+                }
             }
             MediaClientEvent::ControllerShortcut(packet) => {
                 if let Some(dest) = packet

@@ -2,16 +2,31 @@ use colored::Colorize;
 use log::info;
 use wg_2024::network::NodeId;
 
-use crate::{error::SimulationControllerError, SimulationController};
+use crate::SimulationController;
 
-pub fn check_drone_existence(
-    sim_ctrl: &SimulationController,
-    node_id: &NodeId,
-) -> Result<(), SimulationControllerError> {
-    if sim_ctrl.drones.contains_key(node_id) {
-        Ok(())
-    } else {
-        Err(SimulationControllerError::DroneNotFound(*node_id))
+use super::error::SimulationControllerError;
+
+impl SimulationController {
+    pub(super) fn check_drone_existence(
+        &self,
+        node_id: &NodeId,
+    ) -> Result<(), SimulationControllerError> {
+        if self.drones.contains_key(node_id) {
+            Ok(())
+        } else {
+            Err(SimulationControllerError::DroneNotFound(*node_id))
+        }
+    }
+
+    pub(super) fn has_neighbors<'a>(
+        &self,
+        drone: &NodeId,
+    ) -> Result<&Vec<NodeId>, SimulationControllerError> {
+        if let Some(neighbor) = self.neighbor.get(drone) {
+            Ok(neighbor)
+        } else {
+            Err(SimulationControllerError::HasNoNeighbor(*drone))
+        }
     }
 }
 
@@ -47,24 +62,5 @@ pub fn is_a_neighbor(
         } else {
             Err(SimulationControllerError::NotNeighbor(*neighbor, *drone))
         }
-    }
-}
-
-pub fn has_neighbors<'a>(
-    sim_ctrl: &'a SimulationController,
-    drone: &NodeId,
-) -> Result<&'a Vec<NodeId>, SimulationControllerError> {
-    if let Some(neighbor) = sim_ctrl.neighbor.get(drone) {
-        Ok(neighbor)
-    } else {
-        Err(SimulationControllerError::HasNoNeighbor(*drone))
-    }
-}
-
-pub fn valid_pdr(pdr: f32) -> Result<f32, SimulationControllerError> {
-    if pdr >= 0.0 && pdr <= 1.0 {
-        Ok(pdr)
-    } else {
-        Err(SimulationControllerError::PacketDropRateOutOfRange)
     }
 }
