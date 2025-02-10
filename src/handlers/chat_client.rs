@@ -9,6 +9,11 @@ use crate::SimulationController;
 impl SimulationController {
     // Handle ChatClient Event
     pub fn handle_cclient_event(&mut self, event: ChatClientEvent) {
+        info!(
+            "[ {} ] Is a {}",
+            "Simulation Controller".yellow(),
+            packet.pack_type
+        );
         match event {
             ChatClientEvent::CommunicationServerList(items) => {
                 info!(

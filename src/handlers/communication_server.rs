@@ -9,6 +9,11 @@ use crate::SimulationController;
 impl SimulationController {
     // Handle Server Command
     pub fn handle_commserver_event(&mut self, event: CommunicationServerEvent) {
+        info!(
+            "[ {} ] Is a {}",
+            "Simulation Controller".yellow(),
+            packet.pack_type
+        );
         match event {
             CommunicationServerEvent::ServerStarted => {
                 info!(

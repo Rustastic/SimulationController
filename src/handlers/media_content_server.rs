@@ -10,6 +10,11 @@ use crate::SimulationController;
 impl SimulationController {
 
     pub fn handle_media_event(&mut self, event: ContentServerEvent) {
+        info!(
+            "[ {} ] Is a {}",
+            "Simulation Controller".yellow(),
+            packet.pack_type
+        );
         match event {
             ContentServerEvent::ServerStarted => {
                 info!(
