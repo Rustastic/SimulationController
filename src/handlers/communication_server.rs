@@ -238,8 +238,8 @@ impl SimulationController {
                 }
             },
             CommunicationServerCommand::LogNetwork => {
-                if let Some((client, _)) = self.cclients.get(comm_server) {
-                    match client.send(CommunicationServerCommand::LogNetwork) {
+                if let Some((server, _)) = self.comm_servers.get(comm_server) {
+                    match server.send(CommunicationServerCommand::LogNetwork) {
                         Ok(()) => info!(
                             "[ {} ]: sent a CommunicationServerCommand::LogNetwork to [ CommunicationServer {} ]",
                             "Simulation Controller".green(),
