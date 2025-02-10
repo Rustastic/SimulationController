@@ -2,7 +2,7 @@ use wg_2024::{network::NodeId, packet::PacketType};
 use colored::Colorize;
 use log::{error, info};
 
-use messages::client_commands::{ChatClientCommand, ChatClientEvent};
+use messages::{client_commands::{ChatClientCommand, ChatClientEvent}, gui_commands::GUIEvents};
 
 use crate::SimulationController;
 
@@ -34,8 +34,23 @@ impl SimulationController {
                     server
                 )
             },
-            ChatClientEvent::ClientList(client_list) => {
+            ChatClientEvent::ClientList(client, client_list) => {
                 info!("The Client retrieved the Client list: {:?}", client_list);
+                match self.gui_send.send(GUIEvents::ClientList(client, client_list.clone())) {
+                    Ok(()) => info!(
+                        "[ {} ]: successfully sent a GUIEvents::ClientList({}, {:?}) from the Simulation Controller to the GUI",
+                        "Simulation Controller".green(),
+                        client,
+                        client_list
+                    ),
+                    Err(e) => error!(
+                        "[ {} ]: failed to sent a GUIEvents::ClientList({}, {:?}) from the Simulation Controller to the GUI: {}",
+                        "Simulation Controller".green(),
+                        client,
+                        client_list,
+                        e
+                    ),
+                }
             },
             ChatClientEvent::SuccessfulLogOut => info!(
                 "[ {} ]: The Client successfully logged out from server",
