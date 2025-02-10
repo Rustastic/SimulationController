@@ -26,6 +26,21 @@ impl SimulationController {
                     "[ Client: {} ]: received the message {:?} from [ Server {} ]",
                     src, msg, src
                 );
+                match self.gui_send.send(GUIEvents::MessageReceived(src, msg.clone())) {
+                    Ok(()) => info!(
+                        "[ {} ]: successfully sent a GUIEvents::MessageReceived({}, {:?}) from the Simulation Controller to the GUI",
+                        "Simulation Controller".green(),
+                        src,
+                        msg
+                    ),
+                    Err(e) => error!(
+                        "[ {} ]: failed to sent a GUIEvents::MessageReceived({}, {:?}) from the Simulation Controller to the GUI: {}",
+                        "Simulation Controller".green(),
+                        src,
+                        msg,
+                        e
+                    ),
+                }
             },
             ChatClientEvent::SuccessfulRegistration(server) => {
                 info!(
