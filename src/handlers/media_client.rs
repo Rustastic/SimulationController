@@ -1,10 +1,9 @@
 use colored::Colorize;
-use gui::helpers::commands::GUIEvents;
 use log::{error, info};
 
 use wg_2024::{network::NodeId, packet::PacketType};
 
-use messages::client_commands::{MediaClientCommand, MediaClientEvent};
+use messages::{client_commands::{MediaClientCommand, MediaClientEvent}, gui_commands::GUIEvents};
 
 use crate::SimulationController;
 

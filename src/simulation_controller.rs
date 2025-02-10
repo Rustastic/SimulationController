@@ -8,7 +8,7 @@ use wg_2024::{
     controller::{DroneCommand, DroneEvent},
     drone::Drone,
     network::NodeId,
-    packet::{Packet, PacketType},
+    packet::Packet,
 };
 
 use messages::{
