@@ -93,7 +93,7 @@ impl SimulationController {
                     "Simulation Controller".green(),
                     node_id,
                 );
-                match self.gui_send.send(GUIEvents::MessageReceived(node_id, file_response.clone())) {
+                /*match self.gui_send.send(GUIEvents::MessageReceived(node_id, 44, file_response.clone())) {
                     Ok(()) => info!(
                         "[ {} ]: successfully sent a GUIEvents::MessageReceived({}, {:?}) from the Simulation Controller to the GUI",
                         "Simulation Controller".green(),
@@ -107,7 +107,7 @@ impl SimulationController {
                         file_response,
                         e
                     ),
-                }
+                }*/
             },
             MediaClientEvent::ControllerShortcut(packet) => {
                 if let Some(dest) = packet
