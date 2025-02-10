@@ -279,7 +279,7 @@ impl SimulationController {
             },
             GUICommands::GetClientList(client) => {
                 self.handle_cclient_command(&client, ChatClientCommand::LogNetwork);
-                self.handle_cclient_command(&client, ChatClientCommand::GetClientList)
+                //self.handle_cclient_command(&client, ChatClientCommand::GetClientList)
             }
             GUICommands::LogOut(client, _) => {
                 self.handle_cclient_command(&client, ChatClientCommand::LogOut)
