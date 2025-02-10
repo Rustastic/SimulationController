@@ -773,6 +773,12 @@ impl SimulationController {
                             chat_client
                         );
                     }
+                } else {
+                    error!(
+                        "[ {} ]: The [ Node {} ] is not a CommunicationServer",
+                        "Simulation Controller".red(),
+                        server,
+                    );
                 }
             }
             ChatClientCommand::GetClientList => {
