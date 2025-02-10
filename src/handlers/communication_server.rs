@@ -6,6 +6,8 @@ use messages::server_commands::{CommunicationServerCommand, CommunicationServerE
 
 use crate::SimulationController;
 
+use super::media_client;
+
 impl SimulationController {
     // Handle Server Command
     pub fn handle_commserver_event(&mut self, event: CommunicationServerEvent) {
@@ -235,6 +237,29 @@ impl SimulationController {
                     );
                 }
             },
+            CommunicationServerCommand::LogNetwork => {
+                if let Some((client, _)) = self.cclients.get(comm_server) {
+                    match client.send(CommunicationServerCommand::LogNetwork) {
+                        Ok(()) => info!(
+                            "[ {} ]: sent a CommunicationServerCommand::LogNetwork to [ CommunicationServer {} ]",
+                            "Simulation Controller".green(),
+                            comm_server
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to send a CommunicationServerCommand::LogNetwork to the [ CommunicationServer {} ]: {}",
+                            "Simulation Controller".red(),
+                            comm_server,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<CommunicationServerCommand> channel for the [ CommunicationServer {} ]",
+                        "Simulation Controller".red(),
+                        comm_server
+                    );
+                }
+            }
         }
     }
 }
