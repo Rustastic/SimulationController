@@ -67,7 +67,7 @@ impl SimulationController {
                 if let Some(dest) = packet
                     .routing_header
                     .hops
-                    .get(packet.routing_header.len() - 1)
+                    .get(packet.routing_header.hops.len() - 1)
                 {
                     // Get destination node channel
                     let packet_channel;
