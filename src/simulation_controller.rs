@@ -11,7 +11,8 @@ use wg_2024::{
     packet::{Packet, PacketType},
 };
 
-use gui::commands::{GUICommands, GUIEvents};
+use gui::helpers::commands::{GUICommands, GUIEvents};
+
 use messages::{
     client_commands::{ChatClientCommand, ChatClientEvent, MediaClientCommand, MediaClientEvent},
     server_commands::{CommunicationServerCommand, CommunicationServerEvent, ContentServerCommand, ContentServerEvent},
