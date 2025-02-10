@@ -12,9 +12,9 @@ impl SimulationController {
     // Handle MediaClient Event
     pub fn handle_mclient_event(&mut self, event: MediaClientEvent) {
         info!(
-            "[ {} ] Is a {}",
+            "[ {} ] Is a {:?}",
             "Simulation Controller".yellow(),
-            packet.pack_type
+            event
         );
         match event {
             MediaClientEvent::ReceveidFloodResponse => {

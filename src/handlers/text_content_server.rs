@@ -10,9 +10,9 @@ use crate::SimulationController;
 impl SimulationController {
     pub fn handle_text_event(&mut self, event: ContentServerEvent) {
         info!(
-            "[ {} ] Is a {}",
+            "[ {} ] Is a {:?}",
             "Simulation Controller".yellow(),
-            packet.pack_type
+            event
         );
         match event {
             ContentServerEvent::ServerStarted => {

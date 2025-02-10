@@ -10,9 +10,9 @@ impl SimulationController {
     // Handle ChatClient Event
     pub fn handle_cclient_event(&mut self, event: ChatClientEvent) {
         info!(
-            "[ {} ] Is a {}",
+            "[ {} ] Is a {:?}",
             "Simulation Controller".yellow(),
-            packet.pack_type
+            event
         );
         match event {
             ChatClientEvent::CommunicationServerList(items) => {
