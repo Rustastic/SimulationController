@@ -3,53 +3,52 @@ use log::{error, info};
 
 use wg_2024::{network::NodeId, packet::PacketType};
 
-use messages::{client_commands::{MediaClientCommand, MediaClientEvent}, gui_commands::GUIEvents};
+use messages::{
+    client_commands::{MediaClientCommand, MediaClientEvent},
+    gui_commands::GUIEvents,
+};
 
 use crate::SimulationController;
 
 impl SimulationController {
-
     // Handle MediaClient Event
+    #[allow(clippy::too_many_lines)]
     pub fn handle_mclient_event(&mut self, event: MediaClientEvent) {
-        info!(
-            "[ {} ] Is a {:?}",
-            "Simulation Controller".yellow(),
-            event
-        );
+        info!("[ {} ] Is a {:?}", "Simulation Controller".yellow(), event);
         match event {
             MediaClientEvent::ReceveidFloodResponse => {
                 info!(
                     "[ {} ]: The media client retrieved a FloodResponse",
                     "Simulation Controller".green()
-                )
-            },
+                );
+            }
             MediaClientEvent::RemovedSender(drone) => {
                 info!(
                     "[ {} ]: The media client removed the neighbor [ Drone {} ]",
                     "Simulation Controller".green(),
                     drone
-                )
-            },
+                );
+            }
             MediaClientEvent::AddedSender(drone) => {
                 info!(
                     "[ {} ]: The media client added the neighbor [ Drone {} ]",
                     "Simulation Controller".green(),
                     drone
-                )
-            },
+                );
+            }
             MediaClientEvent::UnreachableNode(node) => {
                 error!(
                     "[ {} ]: received an error message: The [ Node {} ] is not reachable",
                     "Simulation Controller".red(),
                     node
                 );
-            },
+            }
             MediaClientEvent::DestinationIsDrone => {
                 error!(
                     "[ {} ]: received an error message: The selected destination is a drone",
                     "Simulation Controller".red(),
                 );
-            },
+            }
             MediaClientEvent::ErrorPacketCache(session_id, fragment_index) => {
                 error!(
                     "[ {} ]: received an error message: Error in the packet cache [ session_id : {}, fragment_index: {} ]",
@@ -57,14 +56,14 @@ impl SimulationController {
                     session_id,
                     fragment_index
                 );
-            },
+            }
             MediaClientEvent::SendError(e) => {
                 error!(
                     "[ {} ]: received an error message: It has verified a SenderError: {}",
                     "Simulation Controller".red(),
                     e
                 );
-            },
+            }
             MediaClientEvent::ReceveidFileList(server, dest, items) => {
                 info!(
                     "[ {} ]: received the file list of [ TextServer {} ]",
@@ -88,35 +87,16 @@ impl SimulationController {
                         e
                     ),
                 }
-            },
-            MediaClientEvent::ReceveidFile(node_id, _, file_response) => {
+            }
+            MediaClientEvent::ReceveidFile(node_id, _, _) => {
                 info!(
-                    "[ {} ]: received a file from [ MediaClient {} ]",
+                    "[ {} ]: [ MediaClient {} ] received a file",
                     "Simulation Controller".green(),
                     node_id,
                 );
-                /*match self.gui_send.send(GUIEvents::MessageReceived(node_id, 44, file_response.clone())) {
-                    Ok(()) => info!(
-                        "[ {} ]: successfully sent a GUIEvents::MessageReceived({}, {:?}) from the Simulation Controller to the GUI",
-                        "Simulation Controller".green(),
-                        node_id,
-                        file_response
-                    ),
-                    Err(e) => error!(
-                        "[ {} ]: failed to sent a GUIEvents::MessageReceived({}, {:?}) from the Simulation Controller to the GUI: {}",
-                        "Simulation Controller".green(),
-                        node_id,
-                        file_response,
-                        e
-                    ),
-                }*/
-            },
+            }
             MediaClientEvent::ControllerShortcut(packet) => {
-                if let Some(dest) = packet
-                    .routing_header
-                    .hops
-                    .get(packet.routing_header.hops.len() - 1)
-                {
+                if let Some(dest) = packet.routing_header.hops.last() {
                     // Get destination node channel
                     let packet_channel;
                     if self.drones.contains_key(dest) {
@@ -139,11 +119,11 @@ impl SimulationController {
                         );
                         return;
                     }
-                    
+
                     // Send Packet to destination
                     match packet.pack_type {
                         PacketType::MsgFragment(_) => {
-                            panic!("Impossible how the hell did u do this")
+                            panic!("Impossible how the hell did u do this");
                         }
                         _ => {
                             packet_channel.send(packet.clone()).unwrap();
@@ -155,16 +135,17 @@ impl SimulationController {
                         "Simulation Controller".red()
                     );
                 }
-            },
+            }
             //MediaClientEvent::ServerList(items) => ,
             //MediaClientEvent::ReceveidServerType(_, server_type) => todo!(),
             _ => {
                 error!("NOPE -> Not Implemented");
-            }           
+            }
         }
     }
 
     // Handle MediaClient Command
+    #[allow(clippy::too_many_lines)]
     pub fn handle_mclient_command(&mut self, media_client: &NodeId, command: MediaClientCommand) {
         match command {
             MediaClientCommand::InitFlooding => {
@@ -189,7 +170,7 @@ impl SimulationController {
                         media_client
                     );
                 }
-            },
+            }
             MediaClientCommand::RemoveSender(drone) => {
                 if let Some(neighbors) = self.neighbor.get_mut(media_client) {
                     // Max 2 neighbor, Min 1 neighbor
@@ -234,64 +215,62 @@ impl SimulationController {
                         drone
                     );
                 }
-            },
+            }
             MediaClientCommand::AddSender(drone, sender) => {
                 // cant connect to a client
-                if !self.mclients.contains_key(&drone) {
-                    if let Some(neighbors) = self.neighbor.get_mut(media_client) {
-                        // Max 2 neighbor, Min 1 neighbor
-                        if neighbors.len() == 1 {
-                            neighbors.push(drone);
-                            if let Some((client, _)) = self.mclients.get(media_client) {
-                                match client.send(MediaClientCommand::AddSender(drone, sender.clone())) {
-                                    Ok(()) => info!(
-                                        "[ {} ]: sent a MediaClientCommand::AddSender({}, {:?}) to [ Client {} ]",
-                                        "Simulation Controller".green(),
-                                        drone,
-                                        sender,
-                                        media_client
-                                    ),
-                                    Err(e) => error!(
-                                        "[ {} ]: failed to send a MediaClientCommand::AddSender({}, {:?}) to the [ Client {} ]: {}",
-                                        "Simulation Controller".red(),
-                                        drone,
-                                        sender,
-                                        media_client,
-                                        e
-                                    ),
-                                }
-                            } else {
-                                error!(
-                                    "[ {} ]: failed to find a Sender<MediaClientCommand> channel for the [ Client {} ]",
-                                    "Simulation Controller".red(),
-                                    media_client
-                                );
-                            }
-                        } else {
-                            error!(
-                                "[ {} ]: failed to send a MediaClientCommand::AddSender({}, {:?}) to the [ Client {} ]: {}",
-                                "Simulation Controller".red(),
-                                drone,
-                                sender,
-                                media_client,
-                                "Each client must be connected to at most two drones"
-                            );
-                        }
-                    } else {
-                        error!(
-                            "[ {} ]: the [ Drone {} ] does not have any neighbor",
-                            "Simulation Controller".red(),
-                            drone
-                        );
-                    }
-                } else {
+                if self.mclients.contains_key(&drone) {
                     error!(
                         "[ {} ]: The selected NodeId: {} correspond to a Client not a Drone",
                         "Simulation Controller".red(),
                         media_client
                     );
+                } else if let Some(neighbors) = self.neighbor.get_mut(media_client) {
+                    // Max 2 neighbor, Min 1 neighbor
+                    if neighbors.len() == 1 {
+                        neighbors.push(drone);
+                        if let Some((client, _)) = self.mclients.get(media_client) {
+                            match client.send(MediaClientCommand::AddSender(drone, sender.clone())) {
+                                Ok(()) => info!(
+                                    "[ {} ]: sent a MediaClientCommand::AddSender({}, {:?}) to [ Client {} ]",
+                                    "Simulation Controller".green(),
+                                    drone,
+                                    sender,
+                                    media_client
+                                ),
+                                Err(e) => error!(
+                                    "[ {} ]: failed to send a MediaClientCommand::AddSender({}, {:?}) to the [ Client {} ]: {}",
+                                    "Simulation Controller".red(),
+                                    drone,
+                                    sender,
+                                    media_client,
+                                    e
+                                ),
+                            }
+                        } else {
+                            error!(
+                                "[ {} ]: failed to find a Sender<MediaClientCommand> channel for the [ Client {} ]",
+                                "Simulation Controller".red(),
+                                media_client
+                            );
+                        }
+                    } else {
+                        error!(
+                            "[ {} ]: failed to send a MediaClientCommand::AddSender({}, {:?}) to the [ Client {} ]: {}",
+                            "Simulation Controller".red(),
+                            drone,
+                            sender,
+                            media_client,
+                            "Each client must be connected to at most two drones"
+                        );
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: the [ Drone {} ] does not have any neighbor",
+                        "Simulation Controller".red(),
+                        drone
+                    );
                 }
-            },
+            }
             MediaClientCommand::AskFilesList(server) => {
                 if let Some((client, _)) = self.mclients.get(media_client) {
                     match client.send(MediaClientCommand::AskFilesList(server)) {
@@ -316,7 +295,7 @@ impl SimulationController {
                         media_client
                     );
                 }
-            },
+            }
             MediaClientCommand::AskForFile(server, title) => {
                 if let Some((client, _)) = self.mclients.get(media_client) {
                     match client.send(MediaClientCommand::AskForFile(server, title.clone())) {
@@ -343,7 +322,7 @@ impl SimulationController {
                         media_client
                     );
                 }
-            },
+            }
             //MediaClientCommand::GetServerList => todo!(),
             //MediaClientCommand::AskServerType(_) => todo!(),
             _ => {

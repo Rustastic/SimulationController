@@ -8,55 +8,52 @@ use messages::server_commands::{ContentServerCommand, ContentServerEvent};
 use crate::SimulationController;
 
 impl SimulationController {
+    #[allow(clippy::too_many_lines)]
     pub fn handle_text_event(&mut self, event: ContentServerEvent) {
-        info!(
-            "[ {} ] Is a {:?}",
-            "Simulation Controller".yellow(),
-            event
-        );
+        info!("[ {} ] Is a {:?}", "Simulation Controller".yellow(), event);
         match event {
             ContentServerEvent::ServerStarted => {
                 info!(
                     "[ {} ]: TextContentServer started successfully",
                     "Simulation Controller".green(),
-                )
-            },
+                );
+            }
             ContentServerEvent::ServerStopped => {
                 info!(
                     "[ {} ]: TextContentServer stopped successfully",
                     "Simulation Controller".green(),
-                )
-            },
+                );
+            }
             ContentServerEvent::MessageForwarded(dest, msg) => {
                 info!(
                     "[ {} ]: TextContentServer forwarded the message {:?} to [ Client {} ]",
                     "Simulation Controller".green(),
                     msg,
                     dest
-                )
-            },
+                );
+            }
             ContentServerEvent::MessageReceived(src, msg) => {
                 info!(
                     "[ {} ]: TextContentServer received the message {:?} from [ Client {} ]",
                     "Simulation Controller".green(),
                     msg,
                     src
-                )
-            },
+                );
+            }
             ContentServerEvent::SendError(e) => {
                 error!(
                     "[ {} ]: received an error message: It has verified a SenderError: {}",
                     "Simulation Controller".red(),
                     e
                 );
-            },
+            }
             ContentServerEvent::DestinationIsDrone(drone) => {
                 error!(
                     "[ {} ]: received an error message: The selected destination is a drone [ Drone {} ]",
                     "Simulation Controller".red(),
                     drone
                 );
-            },
+            }
             ContentServerEvent::ErrorPacketCache(session_id, fragment_index) => {
                 error!(
                     "[ {} ]: received an error message: Error in the packet cache [ session_id : {}, fragment_index: {} ]",
@@ -64,13 +61,9 @@ impl SimulationController {
                     session_id,
                     fragment_index
                 );
-            },
+            }
             ContentServerEvent::ControllerShortcut(packet) => {
-                if let Some(dest) = packet
-                    .routing_header
-                    .hops
-                    .get(packet.routing_header.hops.len() - 1)
-                {
+                if let Some(dest) = packet.routing_header.hops.last() {
                     // Get destination node channel
                     let packet_channel;
                     if self.drones.contains_key(dest) {
@@ -93,11 +86,11 @@ impl SimulationController {
                         );
                         return;
                     }
-                    
+
                     // Send Packet to destination
                     match packet.pack_type {
                         PacketType::MsgFragment(_) => {
-                            panic!("Impossible how the hell did u do this")
+                            panic!("Impossible how the hell did u do this");
                         }
                         _ => {
                             packet_channel.send(packet.clone()).unwrap();
@@ -116,6 +109,7 @@ impl SimulationController {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn handle_text_command(&mut self, text_server: &NodeId, command: ContentServerCommand) {
         match command {
             ContentServerCommand::InitFlooding => {
@@ -140,7 +134,7 @@ impl SimulationController {
                         text_server
                     );
                 }
-            },
+            }
             ContentServerCommand::AddSender(node_id, sender) => {
                 if let Some((server, _)) = self.text_servers.get(text_server) {
                     if let Some(vec) = self.neighbor.get_mut(text_server) {
@@ -174,7 +168,7 @@ impl SimulationController {
                         text_server
                     );
                 }
-            },
+            }
             ContentServerCommand::RemoveSender(node_id) => {
                 if let Some((server, _)) = self.text_servers.get(text_server) {
                     if let Some(vec) = self.neighbor.get_mut(text_server) {

@@ -4,42 +4,36 @@ use wg_2024::network::NodeId;
 
 use crate::SimulationController;
 
-use super::error::SimulationControllerError;
+use super::types::SimCtrlError;
 
 impl SimulationController {
-    pub(super) fn check_drone_existence(
-        &self,
-        node_id: &NodeId,
-    ) -> Result<(), SimulationControllerError> {
-        if self.drones.contains_key(node_id) {
+    pub(super) fn check_drone_existence(&self, node_id: NodeId) -> Result<(), SimCtrlError> {
+        if self.drones.contains_key(&node_id) {
             Ok(())
         } else {
-            Err(SimulationControllerError::DroneNotFound(*node_id))
+            Err(SimCtrlError::DroneNotFound(node_id))
         }
     }
 
-    pub(super) fn has_neighbors<'a>(
-        &self,
-        drone: &NodeId,
-    ) -> Result<&Vec<NodeId>, SimulationControllerError> {
-        if let Some(neighbor) = self.neighbor.get(drone) {
+    pub(super) fn has_neighbors(&self, drone: NodeId) -> Result<&Vec<NodeId>, SimCtrlError> {
+        if let Some(neighbor) = self.neighbor.get(&drone) {
             Ok(neighbor)
         } else {
-            Err(SimulationControllerError::HasNoNeighbor(*drone))
+            Err(SimCtrlError::HasNoNeighbor(drone))
         }
     }
 }
 
 pub fn is_a_neighbor(
-    neighbor_vec: &Vec<NodeId>,
-    neighbor: &NodeId,
-    drone: &NodeId,
+    neighbor_vec: &[NodeId],
+    neighbor: NodeId,
+    drone: NodeId,
     not: bool,
-) -> Result<(), SimulationControllerError> {
+) -> Result<(), SimCtrlError> {
     if not {
         // If i am hoping it is not a neighbor (not = true)
         if neighbor_vec.contains(&neighbor) {
-            Err(SimulationControllerError::IsNeighbor(*neighbor, *drone))
+            Err(SimCtrlError::IsNeighbor(neighbor, drone))
         } else {
             info!(
                 "[ {} ]: [ Drone: {} ] is not a neighbor of [ Drone: {} ]",
@@ -60,7 +54,7 @@ pub fn is_a_neighbor(
             );
             Ok(())
         } else {
-            Err(SimulationControllerError::NotNeighbor(*neighbor, *drone))
+            Err(SimCtrlError::NotNeighbor(neighbor, drone))
         }
     }
 }

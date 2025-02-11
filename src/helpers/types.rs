@@ -3,7 +3,7 @@ use thiserror::Error;
 use wg_2024::network::NodeId;
 
 #[derive(Debug, Error)]
-pub enum SimulationControllerError {
+pub enum SimCtrlError {
     #[error("[ ERROR ]: A drone with the NodeId: {0} does not exist")]
     DroneNotFound(NodeId),
     #[error("[ ERROR ]: A drone with the NodeId: {0} already exist")]
@@ -15,5 +15,5 @@ pub enum SimulationControllerError {
     #[error("[ ERROR ]: The [ Drone: {0} ] doesn't have any neighbor")]
     HasNoNeighbor(NodeId),
     #[error("[ ERROR ]: Can't connect two clients together")]
-    ClientOnClient
+    ClientOnClient,
 }

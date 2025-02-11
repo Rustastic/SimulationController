@@ -1,4 +1,8 @@
-use wg_2024::{controller::{DroneCommand, DroneEvent}, network::NodeId, packet::PacketType};
+use wg_2024::{
+    controller::{DroneCommand, DroneEvent},
+    network::NodeId,
+    packet::PacketType,
+};
 
 use colored::Colorize;
 use log::{error, info};
@@ -9,20 +13,13 @@ impl SimulationController {
     // Handle Drone Events
     pub fn handle_drone_event(&self, drone_event: DroneEvent) {
         match drone_event {
-            DroneEvent::PacketSent(packet) => {
+            DroneEvent::PacketSent(packet) | DroneEvent::PacketDropped(packet) => {
                 info!(
                     "[ {} ] Is a {}",
                     "Simulation Controller".yellow(),
                     packet.pack_type
                 );
-            },
-            DroneEvent::PacketDropped(packet) => {
-                info!(
-                    "[ {} ] Is a {}",
-                    "Simulation Controller".yellow(),
-                    packet.pack_type
-                );
-            },
+            }
             DroneEvent::ControllerShortcut(packet) => {
                 info!(
                     "[ {} ] Is a {}",
@@ -31,11 +28,7 @@ impl SimulationController {
                 );
 
                 // Get packet destination node
-                if let Some(dest) = packet
-                    .routing_header
-                    .hops
-                    .get(packet.routing_header.hops.len() - 1)
-                {
+                if let Some(dest) = packet.routing_header.hops.last() {
                     // Get destination node channel
                     let packet_channel;
                     if self.drones.contains_key(dest) {
@@ -58,7 +51,7 @@ impl SimulationController {
                         );
                         return;
                     }
-                    
+
                     // Send Packet to destination
                     match packet.pack_type {
                         PacketType::MsgFragment(_) => {
@@ -74,11 +67,12 @@ impl SimulationController {
                         "Simulation Controller".red()
                     );
                 }
-            },
+            }
         }
     }
 
     // Handle Drone Commands
+    #[allow(clippy::too_many_lines)]
     pub fn handle_drone_command(&mut self, drone: &NodeId, drone_command: DroneCommand) {
         // Get drone channel
         if let Some((command_channel, _)) = self.drones.get(drone) {
@@ -108,7 +102,7 @@ impl SimulationController {
                             drone
                         );
                     }
-                },
+                }
                 DroneCommand::AddSender(node_id, sender) => {
                     if let Some(vec) = self.neighbor.get_mut(drone) {
                         vec.push(node_id);
@@ -134,7 +128,7 @@ impl SimulationController {
                             drone
                         );
                     }
-                },
+                }
                 DroneCommand::SetPacketDropRate(pdr) => {
                     match command_channel.send(DroneCommand::SetPacketDropRate(pdr)) {
                         Ok(()) => info!(
@@ -151,11 +145,13 @@ impl SimulationController {
                             e
                         ),
                     }
-                },
+                }
                 DroneCommand::Crash => {
                     if let Some((command_send, packet_send)) = self.drones.get(drone) {
-                        let _ = drop(command_send);
-                        let _ = drop(packet_send);
+                        #[allow(dropping_references)]
+                        drop(command_send);
+                        #[allow(dropping_references)]
+                        drop(packet_send);
                     }
 
                     let drone_entry = self.drones.remove(drone);

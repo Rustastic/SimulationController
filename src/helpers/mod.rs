@@ -1,7 +1,7 @@
-use std::collections::HashMap;
+use colored::Colorize;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use rand::Rng;
-use colored::Colorize;
+use std::collections::HashMap;
 
 use wg_2024::{
     config::Drone as ConfigDrone,
@@ -18,20 +18,20 @@ use messages::{
 
 use crate::SimulationController;
 
-mod error;
-use error::SimulationControllerError;
+mod types;
+use types::SimCtrlError;
 mod verify;
 
+type DroneFactoryFn = dyn Fn(
+    &mut SimulationController,
+    &ConfigDrone,
+    &Sender<DroneEvent>,
+    &Receiver<DroneCommand>,
+    &Receiver<Packet>,
+) -> Box<dyn Drone>;
+
 impl SimulationController {
-    fn drone_factory<T>() -> Box<
-        dyn Fn(
-            &mut SimulationController,
-            &ConfigDrone,
-            &Sender<DroneEvent>,
-            &Receiver<DroneCommand>,
-            &Receiver<Packet>,
-        ) -> Box<dyn Drone>,
-    >
+    fn drone_factory<T>() -> Box<DroneFactoryFn>
     where
         T: Drone + 'static,
     {
@@ -45,14 +45,14 @@ impl SimulationController {
             }
 
             // Get drone's command receiver channel
-            return Box::new(T::new(
+            Box::new(T::new(
                 drone.id,
                 event_send.clone(),
                 command_recv.clone(),
                 packet_recv.clone(),
                 packet_send_hashmap,
                 drone.pdr,
-            ));
+            ))
         })
     }
 
@@ -61,10 +61,10 @@ impl SimulationController {
         id: NodeId,
         connected_node_ids: Vec<NodeId>,
         pdr: f32,
-    ) -> Result<(), SimulationControllerError> {
+    ) -> Result<(), SimCtrlError> {
         // Check if drone with this id already exist
         if self.drones.contains_key(&id) {
-            return Err(SimulationControllerError::DroneAlreadyExist(id));
+            return Err(SimCtrlError::DroneAlreadyExist(id));
         }
 
         // Create new drone
@@ -76,7 +76,7 @@ impl SimulationController {
 
         // Generate random number to pick a random factory
         let rand = rand::rng().random_range(0..10);
-        let drone_factories = vec![
+        let drone_factories = [
             Self::drone_factory::<rusty_drones::RustyDrone>(),
             Self::drone_factory::<LeDron_James::Drone>(),
             Self::drone_factory::<dr_ones::Drone>(),
@@ -97,17 +97,12 @@ impl SimulationController {
         self.drones.insert(id, (command_send, packet_send));
 
         // Add drone to neighbor list
-        self
-            .neighbor
+        self.neighbor
             .insert(drone.id, drone.connected_node_ids.clone());
 
         // add to neighbor list of neighbor
         for neighbor_id in drone.connected_node_ids.clone() {
-            self
-                .neighbor
-                .get_mut(&neighbor_id)
-                .unwrap()
-                .push(drone.id);
+            self.neighbor.get_mut(&neighbor_id).unwrap().push(drone.id);
         }
 
         // Crate drone
@@ -132,13 +127,8 @@ impl SimulationController {
         Ok(())
     }
 
-    pub(super) fn crash(
-        &mut self,
-        node_id: NodeId,
-    ) -> Result<(), SimulationControllerError> {
-        if let Err(e) = self.check_drone_existence(&node_id) {
-            return Err(e);
-        }
+    pub(super) fn crash(&mut self, node_id: NodeId) -> Result<(), SimCtrlError> {
+        self.check_drone_existence(node_id)?;
 
         // If the drone has any neighbors
         if let Some(neighbor_ids) = self.neighbor.get(&node_id).cloned() {
@@ -146,11 +136,15 @@ impl SimulationController {
                 if self.drones.contains_key(&neighbor) {
                     self.handle_drone_command(&neighbor, DroneCommand::RemoveSender(node_id));
                 } else if self.cclients.contains_key(&neighbor) {
-                    self
-                        .handle_cclient_command(&neighbor, ChatClientCommand::RemoveSender(node_id));
+                    self.handle_cclient_command(
+                        &neighbor,
+                        ChatClientCommand::RemoveSender(node_id),
+                    );
                 } else if self.mclients.contains_key(&neighbor) {
-                    self
-                        .handle_mclient_command(&neighbor, MediaClientCommand::RemoveSender(node_id));
+                    self.handle_mclient_command(
+                        &neighbor,
+                        MediaClientCommand::RemoveSender(node_id),
+                    );
                 } else if self.comm_servers.contains_key(&neighbor) {
                     self.handle_commserver_command(
                         &neighbor,
@@ -175,48 +169,48 @@ impl SimulationController {
 
     pub(super) fn remove_sender(
         &mut self,
-        node_id: &NodeId,
-        to_remove: &NodeId,
-    ) -> Result<(), SimulationControllerError> {
+        node_id: NodeId,
+        to_remove: NodeId,
+    ) -> Result<(), SimCtrlError> {
         // Check if it exists a neighbor with this id
-        match self.has_neighbors(&node_id) {
+        match self.has_neighbors(node_id) {
             Ok(neighbor) => match verify::is_a_neighbor(neighbor, to_remove, node_id, false) {
                 Ok(()) => {
                     if self.drones.contains_key(&to_remove) {
-                        self.handle_drone_command(&to_remove, DroneCommand::RemoveSender(*node_id));
+                        self.handle_drone_command(&to_remove, DroneCommand::RemoveSender(node_id));
                         return Ok(());
                     } else if self.cclients.contains_key(&to_remove) {
                         self.handle_cclient_command(
                             &to_remove,
-                            ChatClientCommand::RemoveSender(*node_id),
+                            ChatClientCommand::RemoveSender(node_id),
                         );
                         return Ok(());
                     } else if self.mclients.contains_key(&to_remove) {
                         self.handle_mclient_command(
                             &to_remove,
-                            MediaClientCommand::RemoveSender(*node_id),
+                            MediaClientCommand::RemoveSender(node_id),
                         );
                         return Ok(());
                     } else if self.comm_servers.contains_key(&to_remove) {
                         self.handle_commserver_command(
                             &to_remove,
-                            CommunicationServerCommand::RemoveSender(*node_id),
+                            CommunicationServerCommand::RemoveSender(node_id),
                         );
                         return Ok(());
                     } else if self.text_servers.contains_key(&to_remove) {
                         self.handle_text_command(
                             &to_remove,
-                            ContentServerCommand::RemoveSender(*node_id),
+                            ContentServerCommand::RemoveSender(node_id),
                         );
                         return Ok(());
                     } else if self.media_servers.contains_key(&to_remove) {
                         self.handle_media_command(
                             &to_remove,
-                            ContentServerCommand::RemoveSender(*node_id),
+                            ContentServerCommand::RemoveSender(node_id),
                         );
                         return Ok(());
                     }
-                    Err(SimulationControllerError::ClientOnClient)
+                    Err(SimCtrlError::ClientOnClient)
                 }
                 Err(e) => Err(e),
             },
@@ -226,73 +220,73 @@ impl SimulationController {
 
     pub(super) fn add_sender(
         &mut self,
-        node_id: &NodeId,
-        to_add: &NodeId,
-    ) -> Result<(), SimulationControllerError> {
+        node_id: NodeId,
+        to_add: NodeId,
+    ) -> Result<(), SimCtrlError> {
         // Check if it exists a neighbor with this id
-        match self.has_neighbors( &node_id) {
-            Ok(neighbor) => match verify::is_a_neighbor(neighbor, &to_add, &node_id, true) {
+        match self.has_neighbors(node_id) {
+            Ok(neighbor) => match verify::is_a_neighbor(neighbor, to_add, node_id, true) {
                 Ok(()) => {
                     let packet_send;
-                    if self.drones.contains_key(node_id) {
-                        (_, packet_send) = self.drones.get(&node_id).unwrap().clone()
-                    } else if self.cclients.contains_key(node_id){
+                    if self.drones.contains_key(&node_id) {
+                        (_, packet_send) = self.drones.get(&node_id).unwrap().clone();
+                    } else if self.cclients.contains_key(&node_id) {
                         (_, packet_send) = self.cclients.get(&node_id).unwrap().clone();
-                    } else if self.mclients.contains_key(node_id) {
+                    } else if self.mclients.contains_key(&node_id) {
                         (_, packet_send) = self.mclients.get(&node_id).unwrap().clone();
-                    } else if self.comm_servers.contains_key(node_id) {
+                    } else if self.comm_servers.contains_key(&node_id) {
                         (_, packet_send) = self.comm_servers.get(&node_id).unwrap().clone();
-                    } else if self.text_servers.contains_key(node_id) {
+                    } else if self.text_servers.contains_key(&node_id) {
                         (_, packet_send) = self.text_servers.get(&node_id).unwrap().clone();
                     } else {
                         (_, packet_send) = self.media_servers.get(&node_id).unwrap().clone();
                     }
 
-                    if self.drones.contains_key(to_add) {
+                    if self.drones.contains_key(&to_add) {
                         self.handle_drone_command(
                             &to_add,
-                            DroneCommand::AddSender(*node_id, packet_send.clone()),
+                            DroneCommand::AddSender(node_id, packet_send.clone()),
                         );
 
                         return Ok(());
-                    } else if self.mclients.contains_key(to_add) {
+                    } else if self.mclients.contains_key(&to_add) {
                         self.handle_mclient_command(
                             &to_add,
-                            MediaClientCommand::AddSender(*node_id, packet_send.clone()),
+                            MediaClientCommand::AddSender(node_id, packet_send.clone()),
                         );
 
                         return Ok(());
-                    } else if self.cclients.contains_key(to_add) {
+                    } else if self.cclients.contains_key(&to_add) {
                         self.handle_cclient_command(
                             &to_add,
-                            ChatClientCommand::AddSender(*node_id, packet_send.clone()),
+                            ChatClientCommand::AddSender(node_id, packet_send.clone()),
                         );
 
                         return Ok(());
-                    } else if self.comm_servers.contains_key(to_add) {
+                    } else if self.comm_servers.contains_key(&to_add) {
                         self.handle_commserver_command(
                             &to_add,
-                            CommunicationServerCommand::AddSender(*node_id, packet_send.clone()),
+                            CommunicationServerCommand::AddSender(node_id, packet_send.clone()),
                         );
 
                         return Ok(());
-                    } else if self.text_servers.contains_key(to_add) {
+                    } else if self.text_servers.contains_key(&to_add) {
                         self.handle_text_command(
                             &to_add,
-                            ContentServerCommand::AddSender(*node_id, packet_send.clone()),
+                            ContentServerCommand::AddSender(node_id, packet_send.clone()),
                         );
 
                         return Ok(());
-                    }else if self.media_servers.contains_key(to_add) {
+                    } else if self.media_servers.contains_key(&to_add) {
                         self.handle_media_command(
                             &to_add,
-                            ContentServerCommand::AddSender(*node_id, packet_send.clone()),
+                            ContentServerCommand::AddSender(node_id, packet_send.clone()),
                         );
 
                         return Ok(());
                     }
 
-                    Err(SimulationControllerError::ClientOnClient)
+                    Err(SimCtrlError::ClientOnClient)
                 }
                 Err(e) => Err(e),
             },

@@ -13,8 +13,11 @@ use wg_2024::{
 
 use messages::{
     client_commands::{ChatClientCommand, ChatClientEvent, MediaClientCommand, MediaClientEvent},
-    server_commands::{CommunicationServerCommand, CommunicationServerEvent, ContentServerCommand, ContentServerEvent},
     gui_commands::{GUICommands, GUIEvents},
+    server_commands::{
+        CommunicationServerCommand, CommunicationServerEvent, ContentServerCommand,
+        ContentServerEvent,
+    },
 };
 
 pub struct SimulationController {
@@ -44,6 +47,8 @@ pub struct SimulationController {
 }
 
 impl SimulationController {
+    #[allow(clippy::too_many_arguments)]
+    #[must_use]
     pub fn new(
         drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
         drone_recv: Receiver<DroneEvent>,
@@ -60,9 +65,9 @@ impl SimulationController {
         text_servers: HashMap<NodeId, (Sender<ContentServerCommand>, Sender<Packet>)>,
         text_recv: Receiver<ContentServerEvent>,
         media_servers: HashMap<NodeId, (Sender<ContentServerCommand>, Sender<Packet>)>,
-        media_recv: Receiver<ContentServerEvent>
+        media_recv: Receiver<ContentServerEvent>,
     ) -> Self {
-        return Self {
+        Self {
             drones,
             drone_recv,
             neighbor,
@@ -79,8 +84,8 @@ impl SimulationController {
             text_servers,
             text_recv,
             media_servers,
-            media_recv
-        };
+            media_recv,
+        }
     }
 
     pub fn run(&mut self) {
@@ -92,7 +97,7 @@ impl SimulationController {
         thread::sleep(std::time::Duration::from_secs(2));
 
         // Init ChatClient
-        for (chat_client, _) in self.cclients.clone().iter() {
+        for chat_client in self.cclients.clone().keys() {
             self.handle_cclient_command(chat_client, ChatClientCommand::InitFlooding);
             thread::sleep(std::time::Duration::from_secs(2));
             self.handle_cclient_command(chat_client, ChatClientCommand::StartChatClient);
@@ -180,112 +185,109 @@ impl SimulationController {
     }
 
     // Handle GUI Commands
+    #[allow(clippy::too_many_lines)]
     fn handle_gui_command(&mut self, command: GUICommands) {
         match command {
             GUICommands::Spawn(id, connected_node_ids, pdr) => {
                 match self.spawn(id, connected_node_ids, pdr) {
-                    Ok(()) => return,
+                    Ok(()) => (),
                     Err(e) => {
                         error!("{}", e);
                     }
                 }
             }
-            GUICommands::Crash(drone) => {
-                match self.crash(drone) {
-                    Ok(()) => self.handle_drone_command(&drone, DroneCommand::Crash),
-                    Err(e) => error!("{}", e),
-                }
+            GUICommands::Crash(drone) => match self.crash(drone) {
+                Ok(()) => self.handle_drone_command(&drone, DroneCommand::Crash),
+                Err(e) => error!("{}", e),
             },
             GUICommands::RemoveSender(node_id, to_remove) => {
-                match self.remove_sender(&node_id, &to_remove) {
+                match self.remove_sender(node_id, to_remove) {
                     Ok(()) => {
                         if self.drones.contains_key(&node_id) {
                             self.handle_drone_command(
                                 &node_id,
                                 DroneCommand::RemoveSender(to_remove),
-                            )
+                            );
                         } else if self.cclients.contains_key(&node_id) {
                             self.handle_cclient_command(
                                 &node_id,
                                 ChatClientCommand::RemoveSender(to_remove),
-                            )
+                            );
                         } else if self.mclients.contains_key(&node_id) {
                             self.handle_mclient_command(
                                 &node_id,
                                 MediaClientCommand::RemoveSender(to_remove),
-                            )
+                            );
                         } else if self.comm_servers.contains_key(&node_id) {
                             self.handle_commserver_command(
                                 &node_id,
                                 CommunicationServerCommand::RemoveSender(to_remove),
-                            )
+                            );
                         }
                     }
                     Err(e) => error!("{}", e),
                 }
-            },
-            GUICommands::AddSender(node_id, to_add) => {
-                match self.add_sender(&node_id, &to_add) {
-                    Ok(()) => {
-                        let sender;
-                        if self.drones.contains_key(&to_add) {
-                            (_, sender) = self.drones.get(&to_add).unwrap().clone();
-                        } else if self.cclients.contains_key(&to_add) {
-                            (_, sender) = self.cclients.get(&to_add).unwrap().clone();
-                        } else if self.mclients.contains_key(&to_add) {
-                            (_, sender) = self.mclients.get(&to_add).unwrap().clone();
-                        } else {
-                            (_, sender) = self.comm_servers.get(&to_add).unwrap().clone();
-                        }
+            }
+            GUICommands::AddSender(node_id, to_add) => match self.add_sender(node_id, to_add) {
+                Ok(()) => {
+                    let sender;
+                    if self.drones.contains_key(&to_add) {
+                        (_, sender) = self.drones.get(&to_add).unwrap().clone();
+                    } else if self.cclients.contains_key(&to_add) {
+                        (_, sender) = self.cclients.get(&to_add).unwrap().clone();
+                    } else if self.mclients.contains_key(&to_add) {
+                        (_, sender) = self.mclients.get(&to_add).unwrap().clone();
+                    } else {
+                        (_, sender) = self.comm_servers.get(&to_add).unwrap().clone();
+                    }
 
-                        if self.drones.contains_key(&node_id) {
-                            self.handle_drone_command(
-                                &node_id,
-                                DroneCommand::AddSender(to_add, sender),
-                            );
-                        } else if self.cclients.contains_key(&node_id) {
-                            self.handle_cclient_command(
-                                &node_id,
-                                ChatClientCommand::AddSender(to_add, sender),
-                            );
-                        } else if self.mclients.contains_key(&node_id) {
-                            self.handle_mclient_command(
-                                &node_id,
-                                MediaClientCommand::AddSender(to_add, sender),
-                            );
-                        } else if self.comm_servers.contains_key(&node_id) {
-                            self.handle_commserver_command(
-                                &node_id,
-                                CommunicationServerCommand::AddSender(to_add, sender),
-                            );
-                        }
+                    if self.drones.contains_key(&node_id) {
+                        self.handle_drone_command(
+                            &node_id,
+                            DroneCommand::AddSender(to_add, sender),
+                        );
+                    } else if self.cclients.contains_key(&node_id) {
+                        self.handle_cclient_command(
+                            &node_id,
+                            ChatClientCommand::AddSender(to_add, sender),
+                        );
+                    } else if self.mclients.contains_key(&node_id) {
+                        self.handle_mclient_command(
+                            &node_id,
+                            MediaClientCommand::AddSender(to_add, sender),
+                        );
+                    } else if self.comm_servers.contains_key(&node_id) {
+                        self.handle_commserver_command(
+                            &node_id,
+                            CommunicationServerCommand::AddSender(to_add, sender),
+                        );
                     }
-                    Err(e) => error!("{}", e),
                 }
+                Err(e) => error!("{}", e),
             },
             GUICommands::SetPDR(drone, pdr) => {
-                if pdr >= 0.0 && pdr <= 1.0 {
-                    self.handle_drone_command(&drone, DroneCommand::SetPacketDropRate(pdr))
+                if (0.0..=1.0).contains(&pdr) {
+                    self.handle_drone_command(&drone, DroneCommand::SetPacketDropRate(pdr));
                 } else {
-                    error!("[ ERROR ]: The PDR number is out of range. Please enter a number between 0.00 and 1.00")      
+                    error!("[ ERROR ]: The PDR number is out of range. Please enter a number between 0.00 and 1.00");
                 }
-            },
+            }
 
             GUICommands::SendMessageTo(src, dest, msg) => {
-                self.handle_cclient_command(&src, ChatClientCommand::SendMessageTo(dest, msg))
-            },
+                self.handle_cclient_command(&src, ChatClientCommand::SendMessageTo(dest, msg));
+            }
             GUICommands::RegisterTo(client, server) => {
-                self.handle_cclient_command(&client, ChatClientCommand::RegisterTo(server))
-            },
+                self.handle_cclient_command(&client, ChatClientCommand::RegisterTo(server));
+            }
             GUICommands::GetClientList(client) => {
                 self.handle_cclient_command(&client, ChatClientCommand::GetClientList);
-            },
+            }
             GUICommands::LogOut(client, _) => {
-                self.handle_cclient_command(&client, ChatClientCommand::LogOut)
-            },
+                self.handle_cclient_command(&client, ChatClientCommand::LogOut);
+            }
             GUICommands::AskForFileList(client, server) => {
                 self.handle_mclient_command(&client, MediaClientCommand::AskFilesList(server));
-            },
+            }
             GUICommands::GetFile(client, server, title) => {
                 self.handle_mclient_command(&client, MediaClientCommand::AskForFile(server, title));
             }

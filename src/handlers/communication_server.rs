@@ -1,82 +1,75 @@
-use wg_2024::{network::NodeId, packet::PacketType};
 use colored::Colorize;
 use log::{error, info};
+use wg_2024::{network::NodeId, packet::PacketType};
 
 use messages::server_commands::{CommunicationServerCommand, CommunicationServerEvent};
 
 use crate::SimulationController;
 
-use super::media_client;
-
 impl SimulationController {
     // Handle Server Command
+    #[allow(clippy::too_many_lines)]
     pub fn handle_commserver_event(&mut self, event: CommunicationServerEvent) {
-        info!(
-            "[ {} ] Is a {:?}",
-            "Simulation Controller".yellow(),
-            event
-        );
+        info!("[ {} ] Is a {:?}", "Simulation Controller".yellow(), event);
         match event {
             CommunicationServerEvent::ServerStarted => {
                 info!(
                     "[ {} ]: CommunicationServer started successfully",
                     "Simulation Controller".green(),
-                )
-            },
+                );
+            }
             CommunicationServerEvent::ServerStopped => {
                 info!(
                     "[ {} ]: CommunicationServer stopped successfully",
                     "Simulation Controller".green(),
-                )
-            },
+                );
+            }
             CommunicationServerEvent::ClientRegistered(client) => {
                 info!(
                     "[ {} ]: CommunicationServer registered [ Client {} ]",
                     "Simulation Controller".green(),
                     client,
-                )
-            },
+                );
+            }
             CommunicationServerEvent::ClientDeregistered(client) => {
                 info!(
                     "[ {} ]: CommunicationServer deregistered [ Client {} ]",
                     "Simulation Controller".green(),
                     client,
-                )
-            },
+                );
+            }
             CommunicationServerEvent::MessageForwarded(dest, msg) => {
                 info!(
                     "[ {} ]: CommunicationServer forwarded the message {:?} to [ Client {} ]",
                     "Simulation Controller".green(),
                     msg,
                     dest
-                )
-            },
-            CommunicationServerEvent::MessageReceived(src, msg) => info!(
-                "[ {} ]: CommunicationServer received the message {:?} from [ Client {} ]",
-                "Simulation Controller".green(),
-                msg,
-                src
-            ),
+                );
+            }
+            CommunicationServerEvent::MessageReceived(src, msg) => {
+                info!(
+                    "[ {} ]: CommunicationServer received the message {:?} from [ Client {} ]",
+                    "Simulation Controller".green(),
+                    msg,
+                    src
+                );
+            }
             CommunicationServerEvent::UnreachableClient(client) => {
                 error!(
                     "[ {} ]: received an error message: [ Client {} ] is unreachable",
                     "Simulation Controller".red(),
                     client,
                 );
-            },
+            }
             CommunicationServerEvent::SendError(e) => {
                 error!(
                     "[ {} ]: received an error message: It has verified a SenderError: {}",
                     "Simulation Controller".red(),
                     e
                 );
-            },
+            }
             CommunicationServerEvent::ControllerShortcut(packet) => {
-                if let Some(dest) = packet
-                    .routing_header
-                    .hops
-                    .get(packet.routing_header.hops.len() - 1)
-                {
+                if let Some(dest) = packet.routing_header.hops.last() {
                     // Get destination node channel
                     let packet_channel;
                     if self.drones.contains_key(dest) {
@@ -99,7 +92,7 @@ impl SimulationController {
                         );
                         return;
                     }
-                    
+
                     // Send Packet to destination
                     match packet.pack_type {
                         PacketType::MsgFragment(_) => {
@@ -115,14 +108,14 @@ impl SimulationController {
                         "Simulation Controller".red()
                     );
                 }
-            },
+            }
             CommunicationServerEvent::DestinationIsDrone(drone) => {
                 error!(
                     "[ {} ]: received an error message: The selected destination is a drone [ Drone {} ]",
                     "Simulation Controller".red(),
                     drone
                 );
-            },
+            }
             CommunicationServerEvent::ErrorPacketCache(session_id, fragment_index) => {
                 error!(
                     "[ {} ]: received an error message: Error in the packet cache [ session_id : {}, fragment_index: {} ]",
@@ -130,12 +123,17 @@ impl SimulationController {
                     session_id,
                     fragment_index
                 );
-            },
+            }
         }
     }
 
     // Handle Server Command
-    pub fn handle_commserver_command(&mut self, comm_server: &NodeId, command: CommunicationServerCommand) {
+    #[allow(clippy::too_many_lines)]
+    pub fn handle_commserver_command(
+        &mut self,
+        comm_server: &NodeId,
+        command: CommunicationServerCommand,
+    ) {
         match command {
             CommunicationServerCommand::InitFlooding => {
                 if let Some((server, _)) = self.comm_servers.get(comm_server) {
@@ -159,7 +157,7 @@ impl SimulationController {
                         comm_server
                     );
                 }
-            },
+            }
             CommunicationServerCommand::AddSender(node_id, sender) => {
                 if let Some((server, _)) = self.comm_servers.get(comm_server) {
                     if let Some(vec) = self.neighbor.get_mut(comm_server) {
@@ -193,7 +191,7 @@ impl SimulationController {
                         comm_server
                     );
                 }
-            },
+            }
             CommunicationServerCommand::RemoveSender(node_id) => {
                 if let Some((server, _)) = self.comm_servers.get(comm_server) {
                     if let Some(vec) = self.neighbor.get_mut(comm_server) {
@@ -236,7 +234,7 @@ impl SimulationController {
                         comm_server
                     );
                 }
-            },
+            }
             CommunicationServerCommand::LogNetwork => {
                 if let Some((server, _)) = self.comm_servers.get(comm_server) {
                     match server.send(CommunicationServerCommand::LogNetwork) {
