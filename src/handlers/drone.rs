@@ -22,7 +22,6 @@ impl SimulationController {
                     packet.pack_type
                 );
 
-                if packet.pack_type == PacketType::MsgFragment()
                 if let Some(src) = packet
                     .routing_header
                     .hops
