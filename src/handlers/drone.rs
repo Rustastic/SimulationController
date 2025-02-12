@@ -1,3 +1,4 @@
+use messages::gui_commands::GUIEvents;
 use wg_2024::{
     controller::{DroneCommand, DroneEvent},
     network::NodeId,
@@ -11,14 +12,92 @@ use crate::SimulationController;
 
 impl SimulationController {
     // Handle Drone Events
+    #[allow(clippy::too_many_lines)]
     pub fn handle_drone_event(&self, drone_event: DroneEvent) {
         match drone_event {
-            DroneEvent::PacketSent(packet) | DroneEvent::PacketDropped(packet) => {
+            DroneEvent::PacketSent(packet) => {
                 info!(
                     "[ {} ] Is a {}",
                     "Simulation Controller".yellow(),
                     packet.pack_type
                 );
+
+                if let Some(src) = packet
+                    .routing_header
+                    .hops
+                    .get(packet.routing_header.hop_index) {
+
+                    if let Some(dest) = packet
+                        .routing_header
+                        .hops
+                        .get(packet.routing_header.hop_index + 1) {
+
+                        match self.gui_send.send(GUIEvents::PacketSent(*src, *dest, packet.clone())) {
+                            Ok(()) => info!(
+                                "[ {} ]: successfully sent a GUIEvents::PacketSent({}, {}, {:?}) from the Simulation Controller to the GUI",
+                                "Simulation Controller".green(),
+                                src,
+                                dest,
+                                packet
+                            ),
+                            Err(e) => error!(
+                                "[ {} ]: failed to sent a GUIEvents::PacketSent({}, {}, {:?}) from the Simulation Controller to the GUI: {}",
+                                "Simulation Controller".green(),
+                                src,
+                                dest,
+                                packet,
+                                e
+                            ),
+                        }
+                    } else {
+                        error!(
+                            "[ {} ]: failed to find a extract source from packet: {:?}",
+                            "Simulation Controller".red(),
+                            packet
+                        );
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a extract destination from packet: {:?}",
+                        "Simulation Controller".red(),
+                        packet
+                    );
+                }
+            },
+            DroneEvent::PacketDropped(packet) => {
+                info!(
+                    "[ {} ] Is a {}",
+                    "Simulation Controller".yellow(),
+                    packet.pack_type
+                );
+
+                if let Some(src) = packet
+                    .routing_header
+                    .hops
+                    .get(packet.routing_header.hop_index) {
+
+                    match self.gui_send.send(GUIEvents::PacketDropped(*src, packet.clone())) {
+                        Ok(()) => info!(
+                            "[ {} ]: successfully sent a GUIEvents::PacketDropped({}, {:?}) from the Simulation Controller to the GUI",
+                            "Simulation Controller".green(),
+                            src,
+                            packet
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to sent a GUIEvents::PacketDropped({}, {:?}) from the Simulation Controller to the GUI: {}",
+                            "Simulation Controller".green(),
+                            src,
+                            packet,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a extract source from packet: {:?}",
+                        "Simulation Controller".red(),
+                        packet
+                    );
+                }
             }
             DroneEvent::ControllerShortcut(packet) => {
                 info!(

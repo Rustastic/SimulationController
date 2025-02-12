@@ -46,7 +46,7 @@ impl SimulationController {
             }
             ChatClientEvent::SuccessfulRegistration(server) => {
                 info!(
-                    "[ {} ]: The Client successfully register to [ Server {}]",
+                    "[ {} ]: The Client successfully register to the [ Server {}]",
                     "Simulation Controller".green(),
                     server
                 );
@@ -71,7 +71,7 @@ impl SimulationController {
             }
             ChatClientEvent::SuccessfulLogOut => {
                 info!(
-                    "[ {} ]: The Client successfully logged out from server",
+                    "[ {} ]: The Client successfully logged out from the server",
                     "Simulation Controller".green(),
                 );
             }
@@ -84,7 +84,7 @@ impl SimulationController {
             }
             ChatClientEvent::ErrorNotRunning => {
                 error!(
-                    "[ {} ]: received an error message: The Client tried to register without previously running ChatClientCommand::StartChatClient",
+                    "[ {} ]: received an error message: The client tried to register without before starting",
                     "Simulation Controller".red(),
                 );
             }

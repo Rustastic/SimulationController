@@ -2,7 +2,7 @@ use colored::Colorize;
 use log::{error, info};
 use wg_2024::{network::NodeId, packet::PacketType};
 
-use messages::server_commands::{CommunicationServerCommand, CommunicationServerEvent};
+use messages::{server_commands::{CommunicationServerCommand, CommunicationServerEvent}};
 
 use crate::SimulationController;
 
@@ -26,14 +26,14 @@ impl SimulationController {
             }
             CommunicationServerEvent::ClientRegistered(client) => {
                 info!(
-                    "[ {} ]: CommunicationServer registered [ Client {} ]",
+                    "[ {} ]: CommunicationServer registered the [ Client {} ]",
                     "Simulation Controller".green(),
                     client,
                 );
             }
             CommunicationServerEvent::ClientDeregistered(client) => {
                 info!(
-                    "[ {} ]: CommunicationServer deregistered [ Client {} ]",
+                    "[ {} ]: [ Client {} ]  deregistered from CommunicationServer",
                     "Simulation Controller".green(),
                     client,
                 );
