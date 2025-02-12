@@ -22,6 +22,7 @@ impl SimulationController {
                     packet.pack_type
                 );
 
+                if packet.pack_type == PacketType::MsgFragment()
                 if let Some(src) = packet
                     .routing_header
                     .hops
@@ -57,11 +58,7 @@ impl SimulationController {
                         );
                     }
                 } else {
-                    error!(
-                        "[ {} ]: failed to find a extract destination from packet: {:?}",
-                        "Simulation Controller".red(),
-                        packet
-                    );
+                    // is a nack/ack/flood_request/flood_response
                 }
             },
             DroneEvent::PacketDropped(packet) => {
