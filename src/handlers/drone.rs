@@ -49,15 +49,7 @@ impl SimulationController {
                                 e
                             ),
                         }
-                    } else {
-                        error!(
-                            "[ {} ]: failed to find a extract source from packet: {:?}",
-                            "Simulation Controller".red(),
-                            packet
-                        );
                     }
-                } else {
-                    // is a nack/ack/flood_request/flood_response
                 }
             },
             DroneEvent::PacketDropped(packet) => {
