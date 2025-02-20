@@ -237,8 +237,12 @@ impl SimulationController {
                         (_, sender) = self.cclients.get(&to_add).unwrap().clone();
                     } else if self.mclients.contains_key(&to_add) {
                         (_, sender) = self.mclients.get(&to_add).unwrap().clone();
-                    } else {
+                    } else if self.comm_servers.contains_key(&to_add) {
                         (_, sender) = self.comm_servers.get(&to_add).unwrap().clone();
+                    } else if self.text_servers.contains_key(&to_add) {
+                        (_, sender) = self.text_servers.get(&to_add).unwrap().clone();
+                    } else {
+                        (_, sender) = self.media_servers.get(&to_add).unwrap().clone();
                     }
 
                     if self.drones.contains_key(&node_id) {
@@ -260,6 +264,16 @@ impl SimulationController {
                         self.handle_commserver_command(
                             &node_id,
                             CommunicationServerCommand::AddSender(to_add, sender),
+                        );
+                    } else if self.text_servers.contains_key(&to_add) {
+                        self.handle_text_command(
+                            &node_id,
+                            ContentServerCommand::AddSender(to_add, sender),
+                        );
+                    } else if self.media_servers.contains_key(&to_add) {
+                        self.handle_media_command(
+                            &node_id,
+                            ContentServerCommand::AddSender(to_add, sender),
                         );
                     }
                 }

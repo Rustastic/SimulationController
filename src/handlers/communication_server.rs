@@ -2,7 +2,7 @@ use colored::Colorize;
 use log::{error, info};
 use wg_2024::{network::NodeId, packet::PacketType};
 
-use messages::{server_commands::{CommunicationServerCommand, CommunicationServerEvent}};
+use messages::server_commands::{CommunicationServerCommand, CommunicationServerEvent};
 
 use crate::SimulationController;
 

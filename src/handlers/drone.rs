@@ -25,13 +25,13 @@ impl SimulationController {
                 if let Some(src) = packet
                     .routing_header
                     .hops
-                    .get(packet.routing_header.hop_index) {
-
+                    .get(packet.routing_header.hop_index)
+                {
                     if let Some(dest) = packet
                         .routing_header
                         .hops
-                        .get(packet.routing_header.hop_index + 1) {
-
+                        .get(packet.routing_header.hop_index + 1)
+                    {
                         match self.gui_send.send(GUIEvents::PacketSent(*src, *dest, packet.clone())) {
                             Ok(()) => info!(
                                 "[ {} ]: successfully sent a GUIEvents::PacketSent({}, {}, {:?}) from the Simulation Controller to the GUI",
@@ -51,7 +51,7 @@ impl SimulationController {
                         }
                     }
                 }
-            },
+            }
             DroneEvent::PacketDropped(packet) => {
                 info!(
                     "[ {} ] Is a {}",
@@ -62,8 +62,8 @@ impl SimulationController {
                 if let Some(src) = packet
                     .routing_header
                     .hops
-                    .get(packet.routing_header.hop_index) {
-
+                    .get(packet.routing_header.hop_index)
+                {
                     match self.gui_send.send(GUIEvents::PacketDropped(*src, packet.clone())) {
                         Ok(()) => info!(
                             "[ {} ]: successfully sent a GUIEvents::PacketDropped({}, {:?}) from the Simulation Controller to the GUI",
