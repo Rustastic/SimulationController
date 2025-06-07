@@ -179,7 +179,7 @@ pub fn spawn(sim_ctrl: &mut SimulationController) {
         drone_factory::<rusty_drones::RustyDrone>(),
         drone_factory::<LeDron_James::Drone>(),
         drone_factory::<dr_ones::Drone>(),
-        drone_factory::<skylink::SkyLinkDrone>(),
+        //drone_factory::<skylink::SkyLinkDrone>(),
         drone_factory::<rustbusters_drone::RustBustersDrone>(),
         drone_factory::<rust_roveri::RustRoveri>(),
         drone_factory::<rust_do_it::RustDoIt>(),
