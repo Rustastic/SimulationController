@@ -19,7 +19,7 @@ thiserror = "2.0.11"
 rusty_drones = { git = "https://github.com/rusty-drone-2024/rusty-drone.git" }
 LeDron_James = { git = "https://github.com/anass03/LeDron_James.git" }
 dr_ones = { git = "https://github.com/Dr-Ones/drone" }
-skylink = { git = "https://github.com/Suge42/Skylink_drone.git" }
+#skylink = { git = "https://github.com/Suge42/Skylink_drone.git" }
 rustbusters-drone = { git = "https://github.com/Rustbusters/drone", features = ["sounds"] }
 rust-roveri = { git = "https://github.com/RustRoveri/rust-roveri.git" }
 rust_do_it = { git = "https://github.com/RustDoIt/Drone.git" }
