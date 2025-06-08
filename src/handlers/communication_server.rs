@@ -61,6 +61,13 @@ impl SimulationController {
                     client,
                 );
             }
+            CommunicationServerEvent::UnreachableNode(client) => {
+                error!(
+                    "[ {} ]: received an error message: [ Node {} ] is unreachable",
+                    "Simulation Controller".red(),
+                    client,
+                );
+            }
             CommunicationServerEvent::SendError(e) => {
                 error!(
                     "[ {} ]: received an error message: It has verified a SenderError: {}",

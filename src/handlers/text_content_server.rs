@@ -54,6 +54,13 @@ impl SimulationController {
                     drone
                 );
             }
+            ContentServerEvent::UnreachableNode(node) => {
+                error!(
+                    "[ {} ]: received an error message: [ Node {} ] is unreachable",
+                    "Simulation Controller".red(),
+                    node
+                );
+            }
             ContentServerEvent::ErrorPacketCache(session_id, fragment_index) => {
                 error!(
                     "[ {} ]: received an error message: Error in the packet cache [ session_id : {}, fragment_index: {} ]",
