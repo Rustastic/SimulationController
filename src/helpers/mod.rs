@@ -82,6 +82,7 @@ impl SimulationController {
             Self::drone_factory::<dr_ones::Drone>(),
             //Self::drone_factory::<skylink::SkyLinkDrone>(),
             Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
+            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
             Self::drone_factory::<rust_roveri::RustRoveri>(),
             Self::drone_factory::<rust_do_it::RustDoIt>(),
             Self::drone_factory::<wg_2024_rust::drone::RustDrone>(),
