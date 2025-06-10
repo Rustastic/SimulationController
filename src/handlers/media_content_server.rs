@@ -8,6 +8,7 @@ use messages::server_commands::{ContentServerCommand, ContentServerEvent};
 use crate::SimulationController;
 
 impl SimulationController {
+    #[allow(clippy::too_many_lines)]
     pub fn handle_media_event(&mut self, event: ContentServerEvent) {
         info!("[ {} ] Is a {:?}", "Simulation Controller".yellow(), event);
         match event {

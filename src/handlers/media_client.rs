@@ -354,15 +354,15 @@ impl SimulationController {
             }
             MediaClientCommand::AskServerType(server) => {
                 if let Some((client, _)) = self.mclients.get(media_client) {
-                    match client.send(MediaClientCommand::AskFilesList(server)) {
+                    match client.send(MediaClientCommand::AskServerType(server)) {
                         Ok(()) => info!(
-                            "[ {} ]: sent a MediaClientCommand::AskFilesList({}) to [ Client {} ]",
+                            "[ {} ]: sent a MediaClientCommand::AskServerType({}) to [ Client {} ]",
                             "Simulation Controller".green(),
                             server,
                             media_client
                         ),
                         Err(e) => error!(
-                            "[ {} ]: failed to send a MediaClientCommand::AskFilesList({}) to the [ Client {} ]: {}",
+                            "[ {} ]: failed to send a MediaClientCommand::AskServerType({}) to the [ Client {} ]: {}",
                             "Simulation Controller".red(),
                             server,
                             media_client,

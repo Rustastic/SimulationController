@@ -192,13 +192,13 @@ impl SimulationController {
                 match self.spawn(id, connected_node_ids, pdr) {
                     Ok(()) => (),
                     Err(e) => {
-                        error!("{}", e);
+                        error!("{e}");
                     }
                 }
             }
             GUICommands::Crash(drone) => match self.crash(drone) {
                 Ok(()) => self.handle_drone_command(&drone, DroneCommand::Crash),
-                Err(e) => error!("{}", e),
+                Err(e) => error!("{e}"),
             },
             GUICommands::RemoveSender(node_id, to_remove) => {
                 match self.remove_sender(node_id, to_remove) {
@@ -225,7 +225,7 @@ impl SimulationController {
                             );
                         }
                     }
-                    Err(e) => error!("{}", e),
+                    Err(e) => error!("{e}"),
                 }
             }
             GUICommands::AddSender(node_id, to_add) => match self.add_sender(node_id, to_add) {
@@ -277,7 +277,7 @@ impl SimulationController {
                         );
                     }
                 }
-                Err(e) => error!("{}", e),
+                Err(e) => error!("{e}"),
             },
             GUICommands::SetPDR(drone, pdr) => {
                 if (0.0..=1.0).contains(&pdr) {

@@ -16,16 +16,10 @@ impl SimulationController {
         info!("[ {} ] Is a {:?}", "Simulation Controller".yellow(), event);
         match event {
             ChatClientEvent::CommunicationServerList(items) => {
-                info!(
-                    "The Client retrieved the CommunicationServers list: {:?}",
-                    items
-                );
+                info!("The Client retrieved the CommunicationServers list: {items:?}");
             }
             ChatClientEvent::MessageReceived(src, dest, msg) => {
-                info!(
-                    "[ Client: {} ]: received the message {:?} from [ Server {} ]",
-                    src, msg, src
-                );
+                info!("[ Client: {src} ]: received the message {msg:?} from [ Server {src} ]");
                 match self.gui_send.send(GUIEvents::MessageReceived(src, dest, msg.clone())) {
                     Ok(()) => info!(
                         "[ {} ]: successfully sent a GUIEvents::MessageReceived({}, {}, {:?}) from the Simulation Controller to the GUI",
@@ -52,7 +46,7 @@ impl SimulationController {
                 );
             }
             ChatClientEvent::ClientList(client, client_list) => {
-                info!("The Client retrieved the Client list: {:?}", client_list);
+                info!("The Client retrieved the Client list: {client_list:?}");
                 match self.gui_send.send(GUIEvents::ClientList(client, client_list.clone())) {
                     Ok(()) => info!(
                         "[ {} ]: successfully sent a GUIEvents::ClientList({}, {:?}) from the Simulation Controller to the GUI",
