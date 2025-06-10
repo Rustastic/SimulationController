@@ -94,14 +94,14 @@ impl SimulationController {
             "Simulation Controller".green()
         );
 
-        thread::sleep(std::time::Duration::from_secs(2));
+        thread::sleep(std::time::Duration::from_secs(1));
 
         // Init ChatClient
         for chat_client in self.cclients.clone().keys() {
             self.handle_cclient_command(chat_client, ChatClientCommand::InitFlooding);
-            thread::sleep(std::time::Duration::from_secs(2));
+            thread::sleep(std::time::Duration::from_secs(1));
             self.handle_cclient_command(chat_client, ChatClientCommand::StartChatClient);
-            thread::sleep(std::time::Duration::from_secs(2));
+            thread::sleep(std::time::Duration::from_secs(1));
         }
 
         // Start loop
@@ -180,7 +180,7 @@ impl SimulationController {
             }
 
             //////////////////////////////////////////////////////////// REMOVE
-            thread::sleep(std::time::Duration::from_secs_f32(0.01));
+            //thread::sleep(std::time::Duration::from_secs_f32(0.01));
         }
     }
 
