@@ -329,10 +329,53 @@ impl SimulationController {
                     );
                 }
             }
-            //MediaClientCommand::GetServerList => todo!(),
-            //MediaClientCommand::AskServerType(_) => todo!(),
-            _ => {
-                error!("NOPE -> Not Implemented");
+            MediaClientCommand::GetServerList => {
+                if let Some((client, _)) = self.mclients.get(media_client) {
+                    match client.send(MediaClientCommand::GetServerList) {
+                        Ok(()) => info!(
+                            "[ {} ]: sent a MediaClientCommand::GetServerList to [ Client {} ]",
+                            "Simulation Controller".green(),
+                            media_client
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to send a MediaClientCommand::GetServerList to the [ Client {} ]: {}",
+                            "Simulation Controller".red(),
+                            media_client,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<MediaClientCommand> channel for the [ Client {} ]",
+                        "Simulation Controller".red(),
+                        media_client
+                    );
+                }
+            }
+            MediaClientCommand::AskServerType(server) => {
+                if let Some((client, _)) = self.mclients.get(media_client) {
+                    match client.send(MediaClientCommand::AskFilesList(server)) {
+                        Ok(()) => info!(
+                            "[ {} ]: sent a MediaClientCommand::AskFilesList({}) to [ Client {} ]",
+                            "Simulation Controller".green(),
+                            server,
+                            media_client
+                        ),
+                        Err(e) => error!(
+                            "[ {} ]: failed to send a MediaClientCommand::AskFilesList({}) to the [ Client {} ]: {}",
+                            "Simulation Controller".red(),
+                            server,
+                            media_client,
+                            e
+                        ),
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Sender<MediaClientCommand> channel for the [ Client {} ]",
+                        "Simulation Controller".red(),
+                        media_client
+                    );
+                }
             }
         }
     }

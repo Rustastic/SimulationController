@@ -107,8 +107,12 @@ impl SimulationController {
                     client,
                 );
             }
-            ContentServerEvent::UnreachableClient(_) => {
-                error!("NOPE -> Not Implemented");
+            ContentServerEvent::UnreachableClient(client) => {
+                error!(
+                    "[ {} ]: received an error message: [ Client {} ] is unreachable",
+                    "Simulation Controller".red(),
+                    client,
+                );
             }
         }
     }

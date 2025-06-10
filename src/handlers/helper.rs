@@ -1,4 +1,7 @@
-use messages::{client_commands::{ChatClientCommand, MediaClientCommand}, server_commands::{CommunicationServerCommand, ContentServerCommand}};
+use messages::{
+    client_commands::{ChatClientCommand, MediaClientCommand},
+    server_commands::{CommunicationServerCommand, ContentServerCommand},
+};
 
 use crate::SimulationController;
 
@@ -19,5 +22,5 @@ impl SimulationController {
         for (comm_server, (_, _)) in self.comm_servers.clone() {
             self.handle_commserver_command(&comm_server, CommunicationServerCommand::InitFlooding);
         }
-    }    
+    }
 }
