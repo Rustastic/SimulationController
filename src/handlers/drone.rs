@@ -148,12 +148,15 @@ impl SimulationController {
                     if let Some(vec) = self.neighbor.get_mut(drone) {
                         vec.retain(|x| *x != node_id);
                         match command_channel.send(DroneCommand::RemoveSender(node_id)) {
-                            Ok(()) => info!(
-                                "[ {} ]: sent a DroneCommand::RemoveSender({}) to [ Drone {} ]",
-                                "Simulation Controller".green(),
-                                node_id,
-                                drone
-                            ),
+                            Ok(()) => {
+                                self.send_re_init_flooding();
+                                info!(
+                                    "[ {} ]: sent a DroneCommand::RemoveSender({}) to [ Drone {} ]",
+                                    "Simulation Controller".green(),
+                                    node_id,
+                                    drone
+                                );
+                            },
                             Err(e) => error!(
                                 "[ {} ]: failed to send a DroneCommand::RemoveSender({}) to the [ Drone {} ]: {}",
                                 "Simulation Controller".red(),
@@ -174,12 +177,15 @@ impl SimulationController {
                     if let Some(vec) = self.neighbor.get_mut(drone) {
                         vec.push(node_id);
                         match command_channel.send(DroneCommand::AddSender(node_id, sender)) {
-                            Ok(()) => info!(
-                                "[ {} ]: sent a DroneCommand::AddSender({}, sender_channel) to [ Drone {} ]",
-                                "Simulation Controller".green(),
-                                node_id,
-                                drone
-                            ),
+                            Ok(()) => {
+                                self.send_re_init_flooding();
+                                info!(
+                                    "[ {} ]: sent a DroneCommand::AddSender({}, sender_channel) to [ Drone {} ]",
+                                    "Simulation Controller".green(),
+                                    node_id,
+                                    drone
+                                );
+                            },
                             Err(e) => error!(
                                 "[ {} ]: failed to send a DroneCommand::AddSender({}, sender_channel) to the [ Drone {} ]: {}",
                                 "Simulation Controller".red(),

@@ -178,12 +178,15 @@ impl SimulationController {
                         neighbors.retain(|x| *x != drone);
                         if let Some((client, _)) = self.mclients.get(media_client) {
                             match client.send(MediaClientCommand::RemoveSender(drone)) {
-                                Ok(()) => info!(
-                                    "[ {} ]: sent a MediaClientCommand::RemoveSender({}) to [ Client {} ]",
-                                    "Simulation Controller".green(),
-                                    drone,
-                                    media_client
-                                ),
+                                Ok(()) => {
+                                    info!(
+                                        "[ {} ]: sent a MediaClientCommand::RemoveSender({}) to [ Client {} ]",
+                                        "Simulation Controller".green(),
+                                        drone,
+                                        media_client
+                                    );
+                                    self.send_re_init_flooding();
+                                },
                                 Err(e) => error!(
                                     "[ {} ]: failed to send a MediaClientCommand::RemoveSender({}) to the [ Client {} ]: {}",
                                     "Simulation Controller".red(),
@@ -230,13 +233,16 @@ impl SimulationController {
                         neighbors.push(drone);
                         if let Some((client, _)) = self.mclients.get(media_client) {
                             match client.send(MediaClientCommand::AddSender(drone, sender.clone())) {
-                                Ok(()) => info!(
-                                    "[ {} ]: sent a MediaClientCommand::AddSender({}, {:?}) to [ Client {} ]",
-                                    "Simulation Controller".green(),
-                                    drone,
-                                    sender,
-                                    media_client
-                                ),
+                                Ok(()) => {
+                                    self.send_re_init_flooding();
+                                    info!(
+                                        "[ {} ]: sent a MediaClientCommand::AddSender({}, {:?}) to [ Client {} ]",
+                                        "Simulation Controller".green(),
+                                        drone,
+                                        sender,
+                                        media_client
+                                    );
+                                },
                                 Err(e) => error!(
                                     "[ {} ]: failed to send a MediaClientCommand::AddSender({}, {:?}) to the [ Client {} ]: {}",
                                     "Simulation Controller".red(),

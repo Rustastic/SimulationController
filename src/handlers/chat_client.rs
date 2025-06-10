@@ -195,12 +195,15 @@ impl SimulationController {
                         neighbors.retain(|x| *x != drone);
                         if let Some((client, _)) = self.cclients.get(chat_client) {
                             match client.send(ChatClientCommand::RemoveSender(drone)) {
-                                Ok(()) => info!(
-                                    "[ {} ]: sent a ChatClientCommand::RemoveSender({}) to [ ChatClient {} ]",
-                                    "Simulation Controller".green(),
-                                    drone,
-                                    chat_client
-                                ),
+                                Ok(()) => {
+                                    self.send_re_init_flooding();
+                                    info!(
+                                        "[ {} ]: sent a ChatClientCommand::RemoveSender({}) to [ ChatClient {} ]",
+                                        "Simulation Controller".green(),
+                                        drone,
+                                        chat_client
+                                    );
+                                },
                                 Err(e) => error!(
                                     "[ {} ]: failed to send a ChatClientCommand::RemoveSender({}) to the [ ChatClient {} ]: {}",
                                     "Simulation Controller".red(),
@@ -247,13 +250,16 @@ impl SimulationController {
                         neighbors.push(drone);
                         if let Some((client, _)) = self.cclients.get(chat_client) {
                             match client.send(ChatClientCommand::AddSender(drone, sender.clone())) {
-                                Ok(()) => info!(
-                                    "[ {} ]: sent a ChatClientCommand::AddSender({}, {:?}) to [ ChatClient {} ]",
-                                    "Simulation Controller".green(),
-                                    drone,
-                                    sender,
-                                    chat_client
-                                ),
+                                Ok(()) => {
+                                    self.send_re_init_flooding();
+                                    info!(
+                                        "[ {} ]: sent a ChatClientCommand::AddSender({}, {:?}) to [ ChatClient {} ]",
+                                        "Simulation Controller".green(),
+                                        drone,
+                                        sender,
+                                        chat_client
+                                    );
+                                },
                                 Err(e) => error!(
                                     "[ {} ]: failed to send a ChatClientCommand::AddSender({}, {:?}) to the [ ChatClient {} ]: {}",
                                     "Simulation Controller".red(),

@@ -144,12 +144,15 @@ impl SimulationController {
                     if let Some(vec) = self.neighbor.get_mut(media_server) {
                         vec.push(node_id);
                         match server.send(ContentServerCommand::AddSender(node_id, sender)) {
-                            Ok(()) => info!(
-                                "[ {} ]: sent a ContentServerCommand::AddSender({}, sender_channel) to [ MediaContentServer {} ]",
-                                "Simulation Controller".green(),
-                                node_id,
-                                media_server
-                            ),
+                            Ok(()) => {
+                                self.send_re_init_flooding();
+                                info!(
+                                    "[ {} ]: sent a ContentServerCommand::AddSender({}, sender_channel) to [ MediaContentServer {} ]",
+                                    "Simulation Controller".green(),
+                                    node_id,
+                                    media_server
+                                );
+                            },
                             Err(e) => error!(
                                 "[ {} ]: failed to send a ContentServerCommand::AddSender({}, sender_channel) to the [ MediaContentServer {} ]: {}",
                                 "Simulation Controller".red(),
@@ -180,12 +183,14 @@ impl SimulationController {
                             vec.retain(|x| *x != node_id);
                             match server.send(ContentServerCommand::RemoveSender(node_id)) {
                                 Ok(()) => {
+                                    self.send_re_init_flooding();
                                     info!(
-                                    "[ {} ]: sent a ContentServerCommand::RemoveSender({}) to [ MediaContentServer {} ]",
-                                    "Simulation Controller".green(),
-                                    node_id,
-                                    media_server
-                                );},
+                                        "[ {} ]: sent a ContentServerCommand::RemoveSender({}) to [ MediaContentServer {} ]",
+                                        "Simulation Controller".green(),
+                                        node_id,
+                                        media_server
+                                    );
+                                },
                                 Err(e) => error!(
                                     "[ {} ]: failed to send a ContentServerCommand::RemoveSender({}) to the [ MediaContentServer {} ]: {}",
                                     "Simulation Controller".red(),
