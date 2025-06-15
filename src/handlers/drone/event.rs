@@ -8,7 +8,7 @@ use log::error;
 use crate::SimulationController;
 
 impl SimulationController {
-    /*pub fn handle_drone_event(&mut self) {
+    pub fn handle_drone_event(&mut self) {
         match self.drone_recv.try_recv() {
             Ok(event) => self.process_drone_event(event),
             Err(TryRecvError::Empty) => (),
@@ -19,10 +19,10 @@ impl SimulationController {
                 );
             }
         }
-    }*/
+    }
 
     #[allow(clippy::too_many_lines)]
-    pub fn handle_drone_event(&self, drone_event: DroneEvent) {
+    fn process_drone_event(&self, drone_event: DroneEvent) {
         match drone_event {
             DroneEvent::PacketSent(packet) => {
                 if let Some(src) = packet

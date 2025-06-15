@@ -11,11 +11,11 @@ use wg_2024::controller::DroneCommand;
 use crate::SimulationController;
 
 impl SimulationController {
-    /*pub fn handle_gui_command(&mut self) {
+    pub fn handle_gui_command(&mut self) {
         match self.gui_recv.try_recv() {
             Ok(command) => {
                 self.process_gui_command(command);
-            }
+            },
             Err(TryRecvError::Empty) => (),
             Err(TryRecvError::Disconnected) => {
                 error!(
@@ -24,11 +24,11 @@ impl SimulationController {
                 );
             }
         }
-    }*/
+    }
 
     // Handle GUI Commands
     #[allow(clippy::too_many_lines)]
-    pub fn handle_gui_command(&mut self, command: GUICommands) {
+    fn process_gui_command(&mut self, command: GUICommands) {
         match command {
             GUICommands::Spawn(id, connected_node_ids, pdr) => {
                 // check if spawn is possible
@@ -51,7 +51,7 @@ impl SimulationController {
                             Err(e) => {
                                 error!("[ {} ] {e}", "Simulation Controller".red());
                                 return;
-                            }
+                            },
                         }
                     }
                     // Create drone
@@ -61,9 +61,7 @@ impl SimulationController {
                             self.global_flooding();
 
                             // Send command to GUI
-                            let _ =
-                                self.gui_send
-                                    .send(GUIEvents::Spawn(id, connected_node_ids, pdr));
+                            let _ = self.gui_send.send(GUIEvents::Spawn(id, connected_node_ids, pdr));
                         }
                         Err(e) => {
                             error!("[ {} ] {e}", "Simulation Controller".red());

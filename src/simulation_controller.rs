@@ -1,4 +1,4 @@
-use crossbeam_channel::{select, Receiver, Sender};
+use crossbeam_channel::{Receiver, Sender};
 use log::info;
 use std::{collections::HashMap, thread};
 
@@ -104,72 +104,13 @@ impl SimulationController {
 
         // Start loop
         loop {
-            /*self.handle_drone_event();
+            self.handle_drone_event();
             self.handle_chat_client_event();
             self.handle_media_client_event();
             self.handle_communication_server_event();
             self.handle_media_server_event();
             self.handle_text_server_event();
-            self.handle_gui_command();*/
-
-            select! {
-                recv(self.drone_recv) -> drone_event => match drone_event {
-                    Ok(drone_event) => {
-                        self.handle_drone_event(drone_event);
-                    }
-                    Err(_) => {
-                        break;
-                    }
-                },
-                recv(self.cclient_recv) -> cclient_event => match cclient_event {
-                    Ok(cclient_event) => {
-                        self.handle_chat_client_events(cclient_event);
-                    }
-                    Err(_) => {
-                        break;
-                    }
-                },
-                recv(self.mclient_recv) -> mclient_event => match mclient_event {
-                    Ok(mclient_event) => {
-                        self.handle_media_client_event(mclient_event);
-                    }
-                    Err(_) => {
-                        break;
-                    }
-                },
-                recv(self.comm_server_recv) -> comm_event => match comm_event {
-                    Ok(comm_event) => {
-                        self.handle_communication_server_event(comm_event);
-                    }
-                    Err(_) => {
-                        break;
-                    }
-                },
-                recv(self.text_recv) -> text_event => match text_event {
-                    Ok(text_event) => {
-                        self.handle_text_server_event(text_event);
-                    }
-                    Err(_) => {
-                        break;
-                    }
-                },
-                recv(self.media_recv) -> media_event => match media_event {
-                    Ok(media_event) => {
-                        self.handle_media_server_event(media_event);
-                    }
-                    Err(_) => {
-                        break;
-                    }
-                },
-                recv(self.gui_recv) -> gui_command => match gui_command {
-                    Ok(gui_command) => {
-                        self.handle_gui_command(gui_command);
-                    }
-                    Err(_) => {
-                        break;
-                    }
-                },
-            }
+            self.handle_gui_command();
         }
     }
 }
