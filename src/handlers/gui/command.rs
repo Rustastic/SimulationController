@@ -15,7 +15,6 @@ impl SimulationController {
         match self.gui_recv.try_recv() {
             Ok(command) => {
                 self.process_gui_command(command);
-                warn!("{}",self.gui_recv.is_empty());
             },
             Err(TryRecvError::Empty) => (),
             Err(TryRecvError::Disconnected) => {
