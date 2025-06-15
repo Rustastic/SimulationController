@@ -40,8 +40,6 @@ impl SimulationController {
     }
 
     pub fn check_remove(&self, node_id: NodeId) -> Result<(), Error> {
-        error!("SIM - 2");
-
         let node_type = self.get_node_type(node_id);
 
         match node_type {
