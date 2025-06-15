@@ -105,7 +105,6 @@ impl SimulationController {
 
         // Start loop
         loop {
-            thread::sleep(std::time::Duration::from_secs_f32(0.5));
             self.handle_drone_event();
             self.handle_chat_client_event();
             self.handle_media_client_event();
