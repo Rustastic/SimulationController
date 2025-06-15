@@ -1,6 +1,6 @@
 use colored::Colorize;
 use crossbeam_channel::TryRecvError;
-use log::error;
+use log::{error, info};
 use messages::{
     client_commands::{ChatClientCommand, MediaClientCommand},
     gui_commands::{GUICommands, GUIEvents},
@@ -113,16 +113,17 @@ impl SimulationController {
             }
             GUICommands::RemoveSender(node_id, to_remove) => {
                 match self.check_remove(to_remove) {
-                    Ok(_) => (),
+                    Ok(_) => info!("YES {}", to_remove),
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
+                        error!("YES {}", to_remove);
                         return;
                     }
                 }
 
                 match self.remove_sender(node_id, to_remove) {
                     Ok(()) => {
-                        /*if self.drones.contains_key(&node_id) {
+                        if self.drones.contains_key(&node_id) {
                             self.handle_drone_command(
                                 &node_id,
                                 DroneCommand::RemoveSender(to_remove),
@@ -142,7 +143,7 @@ impl SimulationController {
                                 &node_id,
                                 CommunicationServerCommand::RemoveSender(to_remove),
                             );
-                        }*/
+                        }
                     }
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
