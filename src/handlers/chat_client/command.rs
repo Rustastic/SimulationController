@@ -82,6 +82,7 @@ impl SimulationController {
                         match client.send(ChatClientCommand::RemoveSender(node_id)) {
                             Ok(()) => {
                                 // Send command to GUI
+                                self.gui_send.send(GUIEvents::AddSender(chat_client, node_id));
 
                                 // Launch global flooding
                                 self.global_flooding();
@@ -137,6 +138,7 @@ impl SimulationController {
                         match client.send(ChatClientCommand::AddSender(node_id, sender.clone())) {
                             Ok(()) => {
                                 // Send command to GUI
+                                self.gui_send.send(GUIEvents::AddSender(chat_client, node_id));
 
                                 // Launch global flooding
                                 self.global_flooding();

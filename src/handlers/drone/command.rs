@@ -20,6 +20,7 @@ impl SimulationController {
                         match command_channel.send(DroneCommand::RemoveSender(node_id)) {
                             Ok(()) => {
                                 // Send command to GUI
+                                self.gui_send.send(GUIEvents::RemoveSender(drone, node_id));
 
                                 // Launch global flooding
                                 self.global_flooding();
@@ -58,6 +59,7 @@ impl SimulationController {
                         match command_channel.send(DroneCommand::AddSender(node_id, sender)) {
                             Ok(()) => {
                                 // Send command to GUI
+                                self.gui_send.send(GUIEvents::AddSender(drone, node_id));
 
                                 // Launch global flooding
                                 self.global_flooding();
@@ -91,8 +93,6 @@ impl SimulationController {
                     // Send command and handle Result
                     match command_channel.send(DroneCommand::SetPacketDropRate(pdr)) {
                         Ok(()) => {
-                            // Send command to GUI
-
                             info!(
                                 "[ {} ]: sent a DroneCommand::SetPacketDropRate({}) to [ Drone {} ]",
                                 "Simulation Controller".green(),

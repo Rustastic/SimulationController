@@ -3,7 +3,7 @@ use wg_2024::network::NodeId;
 use colored::Colorize;
 use log::{error, info};
 
-use messages::server_commands::ContentServerCommand;
+use messages::{gui_commands::GUIEvents, server_commands::ContentServerCommand};
 
 use crate::SimulationController;
 
@@ -54,6 +54,7 @@ impl SimulationController {
                         match server.send(ContentServerCommand::AddSender(node_id, sender)) {
                             Ok(()) => {
                                 // Send command to GUI
+                                self.gui_send.send(GUIEvents::AddSender(*text_server, node_id));
 
                                 // Launch global flooding
                                 self.global_flooding();
@@ -102,6 +103,7 @@ impl SimulationController {
                             Ok(()) => {
 
                                 // send command to GUI
+                                self.gui_send.send(GUIEvents::RemoveSender(*text_server, node_id));
 
                                 // Launch global flooding
                                 self.global_flooding();

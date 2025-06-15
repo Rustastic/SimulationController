@@ -56,6 +56,7 @@ impl SimulationController {
                         match client.send(MediaClientCommand::RemoveSender(node_id)) {
                             Ok(()) => {
                                 // Send command to GUI
+                                self.gui_send.send(GUIEvents::RemoveSender(media_client, node_id));
 
                                 // Launch global flooding
                                 self.global_flooding();
@@ -110,6 +111,7 @@ impl SimulationController {
                         match client.send(MediaClientCommand::AddSender(node_id, sender.clone())) {
                             Ok(()) => {
                                 // Send command to GUI
+                                self.gui_send.send(GUIEvents::AddSender(media_client, node_id));
 
                                 // Launch global flooding
                                 self.global_flooding();
