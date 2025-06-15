@@ -57,7 +57,7 @@ impl SimulationController {
                                 // Send command to GUI
                                 let _ = self.gui_send.send(GUIEvents::AddSender(*comm_server, node_id));
 
-                                // Launch globla flooding
+                                // Launch global flooding
                                 self.global_flooding();
 
                                 info!(

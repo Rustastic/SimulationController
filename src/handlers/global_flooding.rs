@@ -7,7 +7,7 @@ use crate::SimulationController;
 
 impl SimulationController {
     pub fn global_flooding(&mut self) {
-        for (chat_client, (_, _)) in self.cclients.clone() {
+        /*for (chat_client, (_, _)) in self.cclients.clone() {
             self.handle_chat_client_command(&chat_client, ChatClientCommand::InitFlooding);
         }
         for (media_client, (_, _)) in self.mclients.clone() {
@@ -24,6 +24,6 @@ impl SimulationController {
                 &comm_server,
                 CommunicationServerCommand::InitFlooding,
             );
-        }
+        }*/
     }
 }
