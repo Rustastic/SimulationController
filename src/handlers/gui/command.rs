@@ -1,6 +1,6 @@
 use colored::Colorize;
 use crossbeam_channel::TryRecvError;
-use log::{error, info};
+use log::{error, info, warn};
 use messages::{
     client_commands::{ChatClientCommand, MediaClientCommand},
     gui_commands::{GUICommands, GUIEvents},
@@ -113,7 +113,7 @@ impl SimulationController {
             }
             GUICommands::RemoveSender(node_id, to_remove) => {
                 match self.check_remove(to_remove) {
-                    Ok(_) => info!("YES {}", to_remove),
+                    Ok(_) => warn!("YES {}", to_remove),
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
                         error!("YES {}", to_remove);
