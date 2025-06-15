@@ -32,11 +32,26 @@ impl SimulationController {
                 // check if spawn is possible
                 if self.drones.contains_key(&id) {
                     error!(
-                        "[ {} ] Can  not spawn the drone: drone with the NodeId: {} already exist",
+                        "[ {} ] Can not spawn the drone: drone with the NodeId: {} already exist",
                         "Simulation Controller".red(),
                         id,
                     )
+                } else if !(0.0..=1.0).contains(&pdr) {
+                    error!(
+                        "[ {} ] Can not spawn the drone: PDR value mus be between 0.0 and 1.0",
+                        "Simulation Controller".red(),
+                    );
                 } else {
+                    // check if can add neighbors
+                    for neighbor in connected_node_ids {
+                        match self.check_add(neighbor) {
+                            Ok(_) => (),
+                            Err(e) => {
+                                error!("[ {} ] {e}", "Simulation Controller".red());
+                                return;
+                            },
+                        }
+                    }
                     // Create drone
                     match self.spawn(id, connected_node_ids.clone(), pdr) {
                         Ok(_) => {
