@@ -96,35 +96,27 @@ impl SimulationController {
                 if let Some((server, _)) = self.media_servers.get(media_server) {
                     // Get neighbor
                     if let Some(vec) = self.neighbor.get_mut(media_server) {
-                        //if vec.len() > 2 {
                         // Remove node from neighbor
                         vec.retain(|x| *x != node_id);
                         // Send command and handle Result
                         match server.send(ContentServerCommand::RemoveSender(node_id)) {
-                                Ok(()) => {
-                                    self.global_flooding();
-                                    info!(
-                                        "[ {} ]: sent a ContentServerCommand::RemoveSender({}) to [ MediaContentServer {} ]",
-                                        "Simulation Controller".green(),
-                                        node_id,
-                                        media_server
-                                    );
-                                },
-                                Err(e) => error!(
-                                    "[ {} ]: failed to send a ContentServerCommand::RemoveSender({}) to the [ MediaContentServer {} ]: {}",
-                                    "Simulation Controller".red(),
+                            Ok(()) => {
+                                self.global_flooding();
+                                info!(
+                                    "[ {} ]: sent a ContentServerCommand::RemoveSender({}) to [ MediaContentServer {} ]",
+                                    "Simulation Controller".green(),
                                     node_id,
-                                    media_server,
-                                    e
-                                ),
-                            }
-                        /*} else {
-                            error!(
-                                "[ {} ]: the [ MediaContentServer {} ] must be connected to at least two nodes",
+                                    media_server
+                                );
+                            },
+                            Err(e) => error!(
+                                "[ {} ]: failed to send a ContentServerCommand::RemoveSender({}) to the [ MediaContentServer {} ]: {}",
                                 "Simulation Controller".red(),
-                                media_server
-                            );
-                        }*/
+                                node_id,
+                                media_server,
+                                e
+                            ),
+                        }
                     } else {
                         error!(
                             "[ {} ]: the [ MediaContentServer {} ] does not have any neighbor",

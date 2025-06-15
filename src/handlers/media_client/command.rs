@@ -48,8 +48,6 @@ impl SimulationController {
             MediaClientCommand::RemoveSender(node_id) => {
                 // Get neighbors
                 if let Some(neighbors) = self.neighbor.get_mut(media_client) {
-                    // Max 2 neighbor, Min 1 neighbor
-                    //if neighbors.len() == 2 {
                     // Remove neighbor
                     neighbors.retain(|x| *x != node_id);
                     // Get client's sender channel
@@ -86,15 +84,6 @@ impl SimulationController {
                                 media_client
                             );
                     }
-                    /*} else {
-                        error!(
-                            "[ {} ]: failed to send a MediaClientCommand::RemoveSender({}) to the [ Client {} ]: {}",
-                            "Simulation Controller".red(),
-                            drone,
-                            media_client,
-                            "Each client must remain connected to at least one drone"
-                        );
-                    }*/
                 } else {
                     error!(
                         "[ {} ]: the [ Drone {} ] does not have any neighbor",
@@ -113,8 +102,6 @@ impl SimulationController {
                         media_client
                     );
                 } else if let Some(neighbors) = self.neighbor.get_mut(media_client) {
-                    // Max 2 neighbor, Min 1 neighbor
-                    //if neighbors.len() == 1 {+
                     // Add node to neighbor
                     neighbors.push(node_id);
                     // Get client's sender channel
@@ -153,16 +140,6 @@ impl SimulationController {
                                 media_client
                             );
                     }
-                    /*} else {
-                        error!(
-                            "[ {} ]: failed to send a MediaClientCommand::AddSender({}, {:?}) to the [ Client {} ]: {}",
-                            "Simulation Controller".red(),
-                            drone,
-                            sender,
-                            media_client,
-                            "Each client must be connected to at most two drones"
-                        );
-                    }*/
                 } else {
                     error!(
                         "[ {} ]: the [ Drone {} ] does not have any neighbor",

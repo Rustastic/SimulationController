@@ -43,30 +43,26 @@ impl SimulationController {
         let node_type = self.get_node_type(node_id);
 
         match node_type {
-            NodeType::Client => {
-                match self.has_neighbors(node_id) {
-                    Ok(vec) => {
-                        if vec.len() == 2 {
-                           Ok(()) 
-                        } else {
-                            Err(Error::ClientRemove)
-                        }
-                    },
-                    Err(e) => Err(e),
+            NodeType::Client => match self.has_neighbors(node_id) {
+                Ok(vec) => {
+                    if vec.len() == 2 {
+                        Ok(())
+                    } else {
+                        Err(Error::ClientRemove)
+                    }
                 }
+                Err(e) => Err(e),
             },
             NodeType::Drone => Ok(()),
-            NodeType::Server => {
-                match self.has_neighbors(node_id) {
-                    Ok(vec) => {
-                        if vec.len() > 2 {
-                           Ok(()) 
-                        } else {
-                            Err(Error::ServerRemove)
-                        }
-                    },
-                    Err(e) => Err(e),
+            NodeType::Server => match self.has_neighbors(node_id) {
+                Ok(vec) => {
+                    if vec.len() > 2 {
+                        Ok(())
+                    } else {
+                        Err(Error::ServerRemove)
+                    }
                 }
+                Err(e) => Err(e),
             },
         }
     }
@@ -75,17 +71,15 @@ impl SimulationController {
         let node_type = self.get_node_type(node_id);
 
         match node_type {
-            NodeType::Client => {
-                match self.has_neighbors(node_id) {
-                    Ok(vec) => {
-                        if vec.len() == 1 {
-                           Ok(()) 
-                        } else {
-                            Err(Error::ClientAdd)
-                        }
-                    },
-                    Err(e) => Err(e),
+            NodeType::Client => match self.has_neighbors(node_id) {
+                Ok(vec) => {
+                    if vec.len() == 1 {
+                        Ok(())
+                    } else {
+                        Err(Error::ClientAdd)
+                    }
                 }
+                Err(e) => Err(e),
             },
             NodeType::Drone => Ok(()),
             NodeType::Server => Ok(()),

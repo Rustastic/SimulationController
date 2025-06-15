@@ -95,40 +95,32 @@ impl SimulationController {
                 if let Some((server, _)) = self.text_servers.get(text_server) {
                     //Get neighbors
                     if let Some(vec) = self.neighbor.get_mut(text_server) {
-                        //if vec.len() > 2 {
                         // Remove node from neighbor
                         vec.retain(|x| *x != node_id);
 
                         match server.send(ContentServerCommand::RemoveSender(node_id)) {
-                                Ok(()) => {
+                            Ok(()) => {
 
-                                    // send command to GUI
+                                // send command to GUI
 
-                                    // Launch global flooding
-                                    self.global_flooding();
+                                // Launch global flooding
+                                self.global_flooding();
 
-                                    info!(
-                                        "[ {} ]: sent a ContentServerCommand::RemoveSender({}) to [ TextContentServer {} ]",
-                                        "Simulation Controller".green(),
-                                        node_id,
-                                        text_server
-                                    );
-                                },
-                                Err(e) => error!(
-                                    "[ {} ]: failed to send a ContentServerCommand::RemoveSender({}) to the [ TextContentServer {} ]: {}",
-                                    "Simulation Controller".red(),
+                                info!(
+                                    "[ {} ]: sent a ContentServerCommand::RemoveSender({}) to [ TextContentServer {} ]",
+                                    "Simulation Controller".green(),
                                     node_id,
-                                    text_server,
-                                    e
-                                ),
-                            }
-                        /*} else {
-                            error!(
-                                "[ {} ]: the [ TextContentServer {} ] must be connected to at least two nodes",
+                                    text_server
+                                );
+                            },
+                            Err(e) => error!(
+                                "[ {} ]: failed to send a ContentServerCommand::RemoveSender({}) to the [ TextContentServer {} ]: {}",
                                 "Simulation Controller".red(),
-                                text_server
-                            );
-                        }*/
+                                node_id,
+                                text_server,
+                                e
+                            ),
+                        }
                     } else {
                         error!(
                             "[ {} ]: the [ TextContentServer {} ] does not have any neighbor",

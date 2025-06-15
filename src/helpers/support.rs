@@ -120,7 +120,6 @@ impl SimulationController {
     }
 
     pub fn crash(&mut self, node_id: NodeId) -> Result<(), Error> {
-
         // If the drone has any neighbors
         if let Some(neighbor_ids) = self.neighbor.get(&node_id).cloned() {
             for neighbor in neighbor_ids {
@@ -158,14 +157,11 @@ impl SimulationController {
         Ok(())
     }
 
-    pub fn remove_sender(
-        &mut self,
-        node_id: NodeId,
-        to_remove: NodeId,
-    ) -> Result<(), Error> {
+    pub fn remove_sender(&mut self, node_id: NodeId, to_remove: NodeId) -> Result<(), Error> {
         // Check if it exists a neighbor with this id
         match self.has_neighbors(node_id) {
-            Ok(neighbor) => match super::verify::is_a_neighbor(neighbor, to_remove, node_id, false) {
+            Ok(neighbor) => match super::verify::is_a_neighbor(neighbor, to_remove, node_id, false)
+            {
                 Ok(()) => {
                     if self.drones.contains_key(&to_remove) {
                         self.handle_drone_command(&to_remove, DroneCommand::RemoveSender(node_id));
@@ -209,11 +205,7 @@ impl SimulationController {
         }
     }
 
-    pub fn add_sender(
-        &mut self,
-        node_id: NodeId,
-        to_add: NodeId,
-    ) -> Result<(), Error> {
+    pub fn add_sender(&mut self, node_id: NodeId, to_add: NodeId) -> Result<(), Error> {
         // Check if it exists a neighbor with this id
         match self.has_neighbors(node_id) {
             Ok(neighbor) => match super::verify::is_a_neighbor(neighbor, to_add, node_id, true) {

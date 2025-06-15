@@ -74,8 +74,6 @@ impl SimulationController {
             ChatClientCommand::RemoveSender(node_id) => {
                 // Get neighbors of the chat client
                 if let Some(neighbors) = self.neighbor.get_mut(chat_client) {
-                    // Check number of neighbor (Max 2, Min 1)
-                    //if neighbors.len() == 2 {
                     // Remove node from neighbors
                     neighbors.retain(|x| *x != node_id);
                     // Get correct sender channel
@@ -112,15 +110,6 @@ impl SimulationController {
                                 chat_client
                             );
                     }
-                    /*} else {
-                        error!(
-                            "[ {} ]: failed to send a ChatClientCommand::RemoveSender({}) to the [ ChatClient {} ]: {}",
-                            "Simulation Controller".red(),
-                            node_id,
-                            chat_client,
-                            "Each client must remain connected to at least one node"
-                        );
-                    }*/
                 } else {
                     error!(
                         "[ {} ]: the [ Drone {} ] does not have any neighbor",
@@ -140,8 +129,6 @@ impl SimulationController {
                     );
                 } else if let Some(neighbors) = self.neighbor.get_mut(chat_client) {
                     // Get neighbors of the chat client
-                    // Check number of neighbor (Max 2, Min 1)
-                    //if neighbors.len() == 1 {
                     // Add node to the neighbors
                     neighbors.push(node_id);
                     // Get correct sender channel
@@ -180,16 +167,6 @@ impl SimulationController {
                                 chat_client
                             );
                     }
-                    /*} else {
-                        error!(
-                            "[ {} ]: failed to send a ChatClientCommand::AddSender({}, {:?}) to the [ ChatClient {} ]: {}",
-                            "Simulation Controller".red(),
-                            node_id,
-                            sender,
-                            chat_client,
-                            "Each client must be connected to at most two nodes"
-                        );
-                    }*/
                 } else {
                     error!(
                         "[ {} ]: the [ Drone {} ] does not have any neighbor",

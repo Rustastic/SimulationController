@@ -96,8 +96,6 @@ impl SimulationController {
                 if let Some((server, _)) = self.comm_servers.get(comm_server) {
                     // Get neighbors
                     if let Some(vec) = self.neighbor.get_mut(comm_server) {
-                        // Check number of neighbor (Min 2)
-                        //if vec.len() > 2 {
                         // Remove node from neighbors
                         vec.retain(|x| *x != node_id);
                         // Send command and handle Result
@@ -125,13 +123,6 @@ impl SimulationController {
                                     );
                             }
                         }
-                        /*} else {
-                            error!(
-                                "[ {} ]: the [ CommunicationServer {} ] must be connected to at least two nodes",
-                                "Simulation Controller".red(),
-                                comm_server
-                            );
-                        }*/
                     } else {
                         error!(
                             "[ {} ]: the [ CommunicationServer {} ] does not have any neighbor",

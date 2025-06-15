@@ -31,7 +31,8 @@ impl SimulationController {
             GUICommands::Spawn(id, connected_node_ids, pdr) => {
                 // check if spawn is possible
                 if self.drones.contains_key(&id) {
-                    error!("[ {} ] Can  not spawn the drone: drone with the NodeId: {} already exist", 
+                    error!(
+                        "[ {} ] Can  not spawn the drone: drone with the NodeId: {} already exist",
                         "Simulation Controller".red(),
                         id,
                     )
@@ -44,10 +45,10 @@ impl SimulationController {
 
                             // Send command to GUI
                             todo!()
-                        },
+                        }
                         Err(e) => {
                             error!("[ {} ] {e}", "Simulation Controller".red());
-                        },
+                        }
                     }
                 }
             }
@@ -63,7 +64,7 @@ impl SimulationController {
                                     Err(e) => {
                                         error!("[ {} ] {e}", "Simulation Controller".red());
                                         return;
-                                    },
+                                    }
                                 }
                             }
                             // Send commands to neighbors
@@ -80,7 +81,7 @@ impl SimulationController {
                                 }
                                 Err(e) => {
                                     error!("[ {} ] {e}", "Simulation Controller".red());
-                                },
+                                }
                             }
                         } else {
                             error!(
@@ -89,20 +90,19 @@ impl SimulationController {
                                 drone
                             );
                         }
-                    },
+                    }
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
-                    },
+                    }
                 }
-            },
+            }
             GUICommands::RemoveSender(node_id, to_remove) => {
-
                 match self.check_remove(to_remove) {
                     Ok(_) => (),
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
                         return;
-                    },
+                    }
                 }
 
                 match self.remove_sender(node_id, to_remove) {
@@ -140,7 +140,7 @@ impl SimulationController {
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
                         return;
-                    },
+                    }
                 }
 
                 match self.add_sender(node_id, to_add) {
@@ -194,7 +194,7 @@ impl SimulationController {
                     }
                     Err(e) => error!("{e}"),
                 }
-            },
+            }
             GUICommands::SetPDR(drone, pdr) => {
                 if (0.0..=1.0).contains(&pdr) {
                     self.handle_drone_command(&drone, DroneCommand::SetPacketDropRate(pdr));
