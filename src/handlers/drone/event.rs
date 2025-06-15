@@ -8,7 +8,7 @@ use log::error;
 use crate::SimulationController;
 
 impl SimulationController {
-    pub fn handle_drone_event(&mut self) {
+    /*pub fn handle_drone_event(&mut self) {
         match self.drone_recv.try_recv() {
             Ok(event) => self.process_drone_event(event),
             Err(TryRecvError::Empty) => (),
@@ -19,10 +19,10 @@ impl SimulationController {
                 );
             }
         }
-    }
+    }*/
 
     #[allow(clippy::too_many_lines)]
-    fn process_drone_event(&self, drone_event: DroneEvent) {
+    pub fn handle_drone_event(&self, drone_event: DroneEvent) {
         match drone_event {
             DroneEvent::PacketSent(packet) => {
                 if let Some(src) = packet
@@ -35,10 +35,12 @@ impl SimulationController {
                         .hops
                         .get(packet.routing_header.hop_index + 1)
                     {
-                        let _ = self.gui_send.send(GUIEvents::PacketSent(*src, *dest, packet.clone()));
+                        let _ =
+                            self.gui_send
+                                .send(GUIEvents::PacketSent(*src, *dest, packet.clone()));
                     }
                 }
-            },
+            }
 
             DroneEvent::PacketDropped(packet) => {
                 if let Some(src) = packet
@@ -46,7 +48,9 @@ impl SimulationController {
                     .hops
                     .get(packet.routing_header.hop_index)
                 {
-                    let _ = self.gui_send.send(GUIEvents::PacketDropped(*src, packet.clone()));
+                    let _ = self
+                        .gui_send
+                        .send(GUIEvents::PacketDropped(*src, packet.clone()));
                 } else {
                     error!(
                         "[ {} ]: failed to find a extract source from packet: {:?}",

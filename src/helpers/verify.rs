@@ -1,5 +1,5 @@
 use colored::Colorize;
-use log::{error, info};
+use log::info;
 use wg_2024::{network::NodeId, packet::NodeType};
 
 use crate::SimulationController;

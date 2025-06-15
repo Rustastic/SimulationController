@@ -9,7 +9,7 @@ use messages::server_commands::ContentServerEvent;
 use crate::SimulationController;
 
 impl SimulationController {
-    pub fn handle_text_server_event(&mut self) {
+    /*handle_text_server_event(&mut self) {
         match self.media_recv.try_recv() {
             Ok(event) => self.process_text_server_event(event),
             Err(TryRecvError::Empty) => (),
@@ -20,10 +20,10 @@ impl SimulationController {
                 );
             }
         }
-    }
+    }*/
 
     #[allow(clippy::too_many_lines)]
-    fn process_text_server_event(&mut self, event: ContentServerEvent) {
+    pub fn handle_text_server_event(&mut self, event: ContentServerEvent) {
         match event {
             ContentServerEvent::ServerStarted => {
                 info!(

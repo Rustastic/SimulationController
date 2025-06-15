@@ -9,7 +9,7 @@ use messages::{client_commands::ChatClientEvent, gui_commands::GUIEvents};
 use crate::SimulationController;
 
 impl SimulationController {
-    pub fn handle_chat_client_event(&mut self) {
+    /*pub fn handle_chat_client_event(&mut self) {
         match self.cclient_recv.try_recv() {
             Ok(event) => self.process_chat_client_events(event),
             Err(TryRecvError::Empty) => (),
@@ -20,10 +20,10 @@ impl SimulationController {
                 );
             }
         }
-    }
+    }*/
 
     #[allow(clippy::too_many_lines)]
-    fn process_chat_client_events(&mut self, event: ChatClientEvent) {
+    pub fn handle_chat_client_events(&mut self, event: ChatClientEvent) {
         match event {
             ChatClientEvent::CommunicationServerList(items) => {
                 info!(

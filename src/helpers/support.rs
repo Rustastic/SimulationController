@@ -1,6 +1,5 @@
 use colored::Colorize;
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use log::error;
 use rand::Rng;
 use std::collections::HashMap;
 
@@ -161,11 +160,14 @@ impl SimulationController {
     pub fn remove_sender(&mut self, node_id: NodeId, to_remove: NodeId) -> Result<(), Error> {
         // Check if it exists a neighbor with this id
         match self.has_neighbors(node_id) {
-            Ok(neighbor) => { 
+            Ok(neighbor) => {
                 match super::verify::is_a_neighbor(neighbor, to_remove, node_id, false) {
                     Ok(()) => {
                         if self.drones.contains_key(&to_remove) {
-                            self.handle_drone_command(&to_remove, DroneCommand::RemoveSender(node_id));
+                            self.handle_drone_command(
+                                &to_remove,
+                                DroneCommand::RemoveSender(node_id),
+                            );
                             return Ok(());
                         } else if self.cclients.contains_key(&to_remove) {
                             self.handle_chat_client_command(
@@ -202,7 +204,7 @@ impl SimulationController {
                     }
                     Err(e) => Err(e),
                 }
-            },
+            }
             Err(e) => Err(e),
         }
     }

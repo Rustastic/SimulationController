@@ -21,7 +21,8 @@ impl SimulationController {
                         match command_channel.send(DroneCommand::RemoveSender(node_id)) {
                             Ok(()) => {
                                 // Send command to GUI
-                                let _ = self.gui_send.send(GUIEvents::RemoveSender(*drone, node_id));
+                                let _ =
+                                    self.gui_send.send(GUIEvents::RemoveSender(*drone, node_id));
 
                                 // Launch global flooding
                                 self.global_flooding();

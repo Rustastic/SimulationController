@@ -55,7 +55,9 @@ impl SimulationController {
                         match server.send(CommunicationServerCommand::AddSender(node_id, sender)) {
                             Ok(()) => {
                                 // Send command to GUI
-                                let _ = self.gui_send.send(GUIEvents::AddSender(*comm_server, node_id));
+                                let _ = self
+                                    .gui_send
+                                    .send(GUIEvents::AddSender(*comm_server, node_id));
 
                                 // Launch global flooding
                                 self.global_flooding();
@@ -103,7 +105,9 @@ impl SimulationController {
                         match server.send(CommunicationServerCommand::RemoveSender(node_id)) {
                             Ok(()) => {
                                 // Send command to GUI
-                                let _ = self.gui_send.send(GUIEvents::RemoveSender(*comm_server, node_id));
+                                let _ = self
+                                    .gui_send
+                                    .send(GUIEvents::RemoveSender(*comm_server, node_id));
 
                                 // Launch global flooding
                                 self.global_flooding();

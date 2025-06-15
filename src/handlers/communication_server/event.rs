@@ -9,7 +9,7 @@ use messages::server_commands::CommunicationServerEvent;
 use crate::SimulationController;
 
 impl SimulationController {
-    pub fn handle_communication_server_event(&mut self) {
+    /*pub fn handle_communication_server_event(&mut self) {
         match self.comm_server_recv.try_recv() {
             Ok(event) => self.process_communication_server_events(event),
             Err(TryRecvError::Empty) => (),
@@ -20,10 +20,10 @@ impl SimulationController {
                 );
             }
         }
-    }
+    }*/
 
     #[allow(clippy::too_many_lines)]
-    fn process_communication_server_events(&mut self, event: CommunicationServerEvent) {
+    pub fn handle_communication_server_event(&mut self, event: CommunicationServerEvent) {
         match event {
             CommunicationServerEvent::ServerStarted => {
                 info!(
