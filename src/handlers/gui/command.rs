@@ -13,7 +13,10 @@ use crate::SimulationController;
 impl SimulationController {
     pub fn handle_gui_command(&mut self) {
         match self.gui_recv.try_recv() {
-            Ok(command) => self.process_gui_command(command),
+            Ok(command) => {
+                warn!("1 - SIM Received {:?}", command);
+                self.process_gui_command(command)
+            },
             Err(TryRecvError::Empty) => (),
             Err(TryRecvError::Disconnected) => {
                 error!(
@@ -27,6 +30,7 @@ impl SimulationController {
     // Handle GUI Commands
     #[allow(clippy::too_many_lines)]
     fn process_gui_command(&mut self, command: GUICommands) {
+        warn!("2 - SIM Received {:?}", command);
         match command {
             GUICommands::Spawn(id, connected_node_ids, pdr) => {
                 // check if spawn is possible
@@ -115,10 +119,9 @@ impl SimulationController {
                 error!("SIM - 1");
 
                 match self.check_remove(to_remove) {
-                    Ok(_) => warn!("YES {}", to_remove),
+                    Ok(_) => (),
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
-                        error!("YES {}", to_remove);
                         return;
                     }
                 }
