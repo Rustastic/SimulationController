@@ -116,6 +116,7 @@ impl SimulationController {
                     Ok(_) => (),
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
+                        error!("EXIT");
                         return;
                     }
                 }
