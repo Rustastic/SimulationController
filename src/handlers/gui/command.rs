@@ -43,8 +43,8 @@ impl SimulationController {
                     );
                 } else {
                     // check if can add neighbors
-                    for neighbor in connected_node_ids {
-                        match self.check_add(neighbor) {
+                    for neighbor in &connected_node_ids {
+                        match self.check_add(*neighbor) {
                             Ok(_) => (),
                             Err(e) => {
                                 error!("[ {} ] {e}", "Simulation Controller".red());

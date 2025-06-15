@@ -3,7 +3,7 @@ use messages::gui_commands::GUIEvents;
 use wg_2024::{controller::DroneEvent, packet::PacketType};
 
 use colored::Colorize;
-use log::{error, info};
+use log::error;
 
 use crate::SimulationController;
 
@@ -35,33 +35,10 @@ impl SimulationController {
                         .hops
                         .get(packet.routing_header.hop_index + 1)
                     {
-                        match self
-                            .gui_send
-                            .send(GUIEvents::PacketSent(*src, *dest, packet.clone()))
-                        {
-                            Ok(()) => {
-                                /*info!(
-                                    "[ {} ]: successfully sent a GUIEvents::PacketSent({}, {}, {:?}) from the Simulation Controller to the GUI",
-                                    "Simulation Controller".green(),
-                                    src,
-                                    dest,
-                                    packet
-                                );*/
-                            }
-                            Err(e) => {
-                                /*error!(
-                                    "[ {} ]: failed to sent a GUIEvents::PacketSent({}, {}, {:?}) from the Simulation Controller to the GUI: {}",
-                                    "Simulation Controller".green(),
-                                    src,
-                                    dest,
-                                    packet,
-                                    e
-                                );*/
-                            }
-                        }
+                        let _ = self.gui_send.send(GUIEvents::PacketSent(*src, *dest, packet.clone()));
                     }
                 }
-            }
+            },
 
             DroneEvent::PacketDropped(packet) => {
                 if let Some(src) = packet
@@ -69,28 +46,7 @@ impl SimulationController {
                     .hops
                     .get(packet.routing_header.hop_index)
                 {
-                    match self
-                        .gui_send
-                        .send(GUIEvents::PacketDropped(*src, packet.clone()))
-                    {
-                        Ok(()) => {
-                            /*info!(
-                                "[ {} ]: successfully sent a GUIEvents::PacketDropped({}, {:?}) from the Simulation Controller to the GUI",
-                                "Simulation Controller".green(),
-                                src,
-                                packet
-                            );*/
-                        }
-                        Err(e) => {
-                            /*error!(
-                                "[ {} ]: failed to sent a GUIEvents::PacketDropped({}, {:?}) from the Simulation Controller to the GUI: {}",
-                                "Simulation Controller".green(),
-                                src,
-                                packet,
-                                e
-                            );*/
-                        }
-                    }
+                    let _ = self.gui_send.send(GUIEvents::PacketDropped(*src, packet.clone()));
                 } else {
                     error!(
                         "[ {} ]: failed to find a extract source from packet: {:?}",
