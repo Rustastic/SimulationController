@@ -1,5 +1,5 @@
-use crossbeam_channel::{select, Receiver, Sender};
-use log::{error, info};
+use crossbeam_channel::{Receiver, Sender};
+use log::info;
 use std::{collections::HashMap, thread};
 
 use colored::Colorize;
