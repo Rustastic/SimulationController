@@ -40,23 +40,23 @@ impl SimulationController {
                             .send(GUIEvents::PacketSent(*src, *dest, packet.clone()))
                         {
                             Ok(()) => {
-                                info!(
+                                /*info!(
                                     "[ {} ]: successfully sent a GUIEvents::PacketSent({}, {}, {:?}) from the Simulation Controller to the GUI",
                                     "Simulation Controller".green(),
                                     src,
                                     dest,
                                     packet
-                                );
+                                );*/
                             }
                             Err(e) => {
-                                error!(
+                                /*error!(
                                     "[ {} ]: failed to sent a GUIEvents::PacketSent({}, {}, {:?}) from the Simulation Controller to the GUI: {}",
                                     "Simulation Controller".green(),
                                     src,
                                     dest,
                                     packet,
                                     e
-                                );
+                                );*/
                             }
                         }
                     }
@@ -74,21 +74,21 @@ impl SimulationController {
                         .send(GUIEvents::PacketDropped(*src, packet.clone()))
                     {
                         Ok(()) => {
-                            info!(
+                            /*info!(
                                 "[ {} ]: successfully sent a GUIEvents::PacketDropped({}, {:?}) from the Simulation Controller to the GUI",
                                 "Simulation Controller".green(),
                                 src,
                                 packet
-                            );
+                            );*/
                         }
                         Err(e) => {
-                            error!(
+                            /*error!(
                                 "[ {} ]: failed to sent a GUIEvents::PacketDropped({}, {:?}) from the Simulation Controller to the GUI: {}",
                                 "Simulation Controller".green(),
                                 src,
                                 packet,
                                 e
-                            );
+                            );*/
                         }
                     }
                 } else {
