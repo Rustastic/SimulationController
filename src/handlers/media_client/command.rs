@@ -3,14 +3,17 @@ use log::{error, info};
 
 use wg_2024::network::NodeId;
 
-use messages::{client_commands::MediaClientCommand};
+use messages::client_commands::MediaClientCommand;
 
 use crate::SimulationController;
 
 impl SimulationController {
-
     #[allow(clippy::too_many_lines)]
-    pub fn handle_media_client_command(&mut self, media_client: &NodeId, command: MediaClientCommand) {
+    pub fn handle_media_client_command(
+        &mut self,
+        media_client: &NodeId,
+        command: MediaClientCommand,
+    ) {
         match command {
             MediaClientCommand::InitFlooding => {
                 // Get client's sender channel
@@ -23,7 +26,7 @@ impl SimulationController {
                                 "Simulation Controller".green(),
                                 media_client
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a MediaClientCommand::InitFlooding to the [ Client {} ]: {}",
@@ -31,7 +34,7 @@ impl SimulationController {
                                 media_client,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(
@@ -40,50 +43,49 @@ impl SimulationController {
                         media_client
                     );
                 }
-            },
+            }
 
             MediaClientCommand::RemoveSender(node_id) => {
                 // Get neighbors
                 if let Some(neighbors) = self.neighbor.get_mut(media_client) {
                     // Max 2 neighbor, Min 1 neighbor
                     //if neighbors.len() == 2 {
-                        // Remove neighbor
-                        neighbors.retain(|x| *x != node_id);
-                        // Get client's sender channel
-                        if let Some((client, _)) = self.mclients.get(media_client) {
-                            // Send command and handle Result
-                            match client.send(MediaClientCommand::RemoveSender(node_id)) {
-                                Ok(()) => {
+                    // Remove neighbor
+                    neighbors.retain(|x| *x != node_id);
+                    // Get client's sender channel
+                    if let Some((client, _)) = self.mclients.get(media_client) {
+                        // Send command and handle Result
+                        match client.send(MediaClientCommand::RemoveSender(node_id)) {
+                            Ok(()) => {
+                                // Send command to GUI
 
-                                    // Send command to GUI
+                                // Launch global flooding
+                                self.global_flooding();
 
-                                    // Launch global flooding
-                                    self.global_flooding();
-
-                                    info!(
+                                info!(
                                         "[ {} ]: sent a MediaClientCommand::RemoveSender({}) to [ Client {} ]",
                                         "Simulation Controller".green(),
                                         node_id,
                                         media_client
                                     );
-                                },
-                                Err(e) => {
-                                    error!(
+                            }
+                            Err(e) => {
+                                error!(
                                         "[ {} ]: failed to send a MediaClientCommand::RemoveSender({}) to the [ Client {} ]: {}",
                                         "Simulation Controller".red(),
                                         node_id,
                                         media_client,
                                         e
                                     );
-                                },
                             }
-                        } else {
-                            error!(
+                        }
+                    } else {
+                        error!(
                                 "[ {} ]: failed to find a Sender<MediaClientCommand> channel for the [ Client {} ]",
                                 "Simulation Controller".red(),
                                 media_client
                             );
-                        }
+                    }
                     /*} else {
                         error!(
                             "[ {} ]: failed to send a MediaClientCommand::RemoveSender({}) to the [ Client {} ]: {}",
@@ -100,7 +102,7 @@ impl SimulationController {
                         node_id
                     );
                 }
-            },
+            }
 
             MediaClientCommand::AddSender(node_id, sender) => {
                 // Check that other node is not a client
@@ -113,29 +115,28 @@ impl SimulationController {
                 } else if let Some(neighbors) = self.neighbor.get_mut(media_client) {
                     // Max 2 neighbor, Min 1 neighbor
                     //if neighbors.len() == 1 {+
-                        // Add node to neighbor
-                        neighbors.push(node_id);
-                        // Get client's sender channel
-                        if let Some((client, _)) = self.mclients.get(media_client) {
-                            // Send command and handle Result
-                            match client.send(MediaClientCommand::AddSender(node_id, sender.clone())) {
-                                Ok(()) => {
+                    // Add node to neighbor
+                    neighbors.push(node_id);
+                    // Get client's sender channel
+                    if let Some((client, _)) = self.mclients.get(media_client) {
+                        // Send command and handle Result
+                        match client.send(MediaClientCommand::AddSender(node_id, sender.clone())) {
+                            Ok(()) => {
+                                // Send command to GUI
 
-                                    // Send command to GUI
+                                // Launch global flooding
+                                self.global_flooding();
 
-                                    // Launch global flooding
-                                    self.global_flooding();
-                                    
-                                    info!(
+                                info!(
                                         "[ {} ]: sent a MediaClientCommand::AddSender({}, {:?}) to [ Client {} ]",
                                         "Simulation Controller".green(),
                                         node_id,
                                         sender,
                                         media_client
                                     );
-                                },
-                                Err(e) => {
-                                    error!(
+                            }
+                            Err(e) => {
+                                error!(
                                         "[ {} ]: failed to send a MediaClientCommand::AddSender({}, {:?}) to the [ Client {} ]: {}",
                                         "Simulation Controller".red(),
                                         node_id,
@@ -143,15 +144,15 @@ impl SimulationController {
                                         media_client,
                                         e
                                     );
-                                },
                             }
-                        } else {
-                            error!(
+                        }
+                    } else {
+                        error!(
                                 "[ {} ]: failed to find a Sender<MediaClientCommand> channel for the [ Client {} ]",
                                 "Simulation Controller".red(),
                                 media_client
                             );
-                        }
+                    }
                     /*} else {
                         error!(
                             "[ {} ]: failed to send a MediaClientCommand::AddSender({}, {:?}) to the [ Client {} ]: {}",
@@ -169,7 +170,7 @@ impl SimulationController {
                         node_id
                     );
                 }
-            },
+            }
 
             MediaClientCommand::AskFilesList(server) => {
                 // Get client's sender channel
@@ -183,7 +184,7 @@ impl SimulationController {
                                 server,
                                 media_client
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a MediaClientCommand::AskFilesList({}) to the [ Client {} ]: {}",
@@ -192,7 +193,7 @@ impl SimulationController {
                                 media_client,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(
@@ -201,7 +202,7 @@ impl SimulationController {
                         media_client
                     );
                 }
-            },
+            }
 
             MediaClientCommand::AskForFile(server, title) => {
                 // Get client's sender channel
@@ -216,7 +217,7 @@ impl SimulationController {
                                 title,
                                 media_client
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a MediaClientCommand::AskForFile({}, {}) to the [ Client {} ]: {}",
@@ -226,7 +227,7 @@ impl SimulationController {
                                 media_client,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(
@@ -235,7 +236,7 @@ impl SimulationController {
                         media_client
                     );
                 }
-            },
+            }
 
             MediaClientCommand::GetServerList => {
                 // Get client's sender channel
@@ -248,7 +249,7 @@ impl SimulationController {
                                 "Simulation Controller".green(),
                                 media_client
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a MediaClientCommand::GetServerList to the [ Client {} ]: {}",
@@ -256,7 +257,7 @@ impl SimulationController {
                                 media_client,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(
@@ -265,7 +266,7 @@ impl SimulationController {
                         media_client
                     );
                 }
-            },
+            }
 
             MediaClientCommand::AskServerType(server) => {
                 // Get client's sender channel
@@ -279,7 +280,7 @@ impl SimulationController {
                                 server,
                                 media_client
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a MediaClientCommand::AskServerType({}) to the [ Client {} ]: {}",
@@ -288,7 +289,7 @@ impl SimulationController {
                                 media_client,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(

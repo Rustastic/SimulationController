@@ -1,7 +1,4 @@
-use wg_2024::{
-    controller::DroneCommand,
-    network::NodeId,
-};
+use wg_2024::{controller::DroneCommand, network::NodeId};
 
 use colored::Colorize;
 use log::{error, info};
@@ -9,12 +6,10 @@ use log::{error, info};
 use crate::SimulationController;
 
 impl SimulationController {
-
     #[allow(clippy::too_many_lines)]
     pub fn handle_drone_command(&mut self, drone: &NodeId, drone_command: DroneCommand) {
         // Get drone's sender channel
         if let Some((command_channel, _)) = self.drones.get(drone) {
-
             match drone_command {
                 DroneCommand::RemoveSender(node_id) => {
                     // Get neighbors
@@ -24,7 +19,6 @@ impl SimulationController {
                         // Send command and handle Result
                         match command_channel.send(DroneCommand::RemoveSender(node_id)) {
                             Ok(()) => {
-
                                 // Send command to GUI
 
                                 // Launch global flooding
@@ -36,7 +30,7 @@ impl SimulationController {
                                     node_id,
                                     drone
                                 );
-                            },
+                            }
                             Err(e) => {
                                 error!(
                                     "[ {} ]: failed to send a DroneCommand::RemoveSender({}) to the [ Drone {} ]: {}",
@@ -45,7 +39,7 @@ impl SimulationController {
                                     drone,
                                     e
                                 );
-                            },
+                            }
                         }
                     } else {
                         error!(
@@ -63,7 +57,6 @@ impl SimulationController {
                         // Send command and handle Result
                         match command_channel.send(DroneCommand::AddSender(node_id, sender)) {
                             Ok(()) => {
-
                                 // Send command to GUI
 
                                 // Launch global flooding
@@ -75,7 +68,7 @@ impl SimulationController {
                                     node_id,
                                     drone
                                 );
-                            },
+                            }
                             Err(e) => {
                                 error!(
                                     "[ {} ]: failed to send a DroneCommand::AddSender({}, sender_channel) to the [ Drone {} ]: {}",
@@ -84,7 +77,7 @@ impl SimulationController {
                                     drone,
                                     e
                                 );
-                            },
+                            }
                         }
                     } else {
                         error!(
@@ -98,7 +91,6 @@ impl SimulationController {
                     // Send command and handle Result
                     match command_channel.send(DroneCommand::SetPacketDropRate(pdr)) {
                         Ok(()) => {
-
                             // Send command to GUI
 
                             info!(
@@ -107,7 +99,7 @@ impl SimulationController {
                                 pdr,
                                 drone
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a DroneCommand::SetPacketDropRate({}) to the [ Drone {} ]: {}",
@@ -116,7 +108,7 @@ impl SimulationController {
                                 drone,
                                 e
                             );
-                        },
+                        }
                     }
                 }
                 DroneCommand::Crash => {

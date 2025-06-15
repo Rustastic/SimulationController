@@ -8,7 +8,6 @@ use messages::server_commands::CommunicationServerCommand;
 use crate::SimulationController;
 
 impl SimulationController {
-
     #[allow(clippy::too_many_lines)]
     pub fn handle_communication_server_command(
         &mut self,
@@ -27,7 +26,7 @@ impl SimulationController {
                                 "Simulation Controller".green(),
                                 comm_server
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a CommunicationServerCommand::InitFlooding to the [ CommunicationServer {} ]: {}",
@@ -35,7 +34,7 @@ impl SimulationController {
                                 comm_server,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(
@@ -55,19 +54,18 @@ impl SimulationController {
                         // Send command and handle Result
                         match server.send(CommunicationServerCommand::AddSender(node_id, sender)) {
                             Ok(()) => {
-
                                 // Send command to GUI
 
                                 // Launch globla flooding
                                 self.global_flooding();
-                                
+
                                 info!(
                                     "[ {} ]: sent a CommunicationServerCommand::AddSender({}, sender_channel) to [ CommunicationServer {} ]",
                                     "Simulation Controller".green(),
                                     node_id,
                                     comm_server
                                 );
-                            },
+                            }
                             Err(e) => {
                                 error!(
                                     "[ {} ]: failed to send a CommunicationServerCommand::AddSender({}, sender_channel) to the [ CommunicationServer {} ]: {}",
@@ -76,7 +74,7 @@ impl SimulationController {
                                     comm_server,
                                     e
                                 );
-                            },
+                            }
                         }
                     } else {
                         error!(
@@ -100,34 +98,33 @@ impl SimulationController {
                     if let Some(vec) = self.neighbor.get_mut(comm_server) {
                         // Check number of neighbor (Min 2)
                         //if vec.len() > 2 {
-                            // Remove node from neighbors
-                            vec.retain(|x| *x != node_id);
-                            // Send command and handle Result
-                            match server.send(CommunicationServerCommand::RemoveSender(node_id)) {
-                                Ok(()) => {
-    
-                                    // Send command to GUI
+                        // Remove node from neighbors
+                        vec.retain(|x| *x != node_id);
+                        // Send command and handle Result
+                        match server.send(CommunicationServerCommand::RemoveSender(node_id)) {
+                            Ok(()) => {
+                                // Send command to GUI
 
-                                    // Launch global flooding
-                                    self.global_flooding();
-                                    
-                                    info!(
+                                // Launch global flooding
+                                self.global_flooding();
+
+                                info!(
                                         "[ {} ]: sent a CommunicationServerCommand::RemoveSender({}) to [ CommunicationServer {} ]",
                                         "Simulation Controller".green(),
                                         node_id,
                                         comm_server
                                     );
-                                },
-                                Err(e) => {
-                                    error!(
+                            }
+                            Err(e) => {
+                                error!(
                                         "[ {} ]: failed to send a CommunicationServerCommand::RemoveSender({}) to the [ CommunicationServer {} ]: {}",
                                         "Simulation Controller".red(),
                                         node_id,
                                         comm_server,
                                         e
                                     );
-                                },
                             }
+                        }
                         /*} else {
                             error!(
                                 "[ {} ]: the [ CommunicationServer {} ] must be connected to at least two nodes",
@@ -161,7 +158,7 @@ impl SimulationController {
                                 "Simulation Controller".green(),
                                 comm_server
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a CommunicationServerCommand::LogNetwork to the [ CommunicationServer {} ]: {}",
@@ -169,7 +166,7 @@ impl SimulationController {
                                 comm_server,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(

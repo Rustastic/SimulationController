@@ -20,7 +20,10 @@ impl SimulationController {
             self.handle_media_server_command(&media_server, ContentServerCommand::InitFlooding);
         }
         for (comm_server, (_, _)) in self.comm_servers.clone() {
-            self.handle_communication_server_command(&comm_server, CommunicationServerCommand::InitFlooding);
+            self.handle_communication_server_command(
+                &comm_server,
+                CommunicationServerCommand::InitFlooding,
+            );
         }
     }
 }

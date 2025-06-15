@@ -1,23 +1,26 @@
 use colored::Colorize;
 use crossbeam_channel::TryRecvError;
 use log::error;
-use messages::{client_commands::{ChatClientCommand, MediaClientCommand}, gui_commands::GUICommands, server_commands::{CommunicationServerCommand, ContentServerCommand}};
+use messages::{
+    client_commands::{ChatClientCommand, MediaClientCommand},
+    gui_commands::GUICommands,
+    server_commands::{CommunicationServerCommand, ContentServerCommand},
+};
 use wg_2024::controller::DroneCommand;
 
 use crate::SimulationController;
 
 impl SimulationController {
-
     pub fn handle_gui_command(&mut self) {
         match self.gui_recv.try_recv() {
             Ok(command) => self.process_gui_command(command),
             Err(TryRecvError::Empty) => (),
-            Err(TryRecvError::Disconnected ) => {
+            Err(TryRecvError::Disconnected) => {
                 error!(
                     "[ {} ]: DroneEvent receiver channel disconnected",
                     "Simulation Controller".red()
                 );
-            },
+            }
         }
     }
 
@@ -140,7 +143,10 @@ impl SimulationController {
                 self.handle_media_client_command(&client, MediaClientCommand::AskFilesList(server));
             }
             GUICommands::GetFile(client, server, title) => {
-                self.handle_media_client_command(&client, MediaClientCommand::AskForFile(server, title));
+                self.handle_media_client_command(
+                    &client,
+                    MediaClientCommand::AskForFile(server, title),
+                );
             }
         }
     }

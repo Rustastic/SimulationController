@@ -4,25 +4,21 @@ use log::{error, info};
 
 use wg_2024::packet::PacketType;
 
-use messages::{
-    client_commands::MediaClientEvent,
-    gui_commands::GUIEvents,
-};
+use messages::{client_commands::MediaClientEvent, gui_commands::GUIEvents};
 
 use crate::SimulationController;
 
 impl SimulationController {
-
     pub fn handle_media_client_event(&mut self) {
         match self.mclient_recv.try_recv() {
             Ok(event) => self.process_media_client_event(event),
             Err(TryRecvError::Empty) => (),
-            Err(TryRecvError::Disconnected ) => {
+            Err(TryRecvError::Disconnected) => {
                 error!(
                     "[ {} ]: MediaClientEvent receiver channel disconnected",
                     "Simulation Controller".red()
                 );
-            },
+            }
         }
     }
 
@@ -34,7 +30,7 @@ impl SimulationController {
                     "[ {} ]: The media client retrieved a FloodResponse",
                     "Simulation Controller".green()
                 );
-            },
+            }
 
             MediaClientEvent::RemovedSender(drone) => {
                 info!(
@@ -42,7 +38,7 @@ impl SimulationController {
                     "Simulation Controller".green(),
                     drone
                 );
-            },
+            }
 
             MediaClientEvent::AddedSender(drone) => {
                 info!(
@@ -50,7 +46,7 @@ impl SimulationController {
                     "Simulation Controller".green(),
                     drone
                 );
-            },
+            }
 
             MediaClientEvent::UnreachableNode(node) => {
                 error!(
@@ -58,14 +54,14 @@ impl SimulationController {
                     "Simulation Controller".red(),
                     node
                 );
-            },
+            }
 
             MediaClientEvent::DestinationIsDrone => {
                 error!(
                     "[ {} ]: received an error message: The selected destination is a drone",
                     "Simulation Controller".red(),
                 );
-            },
+            }
 
             MediaClientEvent::ErrorPacketCache(session_id, fragment_index) => {
                 error!(
@@ -74,7 +70,7 @@ impl SimulationController {
                     session_id,
                     fragment_index
                 );
-            },
+            }
 
             MediaClientEvent::SendError(e) => {
                 error!(
@@ -82,8 +78,8 @@ impl SimulationController {
                     "Simulation Controller".red(),
                     e
                 );
-            },
-            
+            }
+
             MediaClientEvent::ReceveidFileList(server, dest, items) => {
                 info!(
                     "[ {} ]: received the file list of [ TextServer {} ]",
@@ -108,7 +104,7 @@ impl SimulationController {
                         e
                     ),
                 }
-            },
+            }
 
             MediaClientEvent::ReceveidFile(node_id, _, _) => {
                 info!(
@@ -116,7 +112,7 @@ impl SimulationController {
                     "Simulation Controller".green(),
                     node_id,
                 );
-            },
+            }
 
             MediaClientEvent::ControllerShortcut(packet) => {
                 // Get destination of the packet

@@ -8,9 +8,12 @@ use messages::server_commands::ContentServerCommand;
 use crate::SimulationController;
 
 impl SimulationController {
-
     #[allow(clippy::too_many_lines)]
-    pub fn handle_media_server_command(&mut self, media_server: &NodeId, command: ContentServerCommand) {
+    pub fn handle_media_server_command(
+        &mut self,
+        media_server: &NodeId,
+        command: ContentServerCommand,
+    ) {
         match command {
             ContentServerCommand::InitFlooding => {
                 // Get server's sender channel
@@ -23,7 +26,7 @@ impl SimulationController {
                                 "Simulation Controller".green(),
                                 media_server
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a ContentServerCommand::InitFlooding to the [ MediaContentServer {} ]: {}",
@@ -31,7 +34,7 @@ impl SimulationController {
                                 media_server,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(
@@ -51,7 +54,6 @@ impl SimulationController {
                         // Send command and handle Result
                         match server.send(ContentServerCommand::AddSender(node_id, sender)) {
                             Ok(()) => {
-                                
                                 // Send command to GUI
 
                                 // Launch global flooding
@@ -63,7 +65,7 @@ impl SimulationController {
                                     node_id,
                                     media_server
                                 );
-                            },
+                            }
                             Err(e) => {
                                 error!(
                                     "[ {} ]: failed to send a ContentServerCommand::AddSender({}, sender_channel) to the [ MediaContentServer {} ]: {}",
@@ -72,7 +74,7 @@ impl SimulationController {
                                     media_server,
                                     e
                                 );
-                            },
+                            }
                         }
                     } else {
                         error!(
@@ -95,10 +97,10 @@ impl SimulationController {
                     // Get neighbor
                     if let Some(vec) = self.neighbor.get_mut(media_server) {
                         //if vec.len() > 2 {
-                            // Remove node from neighbor
-                            vec.retain(|x| *x != node_id);
-                            // Send command and handle Result
-                            match server.send(ContentServerCommand::RemoveSender(node_id)) {
+                        // Remove node from neighbor
+                        vec.retain(|x| *x != node_id);
+                        // Send command and handle Result
+                        match server.send(ContentServerCommand::RemoveSender(node_id)) {
                                 Ok(()) => {
                                     self.global_flooding();
                                     info!(

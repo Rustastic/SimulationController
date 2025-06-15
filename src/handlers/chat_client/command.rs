@@ -8,10 +8,8 @@ use messages::client_commands::ChatClientCommand;
 use crate::SimulationController;
 
 impl SimulationController {
-
     #[allow(clippy::too_many_lines)]
     pub fn handle_chat_client_command(&mut self, chat_client: &NodeId, command: ChatClientCommand) {
-
         match command {
             ChatClientCommand::InitFlooding => {
                 // Get correct sender channel
@@ -24,7 +22,7 @@ impl SimulationController {
                                 "Simulation Controller".green(),
                                 chat_client
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a ChatClientCommand::InitFlooding to the [ ChatClient {} ]: {}",
@@ -32,7 +30,7 @@ impl SimulationController {
                                 chat_client,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(
@@ -41,7 +39,7 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            },
+            }
 
             ChatClientCommand::StartChatClient => {
                 // Get correct sender channel
@@ -54,7 +52,7 @@ impl SimulationController {
                                 "Simulation Controller".green(),
                                 chat_client
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a ChatClientCommand::StartChatClient to the [ ChatClient {} ]: {}",
@@ -62,7 +60,7 @@ impl SimulationController {
                                 chat_client,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(
@@ -71,50 +69,49 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            },
+            }
 
             ChatClientCommand::RemoveSender(node_id) => {
-                // Get neighbors of the chat client 
+                // Get neighbors of the chat client
                 if let Some(neighbors) = self.neighbor.get_mut(chat_client) {
                     // Check number of neighbor (Max 2, Min 1)
                     //if neighbors.len() == 2 {
-                        // Remove node from neighbors
-                        neighbors.retain(|x| *x != node_id);
-                        // Get correct sender channel
-                        if let Some((client, _)) = self.cclients.get(chat_client) {
-                            // Send command and handle Result
-                            match client.send(ChatClientCommand::RemoveSender(node_id)) {
-                                Ok(()) => {
+                    // Remove node from neighbors
+                    neighbors.retain(|x| *x != node_id);
+                    // Get correct sender channel
+                    if let Some((client, _)) = self.cclients.get(chat_client) {
+                        // Send command and handle Result
+                        match client.send(ChatClientCommand::RemoveSender(node_id)) {
+                            Ok(()) => {
+                                // Send command to GUI
 
-                                    // Send command to GUI
+                                // Launch global flooding
+                                self.global_flooding();
 
-                                    // Launch global flooding
-                                    self.global_flooding();
-
-                                    info!(
+                                info!(
                                         "[ {} ]: sent a ChatClientCommand::RemoveSender({}) to [ ChatClient {} ]",
                                         "Simulation Controller".green(),
                                         node_id,
                                         chat_client
                                     );
-                                },
-                                Err(e) => {
-                                    error!(
+                            }
+                            Err(e) => {
+                                error!(
                                         "[ {} ]: failed to send a ChatClientCommand::RemoveSender({}) to the [ ChatClient {} ]: {}",
                                         "Simulation Controller".red(),
                                         node_id,
                                         chat_client,
                                         e
                                     );
-                                },
                             }
-                        } else {
-                            error!(
+                        }
+                    } else {
+                        error!(
                                 "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ ChatClient {} ]",
                                 "Simulation Controller".red(),
                                 chat_client
                             );
-                        }
+                    }
                     /*} else {
                         error!(
                             "[ {} ]: failed to send a ChatClientCommand::RemoveSender({}) to the [ ChatClient {} ]: {}",
@@ -131,7 +128,7 @@ impl SimulationController {
                         node_id
                     );
                 }
-            },
+            }
 
             ChatClientCommand::AddSender(node_id, sender) => {
                 // Check node we want to add is not another client
@@ -141,32 +138,32 @@ impl SimulationController {
                         "Simulation Controller".red(),
                         chat_client
                     );
-                } else if let Some(neighbors) = self.neighbor.get_mut(chat_client) { // Get neighbors of the chat client 
+                } else if let Some(neighbors) = self.neighbor.get_mut(chat_client) {
+                    // Get neighbors of the chat client
                     // Check number of neighbor (Max 2, Min 1)
                     //if neighbors.len() == 1 {
-                        // Add node to the neighbors
-                        neighbors.push(node_id);
-                        // Get correct sender channel
-                        if let Some((client, _)) = self.cclients.get(chat_client) {
-                            // Send command and handle Result
-                            match client.send(ChatClientCommand::AddSender(node_id, sender.clone())) {
-                                Ok(()) => {
+                    // Add node to the neighbors
+                    neighbors.push(node_id);
+                    // Get correct sender channel
+                    if let Some((client, _)) = self.cclients.get(chat_client) {
+                        // Send command and handle Result
+                        match client.send(ChatClientCommand::AddSender(node_id, sender.clone())) {
+                            Ok(()) => {
+                                // Send command to GUI
 
-                                    // Send command to GUI
+                                // Launch global flooding
+                                self.global_flooding();
 
-                                    // Launch global flooding
-                                    self.global_flooding();
-                                    
-                                    info!(
+                                info!(
                                         "[ {} ]: sent a ChatClientCommand::AddSender({}, {:?}) to [ ChatClient {} ]",
                                         "Simulation Controller".green(),
                                         node_id,
                                         sender,
                                         chat_client
                                     );
-                                },
-                                Err(e) => {
-                                    error!(
+                            }
+                            Err(e) => {
+                                error!(
                                         "[ {} ]: failed to send a ChatClientCommand::AddSender({}, {:?}) to the [ ChatClient {} ]: {}",
                                         "Simulation Controller".red(),
                                         node_id,
@@ -174,15 +171,15 @@ impl SimulationController {
                                         chat_client,
                                         e
                                     );
-                                },
                             }
-                        } else {
-                            error!(
+                        }
+                    } else {
+                        error!(
                                 "[ {} ]: failed to find a Sender<ChatClientCommand> channel for the [ ChatClient {} ]",
                                 "Simulation Controller".red(),
                                 chat_client
                             );
-                        }
+                    }
                     /*} else {
                         error!(
                             "[ {} ]: failed to send a ChatClientCommand::AddSender({}, {:?}) to the [ ChatClient {} ]: {}",
@@ -200,7 +197,7 @@ impl SimulationController {
                         node_id
                     );
                 }
-            },
+            }
 
             ChatClientCommand::SendMessageTo(dest, msg) => {
                 // Get correct sender channel
@@ -215,7 +212,7 @@ impl SimulationController {
                                 msg,
                                 chat_client
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a ChatClientCommand::SendMessageTo({}, {}) to the [ ChatClient {} ]: {}",
@@ -225,7 +222,7 @@ impl SimulationController {
                                 chat_client,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(
@@ -234,7 +231,7 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            },
+            }
 
             ChatClientCommand::RegisterTo(server_id) => {
                 // Check if the given node is a Communication Server
@@ -250,7 +247,7 @@ impl SimulationController {
                                     server_id,
                                     chat_client
                                 );
-                            },
+                            }
                             Err(e) => {
                                 error!(
                                     "[ {} ]: failed to send a ChatClientCommand::RegisterTo({}) to the [ ChatClient {} ]: {}",
@@ -259,7 +256,7 @@ impl SimulationController {
                                     chat_client,
                                     e
                                 );
-                            },
+                            }
                         }
                     } else {
                         error!(
@@ -275,7 +272,7 @@ impl SimulationController {
                         server_id,
                     );
                 }
-            },
+            }
 
             ChatClientCommand::GetClientList => {
                 // Get correct sender channel
@@ -288,7 +285,7 @@ impl SimulationController {
                                 "Simulation Controller".green(),
                                 chat_client
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a ChatClientCommand::GetClientList to the [ ChatClient {} ]: {}",
@@ -296,7 +293,7 @@ impl SimulationController {
                                 chat_client,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(
@@ -305,7 +302,7 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            },
+            }
 
             ChatClientCommand::LogOut => {
                 // Get correct sender channel
@@ -318,7 +315,7 @@ impl SimulationController {
                                 "Simulation Controller".green(),
                                 chat_client
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a ChatClientCommand::LogOut to the [ ChatClient {} ]: {}",
@@ -326,7 +323,7 @@ impl SimulationController {
                                 chat_client,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(
@@ -335,7 +332,7 @@ impl SimulationController {
                         chat_client
                     );
                 }
-            },
+            }
 
             ChatClientCommand::LogNetwork => {
                 // Get correct sender channel
@@ -348,7 +345,7 @@ impl SimulationController {
                                 "Simulation Controller".green(),
                                 chat_client
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a ChatClientCommand::LogNetwork to the [ ChatClient {} ]: {}",
@@ -356,7 +353,7 @@ impl SimulationController {
                                 chat_client,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(

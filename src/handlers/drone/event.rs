@@ -1,9 +1,6 @@
 use crossbeam_channel::TryRecvError;
 use messages::gui_commands::GUIEvents;
-use wg_2024::{
-    controller::DroneEvent,
-    packet::PacketType,
-};
+use wg_2024::{controller::DroneEvent, packet::PacketType};
 
 use colored::Colorize;
 use log::{error, info};
@@ -11,23 +8,21 @@ use log::{error, info};
 use crate::SimulationController;
 
 impl SimulationController {
-
     pub fn handle_drone_event(&mut self) {
         match self.drone_recv.try_recv() {
             Ok(event) => self.process_drone_event(event),
             Err(TryRecvError::Empty) => (),
-            Err(TryRecvError::Disconnected ) => {
+            Err(TryRecvError::Disconnected) => {
                 error!(
                     "[ {} ]: DroneEvent receiver channel disconnected",
                     "Simulation Controller".red()
                 );
-            },
+            }
         }
     }
 
     #[allow(clippy::too_many_lines)]
     fn process_drone_event(&self, drone_event: DroneEvent) {
-
         match drone_event {
             DroneEvent::PacketSent(packet) => {
                 if let Some(src) = packet
@@ -40,7 +35,10 @@ impl SimulationController {
                         .hops
                         .get(packet.routing_header.hop_index + 1)
                     {
-                        match self.gui_send.send(GUIEvents::PacketSent(*src, *dest, packet.clone())) {
+                        match self
+                            .gui_send
+                            .send(GUIEvents::PacketSent(*src, *dest, packet.clone()))
+                        {
                             Ok(()) => {
                                 info!(
                                     "[ {} ]: successfully sent a GUIEvents::PacketSent({}, {}, {:?}) from the Simulation Controller to the GUI",
@@ -49,7 +47,7 @@ impl SimulationController {
                                     dest,
                                     packet
                                 );
-                            },
+                            }
                             Err(e) => {
                                 error!(
                                     "[ {} ]: failed to sent a GUIEvents::PacketSent({}, {}, {:?}) from the Simulation Controller to the GUI: {}",
@@ -59,11 +57,11 @@ impl SimulationController {
                                     packet,
                                     e
                                 );
-                            },
+                            }
                         }
                     }
                 }
-            },
+            }
 
             DroneEvent::PacketDropped(packet) => {
                 if let Some(src) = packet
@@ -71,7 +69,10 @@ impl SimulationController {
                     .hops
                     .get(packet.routing_header.hop_index)
                 {
-                    match self.gui_send.send(GUIEvents::PacketDropped(*src, packet.clone())) {
+                    match self
+                        .gui_send
+                        .send(GUIEvents::PacketDropped(*src, packet.clone()))
+                    {
                         Ok(()) => {
                             info!(
                                 "[ {} ]: successfully sent a GUIEvents::PacketDropped({}, {:?}) from the Simulation Controller to the GUI",
@@ -79,7 +80,7 @@ impl SimulationController {
                                 src,
                                 packet
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to sent a GUIEvents::PacketDropped({}, {:?}) from the Simulation Controller to the GUI: {}",
@@ -87,8 +88,8 @@ impl SimulationController {
                                 src,
                                 packet,
                                 e
-                            );}
-                            ,
+                            );
+                        }
                     }
                 } else {
                     error!(
@@ -97,7 +98,7 @@ impl SimulationController {
                         packet
                     );
                 }
-            },
+            }
 
             DroneEvent::ControllerShortcut(packet) => {
                 // Get destination of the packet

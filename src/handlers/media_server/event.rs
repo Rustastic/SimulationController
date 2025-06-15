@@ -9,17 +9,16 @@ use messages::server_commands::ContentServerEvent;
 use crate::SimulationController;
 
 impl SimulationController {
-
     pub fn handle_media_server_event(&mut self) {
         match self.media_recv.try_recv() {
             Ok(event) => self.process_media_server_event(event),
             Err(TryRecvError::Empty) => (),
-            Err(TryRecvError::Disconnected ) => {
+            Err(TryRecvError::Disconnected) => {
                 error!(
                     "[ {} ]: MediaServerEvent receiver channel disconnected",
                     "Simulation Controller".red()
                 );
-            },
+            }
         }
     }
 
@@ -31,14 +30,14 @@ impl SimulationController {
                     "[ {} ]: MediaContentServer started successfully",
                     "Simulation Controller".green(),
                 );
-            },
+            }
 
             ContentServerEvent::ServerStopped => {
                 info!(
                     "[ {} ]: MediaContentServer stopped successfully",
                     "Simulation Controller".green(),
                 );
-            },
+            }
 
             ContentServerEvent::MessageForwarded(dest, msg) => {
                 info!(
@@ -47,7 +46,7 @@ impl SimulationController {
                     msg,
                     dest
                 );
-            },
+            }
 
             ContentServerEvent::MessageReceived(src, msg) => {
                 info!(
@@ -56,7 +55,7 @@ impl SimulationController {
                     msg,
                     src
                 );
-            },
+            }
 
             ContentServerEvent::SendError(e) => {
                 error!(
@@ -64,7 +63,7 @@ impl SimulationController {
                     "Simulation Controller".red(),
                     e
                 );
-            },
+            }
 
             ContentServerEvent::DestinationIsDrone(drone) => {
                 error!(
@@ -72,7 +71,7 @@ impl SimulationController {
                     "Simulation Controller".red(),
                     drone
                 );
-            },
+            }
 
             ContentServerEvent::ErrorPacketCache(session_id, fragment_index) => {
                 error!(
@@ -81,7 +80,7 @@ impl SimulationController {
                     session_id,
                     fragment_index
                 );
-            },
+            }
 
             ContentServerEvent::ControllerShortcut(packet) => {
                 if let Some(dest) = packet.routing_header.hops.last() {
@@ -123,7 +122,7 @@ impl SimulationController {
                         "Simulation Controller".red()
                     );
                 }
-            },
+            }
 
             ContentServerEvent::UnreachableNode(client) => {
                 error!(
@@ -131,8 +130,8 @@ impl SimulationController {
                     "Simulation Controller".red(),
                     client,
                 );
-            },
-            
+            }
+
             ContentServerEvent::UnreachableClient(client) => {
                 error!(
                     "[ {} ]: received an error message: [ Client {} ] is unreachable",

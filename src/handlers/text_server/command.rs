@@ -8,14 +8,16 @@ use messages::server_commands::ContentServerCommand;
 use crate::SimulationController;
 
 impl SimulationController {
-
     #[allow(clippy::too_many_lines)]
-    pub fn handle_text_server_command(&mut self, text_server: &NodeId, command: ContentServerCommand) {
+    pub fn handle_text_server_command(
+        &mut self,
+        text_server: &NodeId,
+        command: ContentServerCommand,
+    ) {
         match command {
             ContentServerCommand::InitFlooding => {
                 // Get server's sender channel
                 if let Some((server, _)) = self.text_servers.get(text_server) {
-                    
                     match server.send(ContentServerCommand::InitFlooding) {
                         Ok(()) => {
                             info!(
@@ -23,7 +25,7 @@ impl SimulationController {
                                 "Simulation Controller".green(),
                                 text_server
                             );
-                        },
+                        }
                         Err(e) => {
                             error!(
                                 "[ {} ]: failed to send a ContentServerCommand::InitFlooding to the [ TextContentServer {} ]: {}",
@@ -31,7 +33,7 @@ impl SimulationController {
                                 text_server,
                                 e
                             );
-                        },
+                        }
                     }
                 } else {
                     error!(
@@ -51,7 +53,6 @@ impl SimulationController {
 
                         match server.send(ContentServerCommand::AddSender(node_id, sender)) {
                             Ok(()) => {
-
                                 // Send command to GUI
 
                                 // Launch global flooding
@@ -63,7 +64,7 @@ impl SimulationController {
                                     node_id,
                                     text_server
                                 );
-                            },
+                            }
                             Err(e) => {
                                 error!(
                                     "[ {} ]: failed to send a ContentServerCommand::AddSender({}, sender_channel) to the [ TextContentServer {} ]: {}",
@@ -72,7 +73,7 @@ impl SimulationController {
                                     text_server,
                                     e
                                 );
-                            },
+                            }
                         }
                     } else {
                         error!(
@@ -95,17 +96,17 @@ impl SimulationController {
                     //Get neighbors
                     if let Some(vec) = self.neighbor.get_mut(text_server) {
                         //if vec.len() > 2 {
-                            // Remove node from neighbor
-                            vec.retain(|x| *x != node_id);
+                        // Remove node from neighbor
+                        vec.retain(|x| *x != node_id);
 
-                            match server.send(ContentServerCommand::RemoveSender(node_id)) {
+                        match server.send(ContentServerCommand::RemoveSender(node_id)) {
                                 Ok(()) => {
 
                                     // send command to GUI
 
                                     // Launch global flooding
                                     self.global_flooding();
-                                    
+
                                     info!(
                                         "[ {} ]: sent a ContentServerCommand::RemoveSender({}) to [ TextContentServer {} ]",
                                         "Simulation Controller".green(),

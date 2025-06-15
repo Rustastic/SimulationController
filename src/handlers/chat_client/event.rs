@@ -9,31 +9,29 @@ use messages::{client_commands::ChatClientEvent, gui_commands::GUIEvents};
 use crate::SimulationController;
 
 impl SimulationController {
-
     pub fn handle_chat_client_event(&mut self) {
         match self.cclient_recv.try_recv() {
             Ok(event) => self.process_chat_client_events(event),
             Err(TryRecvError::Empty) => (),
-            Err(TryRecvError::Disconnected ) => {
+            Err(TryRecvError::Disconnected) => {
                 error!(
                     "[ {} ]: ChatClientEvent receiver channel disconnected",
                     "Simulation Controller".red()
                 );
-            },
+            }
         }
     }
-    
+
     #[allow(clippy::too_many_lines)]
     fn process_chat_client_events(&mut self, event: ChatClientEvent) {
         match event {
-
             ChatClientEvent::CommunicationServerList(items) => {
                 info!(
                     "[ {} ]: The Client retrieved the CommunicationServers list: {:?}",
                     "Simulation Controller".green(),
                     items
                 );
-            },
+            }
 
             ChatClientEvent::MessageReceived(src, dest, msg) => {
                 info!(
@@ -45,7 +43,10 @@ impl SimulationController {
                 );
 
                 // Send to GUI
-                match self.gui_send.send(GUIEvents::MessageReceived(src, dest, msg.clone())) {
+                match self
+                    .gui_send
+                    .send(GUIEvents::MessageReceived(src, dest, msg.clone()))
+                {
                     Ok(()) => {
                         info!(
                             "[ {} ]: successfully sent a GUIEvents::MessageReceived({}, {}, {:?}) from the Simulation Controller to the GUI",
@@ -54,7 +55,7 @@ impl SimulationController {
                             dest,
                             msg
                         );
-                    },
+                    }
                     Err(e) => {
                         error!(
                             "[ {} ]: failed to sent a GUIEvents::MessageReceived({}, {}, {:?}) from the Simulation Controller to the GUI: {}",
@@ -64,9 +65,9 @@ impl SimulationController {
                             msg,
                             e
                         );
-                    },
+                    }
                 }
-            },
+            }
 
             ChatClientEvent::SuccessfulRegistration(server) => {
                 info!(
@@ -74,7 +75,7 @@ impl SimulationController {
                     "Simulation Controller".green(),
                     server
                 );
-            },
+            }
 
             ChatClientEvent::ClientList(client, client_list) => {
                 info!(
@@ -84,7 +85,10 @@ impl SimulationController {
                 );
 
                 // Send to GUI
-                match self.gui_send.send(GUIEvents::ClientList(client, client_list.clone())) {
+                match self
+                    .gui_send
+                    .send(GUIEvents::ClientList(client, client_list.clone()))
+                {
                     Ok(()) => {
                         info!(
                             "[ {} ]: successfully sent a GUIEvents::ClientList({}, {:?}) from the Simulation Controller to the GUI",
@@ -92,7 +96,7 @@ impl SimulationController {
                             client,
                             client_list
                         );
-                    },
+                    }
                     Err(e) => {
                         error!(
                             "[ {} ]: failed to sent a GUIEvents::ClientList({}, {:?}) from the Simulation Controller to the GUI: {}",
@@ -101,16 +105,16 @@ impl SimulationController {
                             client_list,
                             e
                         );
-                    },
+                    }
                 }
-            },
+            }
 
             ChatClientEvent::SuccessfulLogOut => {
                 info!(
                     "[ {} ]: The Client successfully logged out from the server",
                     "Simulation Controller".green(),
                 );
-            },
+            }
 
             ChatClientEvent::UnreachableClient(client) => {
                 error!(
@@ -118,21 +122,21 @@ impl SimulationController {
                     "Simulation Controller".red(),
                     client,
                 );
-            },
+            }
 
             ChatClientEvent::ErrorNotRunning => {
                 error!(
                     "[ {} ]: received an error message: The client tried to register without before starting",
                     "Simulation Controller".red(),
                 );
-            },
+            }
 
             ChatClientEvent::ErrorNotRegistered => {
                 error!(
                     "[ {} ]: received an error message: The Client is not register to a server",
                     "Simulation Controller".red(),
                 );
-            },
+            }
 
             ChatClientEvent::ControllerShortcut(packet) => {
                 // Get destination of the packet
