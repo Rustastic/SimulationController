@@ -14,8 +14,8 @@ impl SimulationController {
     pub fn handle_gui_command(&mut self) {
         match self.gui_recv.try_recv() {
             Ok(command) => {
-                warn!("1 - SIM Received {:?}", command);
-                self.process_gui_command(command)
+                self.process_gui_command(command);
+                warn!("{}",self.gui_recv.is_empty());
             },
             Err(TryRecvError::Empty) => (),
             Err(TryRecvError::Disconnected) => {
@@ -30,7 +30,6 @@ impl SimulationController {
     // Handle GUI Commands
     #[allow(clippy::too_many_lines)]
     fn process_gui_command(&mut self, command: GUICommands) {
-        warn!("2 - SIM Received {:?}", command);
         match command {
             GUICommands::Spawn(id, connected_node_ids, pdr) => {
                 // check if spawn is possible
