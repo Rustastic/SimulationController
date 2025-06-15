@@ -112,7 +112,7 @@ impl SimulationController {
                 }
             }
             GUICommands::RemoveSender(node_id, to_remove) => {
-                error!("ONCE");
+                error!("SIM - 1");
 
                 match self.check_remove(to_remove) {
                     Ok(_) => warn!("YES {}", to_remove),
@@ -123,8 +123,11 @@ impl SimulationController {
                     }
                 }
 
+                error!("SIM - 3");
+
                 match self.remove_sender(node_id, to_remove) {
                     Ok(()) => {
+                        error!("SIM - 5");
                         if self.drones.contains_key(&node_id) {
                             self.handle_drone_command(
                                 &node_id,

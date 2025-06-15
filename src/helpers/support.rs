@@ -1,5 +1,6 @@
 use colored::Colorize;
 use crossbeam_channel::{unbounded, Receiver, Sender};
+use log::error;
 use rand::Rng;
 use std::collections::HashMap;
 
@@ -159,6 +160,9 @@ impl SimulationController {
 
     pub fn remove_sender(&mut self, node_id: NodeId, to_remove: NodeId) -> Result<(), Error> {
         // Check if it exists a neighbor with this id
+
+        error!("SIM - 4");
+
         match self.has_neighbors(node_id) {
             Ok(neighbor) => { 
                 match super::verify::is_a_neighbor(neighbor, to_remove, node_id, false) {

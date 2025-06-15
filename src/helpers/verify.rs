@@ -1,5 +1,5 @@
 use colored::Colorize;
-use log::info;
+use log::{error, info};
 use wg_2024::{network::NodeId, packet::NodeType};
 
 use crate::SimulationController;
@@ -40,6 +40,8 @@ impl SimulationController {
     }
 
     pub fn check_remove(&self, node_id: NodeId) -> Result<(), Error> {
+        error!("SIM - 2");
+
         let node_type = self.get_node_type(node_id);
 
         match node_type {
