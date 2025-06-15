@@ -3,7 +3,7 @@ use crossbeam_channel::TryRecvError;
 use log::error;
 use messages::{
     client_commands::{ChatClientCommand, MediaClientCommand},
-    gui_commands::GUICommands,
+    gui_commands::{GUICommands, GUIEvents},
     server_commands::{CommunicationServerCommand, ContentServerCommand},
 };
 use wg_2024::controller::DroneCommand;
@@ -38,13 +38,13 @@ impl SimulationController {
                     )
                 } else {
                     // Create drone
-                    match self.spawn(id, connected_node_ids, pdr) {
+                    match self.spawn(id, connected_node_ids.clone(), pdr) {
                         Ok(_) => {
                             // launch global flooding
                             self.global_flooding();
 
                             // Send command to GUI
-                            todo!()
+                            let _ = self.gui_send.send(GUIEvents::Spawn(id, connected_node_ids, pdr));
                         }
                         Err(e) => {
                             error!("[ {} ] {e}", "Simulation Controller".red());
@@ -77,7 +77,7 @@ impl SimulationController {
                                     self.global_flooding();
 
                                     // Send command to GUI
-                                    todo!()
+                                    let _ = self.gui_send.send(GUIEvents::Crash(drone));
                                 }
                                 Err(e) => {
                                     error!("[ {} ] {e}", "Simulation Controller".red());

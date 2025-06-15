@@ -1,3 +1,4 @@
+use messages::gui_commands::GUIEvents;
 use wg_2024::{controller::DroneCommand, network::NodeId};
 
 use colored::Colorize;
@@ -20,7 +21,7 @@ impl SimulationController {
                         match command_channel.send(DroneCommand::RemoveSender(node_id)) {
                             Ok(()) => {
                                 // Send command to GUI
-                                self.gui_send.send(GUIEvents::RemoveSender(drone, node_id));
+                                let _ = self.gui_send.send(GUIEvents::RemoveSender(*drone, node_id));
 
                                 // Launch global flooding
                                 self.global_flooding();
@@ -59,7 +60,7 @@ impl SimulationController {
                         match command_channel.send(DroneCommand::AddSender(node_id, sender)) {
                             Ok(()) => {
                                 // Send command to GUI
-                                self.gui_send.send(GUIEvents::AddSender(drone, node_id));
+                                let _ = self.gui_send.send(GUIEvents::AddSender(*drone, node_id));
 
                                 // Launch global flooding
                                 self.global_flooding();

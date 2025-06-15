@@ -24,7 +24,6 @@ impl SimulationController {
 
     #[allow(clippy::too_many_lines)]
     fn process_text_server_event(&mut self, event: ContentServerEvent) {
-        info!("[ {} ] Is a {:?}", "Simulation Controller".yellow(), event);
         match event {
             ContentServerEvent::ServerStarted => {
                 info!(
