@@ -112,6 +112,8 @@ impl SimulationController {
                 }
             }
             GUICommands::RemoveSender(node_id, to_remove) => {
+                error!("ONCE");
+
                 match self.check_remove(to_remove) {
                     Ok(_) => warn!("YES {}", to_remove),
                     Err(e) => {
