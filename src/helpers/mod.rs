@@ -137,27 +137,27 @@ impl SimulationController {
                 if self.drones.contains_key(&neighbor) {
                     self.handle_drone_command(&neighbor, DroneCommand::RemoveSender(node_id));
                 } else if self.cclients.contains_key(&neighbor) {
-                    self.handle_cclient_command(
+                    self.handle_chat_client_command(
                         &neighbor,
                         ChatClientCommand::RemoveSender(node_id),
                     );
                 } else if self.mclients.contains_key(&neighbor) {
-                    self.handle_mclient_command(
+                    self.handle_media_client_command(
                         &neighbor,
                         MediaClientCommand::RemoveSender(node_id),
                     );
                 } else if self.comm_servers.contains_key(&neighbor) {
-                    self.handle_commserver_command(
+                    self.handle_communication_server_command(
                         &neighbor,
                         CommunicationServerCommand::RemoveSender(node_id),
                     );
                 } else if self.text_servers.contains_key(&neighbor) {
-                    self.handle_text_command(
+                    self.handle_text_server_command(
                         &neighbor,
                         ContentServerCommand::RemoveSender(node_id),
                     );
                 } else {
-                    self.handle_media_command(
+                    self.handle_media_server_command(
                         &neighbor,
                         ContentServerCommand::RemoveSender(node_id),
                     );
@@ -181,31 +181,31 @@ impl SimulationController {
                         self.handle_drone_command(&to_remove, DroneCommand::RemoveSender(node_id));
                         return Ok(());
                     } else if self.cclients.contains_key(&to_remove) {
-                        self.handle_cclient_command(
+                        self.handle_chat_client_command(
                             &to_remove,
                             ChatClientCommand::RemoveSender(node_id),
                         );
                         return Ok(());
                     } else if self.mclients.contains_key(&to_remove) {
-                        self.handle_mclient_command(
+                        self.handle_media_client_command(
                             &to_remove,
                             MediaClientCommand::RemoveSender(node_id),
                         );
                         return Ok(());
                     } else if self.comm_servers.contains_key(&to_remove) {
-                        self.handle_commserver_command(
+                        self.handle_communication_server_command(
                             &to_remove,
                             CommunicationServerCommand::RemoveSender(node_id),
                         );
                         return Ok(());
                     } else if self.text_servers.contains_key(&to_remove) {
-                        self.handle_text_command(
+                        self.handle_text_server_command(
                             &to_remove,
                             ContentServerCommand::RemoveSender(node_id),
                         );
                         return Ok(());
                     } else if self.media_servers.contains_key(&to_remove) {
-                        self.handle_media_command(
+                        self.handle_media_server_command(
                             &to_remove,
                             ContentServerCommand::RemoveSender(node_id),
                         );
@@ -251,35 +251,35 @@ impl SimulationController {
 
                         return Ok(());
                     } else if self.mclients.contains_key(&to_add) {
-                        self.handle_mclient_command(
+                        self.handle_media_client_command(
                             &to_add,
                             MediaClientCommand::AddSender(node_id, packet_send.clone()),
                         );
 
                         return Ok(());
                     } else if self.cclients.contains_key(&to_add) {
-                        self.handle_cclient_command(
+                        self.handle_chat_client_command(
                             &to_add,
                             ChatClientCommand::AddSender(node_id, packet_send.clone()),
                         );
 
                         return Ok(());
                     } else if self.comm_servers.contains_key(&to_add) {
-                        self.handle_commserver_command(
+                        self.handle_communication_server_command(
                             &to_add,
                             CommunicationServerCommand::AddSender(node_id, packet_send.clone()),
                         );
 
                         return Ok(());
                     } else if self.text_servers.contains_key(&to_add) {
-                        self.handle_text_command(
+                        self.handle_text_server_command(
                             &to_add,
                             ContentServerCommand::AddSender(node_id, packet_send.clone()),
                         );
 
                         return Ok(());
                     } else if self.media_servers.contains_key(&to_add) {
-                        self.handle_media_command(
+                        self.handle_media_server_command(
                             &to_add,
                             ContentServerCommand::AddSender(node_id, packet_send.clone()),
                         );
