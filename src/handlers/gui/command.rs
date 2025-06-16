@@ -12,7 +12,6 @@ use crate::SimulationController;
 impl SimulationController {
     #[allow(clippy::too_many_lines)]
     pub fn handle_gui_command(&mut self, command: GUICommands) {
-        println!("[SimCtrl] ghandling {:?}", command);
         match command {
             GUICommands::Spawn(id, connected_node_ids, pdr) => {
                 // check if spawn is possible
@@ -98,9 +97,8 @@ impl SimulationController {
                 }
             }
             GUICommands::RemoveSender(node_id, to_remove) => {
-                println!("[SimCtrl] handling GUICommands::RemoveSender({}, {})", node_id, to_remove);
 
-                /*match self.check_remove(node_id) {
+                match self.check_remove(node_id) {
                     Ok(_) => (),
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
@@ -143,7 +141,7 @@ impl SimulationController {
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
                     }
-                }*/
+                }
             }
             GUICommands::AddSender(node_id, to_add) => {
                 match self.check_add(node_id) {
