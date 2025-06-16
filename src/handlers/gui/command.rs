@@ -100,7 +100,7 @@ impl SimulationController {
             GUICommands::RemoveSender(node_id, to_remove) => {
                 println!("[SimCtrl] handling GUICommands::RemoveSender({}, {})", node_id, to_remove);
 
-                match self.check_remove(node_id) {
+                /*match self.check_remove(node_id) {
                     Ok(_) => (),
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
@@ -116,7 +116,7 @@ impl SimulationController {
                     }
                 }
 
-                /*match self.remove_sender(node_id, to_remove) {
+                match self.remove_sender(node_id, to_remove) {
                     Ok(()) => {
                         if self.drones.contains_key(&node_id) {
                             self.handle_drone_command(
