@@ -105,7 +105,7 @@ impl SimulationController {
 
         // Start loop
         loop {
-            log::debug!("Start");
+            log::error!("Start");
             self.handle_drone_event();
             self.handle_chat_client_event();
             self.handle_media_client_event();
@@ -113,7 +113,7 @@ impl SimulationController {
             self.handle_media_server_event();
             self.handle_text_server_event();
             self.handle_gui_command();
-            log::debug!("End");
+            log::error!("End");
         }
     }
 }
