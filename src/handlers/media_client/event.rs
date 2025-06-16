@@ -143,10 +143,11 @@ impl SimulationController {
                     );
                 }
             }
-            //MediaClientEvent::ServerList(items) => ,
-            //MediaClientEvent::ReceveidServerType(_, server_type) => todo!(),
-            _ => {
-                error!("NOPE -> Not Implemented");
+            MediaClientEvent::ServerList(item_s) => {
+                ()
+            },
+            MediaClientEvent::ReceveidServerType(_node_id, _server_type) => {
+                ()
             }
         }
     }
