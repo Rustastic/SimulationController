@@ -138,6 +138,7 @@ impl SimulationController {
                 },
                 recv(self.gui_recv) -> msg => {
                     if let Ok(command) = msg {
+                        println!("[SimCtrl] received {:?}", command);
                         self.handle_gui_command(command);
                     }
                 },

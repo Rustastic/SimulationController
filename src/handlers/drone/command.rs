@@ -13,6 +13,7 @@ impl SimulationController {
         if let Some((command_channel, _)) = self.drones.get(drone) {
             match drone_command {
                 DroneCommand::RemoveSender(node_id) => {
+                    println!("[SimCtrl] handling DroneCommand::RemoveSender({}) for drone {}", node_id, drone);
                     // Get neighbors
                     if let Some(vec) = self.neighbor.get_mut(drone) {
                         // remove node from neighbors
@@ -20,6 +21,7 @@ impl SimulationController {
                         // Send command and handle Result
                         match command_channel.send(DroneCommand::RemoveSender(node_id)) {
                             Ok(()) => {
+                                println!("[SimCtrl] sent DroneCommand::RemoveSender({}) to drone {}", node_id, drone);
                                 // Send command to GUI
                                 let _ =
                                     self.gui_send.send(GUIEvents::RemoveSender(*drone, node_id));
