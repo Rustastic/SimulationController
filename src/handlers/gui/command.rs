@@ -116,7 +116,7 @@ impl SimulationController {
                     }
                 }
 
-                match self.remove_sender(node_id, to_remove) {
+                /*match self.remove_sender(node_id, to_remove) {
                     Ok(()) => {
                         if self.drones.contains_key(&node_id) {
                             self.handle_drone_command(
@@ -143,7 +143,7 @@ impl SimulationController {
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
                     }
-                }
+                }*/
             }
             GUICommands::AddSender(node_id, to_add) => {
                 match self.check_add(node_id) {
