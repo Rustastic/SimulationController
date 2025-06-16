@@ -44,7 +44,6 @@ impl SimulationController {
         match node_type {
             NodeType::Client => match self.has_neighbors(node_id) {
                 Ok(vec) => {
-                    log::error!("vec.len() {:?}", vec);
                     if vec.len() == 2 {
                         Ok(())
                     } else {

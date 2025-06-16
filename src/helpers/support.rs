@@ -68,18 +68,17 @@ impl SimulationController {
         // Generate random number to pick a random factory
         let rand = rand::rng().random_range(0..10);
         let drone_factories = [
-            Self::drone_factory::<rusty_drones::RustyDrone>(),
-            Self::drone_factory::<LeDron_James::Drone>(),
-            Self::drone_factory::<dr_ones::Drone>(),
-            //Self::drone_factory::<skylink::SkyLinkDrone>(),
-            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
-            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
             Self::drone_factory::<rust_roveri::RustRoveri>(),
-            Self::drone_factory::<rust_do_it::RustDoIt>(),
-            Self::drone_factory::<wg_2024_rust::drone::RustDrone>(),
-            Self::drone_factory::<null_pointer_drone::MyDrone>(),
-            Self::drone_factory::<lockheedrustin_drone::LockheedRustin>(),
-        ];
+            Self::drone_factory::<rust_roveri::RustRoveri>(),
+            Self::drone_factory::<rust_roveri::RustRoveri>(),
+            Self::drone_factory::<rust_roveri::RustRoveri>(),
+            Self::drone_factory::<rust_roveri::RustRoveri>(),
+            Self::drone_factory::<rust_roveri::RustRoveri>(),
+            Self::drone_factory::<rust_roveri::RustRoveri>(),
+            Self::drone_factory::<rust_roveri::RustRoveri>(),
+            Self::drone_factory::<rust_roveri::RustRoveri>(),
+            Self::drone_factory::<rust_roveri::RustRoveri>(),
+            ];
 
         // create necessary channels
         let (command_send, command_recv) = unbounded::<DroneCommand>();
