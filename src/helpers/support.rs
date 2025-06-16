@@ -1,6 +1,6 @@
 use colored::Colorize;
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use log::info;
+use log::{error, info};
 use rand::Rng;
 use std::collections::HashMap;
 
@@ -96,7 +96,12 @@ impl SimulationController {
 
         // add to neighbor list of neighbor
         for neighbor_id in drone.connected_node_ids.clone() {
-            self.neighbor.get_mut(&neighbor_id).unwrap().push(drone.id);
+            match self.add_sender(id, neighbor_id) {
+                Ok(_) => (),
+                Err(e) => {
+                    error!("[ {} ] {}","Simulation Controller".red(), e)
+                },
+            }
         }
 
         // Crate drone
