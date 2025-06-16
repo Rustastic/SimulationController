@@ -1,5 +1,6 @@
 use colored::Colorize;
 use crossbeam_channel::{unbounded, Receiver, Sender};
+use log::info;
 use rand::Rng;
 use std::collections::HashMap;
 
@@ -107,6 +108,15 @@ impl SimulationController {
             );
 
             self.new_drones.push(new_drone);
+
+            info!(
+                "[ {} ] Successfully create Drone({}, {:?}, {})",
+                "Simulation Controller".green(),
+                id,
+                drone.connected_node_ids.clone(),
+                pdr
+            );
+
         } else {
             panic!(
                 "[ {} ]: No factory defined for [ Drone {} ]",
