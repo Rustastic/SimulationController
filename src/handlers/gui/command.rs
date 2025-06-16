@@ -11,25 +11,8 @@ use wg_2024::controller::DroneCommand;
 use crate::SimulationController;
 
 impl SimulationController {
-    pub fn handle_gui_command(&mut self) {
-        match self.gui_recv.try_recv() {
-            Ok(command) => {
-                log::warn!("received a command -> {:?}", command);
-                self.process_gui_command(command);
-            },
-            Err(TryRecvError::Empty) => (),
-            Err(TryRecvError::Disconnected) => {
-                error!(
-                    "[ {} ]: DroneEvent receiver channel disconnected",
-                    "Simulation Controller".red()
-                );
-            }
-        }
-    }
-
-    // Handle GUI Commands
     #[allow(clippy::too_many_lines)]
-    fn process_gui_command(&mut self, command: GUICommands) {
+    pub fn handle_gui_command(&mut self, command: GUICommands) {
         match command {
             GUICommands::Spawn(id, connected_node_ids, pdr) => {
                 // check if spawn is possible
@@ -115,6 +98,14 @@ impl SimulationController {
                 }
             }
             GUICommands::RemoveSender(node_id, to_remove) => {
+                match self.check_remove(node_id) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        error!("[ {} ] {e}", "Simulation Controller".red());
+                        return;
+                    }
+                }
+
                 match self.check_remove(to_remove) {
                     Ok(_) => (),
                     Err(e) => {
@@ -153,6 +144,14 @@ impl SimulationController {
                 }
             }
             GUICommands::AddSender(node_id, to_add) => {
+                match self.check_add(node_id) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        error!("[ {} ] {e}", "Simulation Controller".red());
+                        return;
+                    }
+                }
+
                 match self.check_add(to_add) {
                     Ok(_) => (),
                     Err(e) => {

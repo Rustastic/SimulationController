@@ -9,21 +9,8 @@ use messages::server_commands::ContentServerEvent;
 use crate::SimulationController;
 
 impl SimulationController {
-    pub fn handle_media_server_event(&mut self) {
-        match self.media_recv.try_recv() {
-            Ok(event) => self.process_media_server_event(event),
-            Err(TryRecvError::Empty) => (),
-            Err(TryRecvError::Disconnected) => {
-                error!(
-                    "[ {} ]: MediaServerEvent receiver channel disconnected",
-                    "Simulation Controller".red()
-                );
-            }
-        }
-    }
-
     #[allow(clippy::too_many_lines)]
-    fn process_media_server_event(&mut self, event: ContentServerEvent) {
+    pub fn handle_media_server_event(&mut self, event: ContentServerEvent) {
         match event {
             ContentServerEvent::ServerStarted => {
                 info!(

@@ -8,21 +8,8 @@ use log::error;
 use crate::SimulationController;
 
 impl SimulationController {
-    pub fn handle_drone_event(&mut self) {
-        match self.drone_recv.try_recv() {
-            Ok(event) => self.process_drone_event(event),
-            Err(TryRecvError::Empty) => (),
-            Err(TryRecvError::Disconnected) => {
-                error!(
-                    "[ {} ]: DroneEvent receiver channel disconnected",
-                    "Simulation Controller".red()
-                );
-            }
-        }
-    }
-
     #[allow(clippy::too_many_lines)]
-    fn process_drone_event(&self, drone_event: DroneEvent) {
+    pub fn handle_drone_event(&self, drone_event: DroneEvent) {
         match drone_event {
             DroneEvent::PacketSent(packet) => {
                 if let Some(src) = packet
