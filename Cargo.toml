@@ -10,6 +10,7 @@ rand = "0.9.0"
 colored = "3"
 log = "0.4.25"
 thiserror = "2.0.11"
+num_cpus = "1.17"
 
 gui = { git = "https://github.com/Rustastic/GUI"}
 messages = { git = "https://github.com/Rustastic/Messages" }
