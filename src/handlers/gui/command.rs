@@ -14,6 +14,7 @@ impl SimulationController {
     pub fn handle_gui_command(&mut self) {
         match self.gui_recv.try_recv() {
             Ok(command) => {
+                log::warn!("received a command -> {:?}", command);
                 self.process_gui_command(command);
             },
             Err(TryRecvError::Empty) => (),
