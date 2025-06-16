@@ -138,7 +138,7 @@ impl SimulationController {
                 },
                 recv(self.gui_recv) -> msg => {
                     if let Ok(command) = msg {
-                        self.handle_gui_command(event);
+                        self.handle_gui_command(command);
                     }
                 },
         }
