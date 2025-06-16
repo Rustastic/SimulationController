@@ -20,7 +20,6 @@ impl SimulationController {
                         // Send command and handle Result
                         match command_channel.send(DroneCommand::RemoveSender(node_id)) {
                             Ok(()) => {
-                                println!("[SimCtrl] sent DroneCommand::RemoveSender({}) to drone {}", node_id, drone);
                                 // Send command to GUI
                                 let _ =
                                     self.gui_send.send(GUIEvents::RemoveSender(*drone, node_id));
