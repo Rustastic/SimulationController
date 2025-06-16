@@ -1,0 +1,93 @@
+use messages::gui_commands::GUIEvents;
+use wg_2024::{controller::DroneEvent, packet::PacketType};
+
+use colored::Colorize;
+use log::error;
+
+use crate::SimulationController;
+
+impl SimulationController {
+    #[allow(clippy::too_many_lines)]
+    pub fn handle_drone_event(&self, drone_event: DroneEvent) {
+        match drone_event {
+            DroneEvent::PacketSent(packet) => {
+                if let Some(src) = packet
+                    .routing_header
+                    .hops
+                    .get(packet.routing_header.hop_index)
+                {
+                    if let Some(dest) = packet
+                        .routing_header
+                        .hops
+                        .get(packet.routing_header.hop_index + 1)
+                    {
+                        let _ =
+                            self.gui_send
+                                .send(GUIEvents::PacketSent(*src, *dest, packet.clone()));
+                    }
+                }
+            }
+
+            DroneEvent::PacketDropped(packet) => {
+                if let Some(src) = packet
+                    .routing_header
+                    .hops
+                    .get(packet.routing_header.hop_index)
+                {
+                    let _ = self
+                        .gui_send
+                        .send(GUIEvents::PacketDropped(*src, packet.clone()));
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a extract source from packet: {:?}",
+                        "Simulation Controller".red(),
+                        packet
+                    );
+                }
+            }
+
+            DroneEvent::ControllerShortcut(packet) => {
+                // Get destination of the packet
+                if let Some(dest) = packet.routing_header.hops.last() {
+                    // Get destination's channel
+                    let packet_channel;
+                    if self.drones.contains_key(dest) {
+                        (_, packet_channel) = self.drones.get(dest).unwrap().clone();
+                    } else if self.cclients.contains_key(dest) {
+                        (_, packet_channel) = self.cclients.get(dest).unwrap().clone();
+                    } else if self.mclients.contains_key(dest) {
+                        (_, packet_channel) = self.mclients.get(dest).unwrap().clone();
+                    } else if self.comm_servers.contains_key(dest) {
+                        (_, packet_channel) = self.comm_servers.get(dest).unwrap().clone();
+                    } else if self.text_servers.contains_key(dest) {
+                        (_, packet_channel) = self.text_servers.get(dest).unwrap().clone();
+                    } else if self.media_servers.contains_key(dest) {
+                        (_, packet_channel) = self.media_servers.get(dest).unwrap().clone();
+                    } else {
+                        error!(
+                            "[ {} ]: failed to find a Sender<Packet> channel for the [ Drone {} ]",
+                            "Simulation Controller".red(),
+                            dest
+                        );
+                        return;
+                    }
+
+                    // Send Packet to destination
+                    match packet.pack_type {
+                        PacketType::MsgFragment(_) => {
+                            panic!("Impossible how the hell did u do this")
+                        }
+                        _ => {
+                            packet_channel.send(packet.clone()).unwrap();
+                        }
+                    }
+                } else {
+                    error!(
+                        "[ {} ]: failed to find a Drone to send the DroneEvent::ControllerShortcut",
+                        "Simulation Controller".red()
+                    );
+                }
+            }
+        }
+    }
+}

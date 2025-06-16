@@ -6,21 +6,20 @@ edition = "2021"
 [dependencies]
 wg_2024 = { git = "https://github.com/WGL-2024/WGL_repo_2024.git", features = ["serialize", "debug"] }
 crossbeam-channel = "0.5.13"
-toml = "0.8.19"
 rand = "0.9.0"
 colored = "3"
 log = "0.4.25"
 thiserror = "2.0.11"
-#eframe = { version = "0.30.0", features = ["default", "__screenshot"] }
-#egui_extras = { version = "0.30.0", features = ["default", "image"] }
+num_cpus = "1.17"
 
-#chat_client = { git = "https://github.com/Rustastic/ChatClient"}
+gui = { git = "https://github.com/Rustastic/GUI"}
+messages = { git = "https://github.com/Rustastic/Messages" }
 
 rusty_drones = { git = "https://github.com/rusty-drone-2024/rusty-drone.git" }
 LeDron_James = { git = "https://github.com/anass03/LeDron_James.git" }
 dr_ones = { git = "https://github.com/Dr-Ones/drone" }
 #skylink = { git = "https://github.com/Suge42/Skylink_drone.git" }
-rustbusters-drone = { git = "https://github.com/Rustbusters/drone", features = ["sounds"] }
+rustbusters-drone = { git = "https://github.com/Rustbusters/drone"}
 rust-roveri = { git = "https://github.com/RustRoveri/rust-roveri.git" }
 rust_do_it = { git = "https://github.com/RustDoIt/Drone.git" }
 wg_2024-rust = { git = "https://github.com/LuigiMiazzo17/unitn-advancedProgramming-WGL_2024-drone.git" }

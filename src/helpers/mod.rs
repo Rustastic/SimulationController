@@ -1,2 +1,3 @@
-pub mod user_interaction;
-pub mod verify;
+mod error;
+pub mod support;
+mod verify;
