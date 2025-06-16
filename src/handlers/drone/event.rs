@@ -1,4 +1,3 @@
-use crossbeam_channel::TryRecvError;
 use messages::gui_commands::GUIEvents;
 use wg_2024::{controller::DroneEvent, packet::PacketType};
 

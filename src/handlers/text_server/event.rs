@@ -1,4 +1,3 @@
-use crossbeam_channel::TryRecvError;
 use wg_2024::packet::PacketType;
 
 use colored::Colorize;

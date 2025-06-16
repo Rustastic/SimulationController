@@ -1,6 +1,5 @@
 use colored::Colorize;
-use crossbeam_channel::TryRecvError;
-use log::{error, info, warn};
+use log::error;
 use messages::{
     client_commands::{ChatClientCommand, MediaClientCommand},
     gui_commands::{GUICommands, GUIEvents},

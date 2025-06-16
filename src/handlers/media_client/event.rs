@@ -1,5 +1,4 @@
 use colored::Colorize;
-use crossbeam_channel::TryRecvError;
 use log::{error, info};
 
 use wg_2024::packet::PacketType;
@@ -143,7 +142,7 @@ impl SimulationController {
                     );
                 }
             }
-            MediaClientEvent::ServerList(item_s) => {
+            MediaClientEvent::ServerList(_items) => {
                 ()
             },
             MediaClientEvent::ReceveidServerType(_node_id, _server_type) => {
