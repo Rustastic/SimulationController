@@ -10,7 +10,6 @@ rand = "0.9.0"
 colored = "3"
 log = "0.4.25"
 thiserror = "2.0.11"
-num_cpus = "1.17"
 
 gui = { git = "https://github.com/Rustastic/GUI"}
 messages = { git = "https://github.com/Rustastic/Messages" }
@@ -23,5 +22,5 @@ rustbusters-drone = { git = "https://github.com/Rustbusters/drone"}
 rust-roveri = { git = "https://github.com/RustRoveri/rust-roveri.git" }
 rust_do_it = { git = "https://github.com/RustDoIt/Drone.git" }
 wg_2024-rust = { git = "https://github.com/LuigiMiazzo17/unitn-advancedProgramming-WGL_2024-drone.git" }
-null-pointer-drone = { git = "https://github.com/The-Null-Pointer-Patrol/null-pointer-drone.git"}
+#null-pointer-drone = { git = "https://github.com/The-Null-Pointer-Patrol/null-pointer-drone.git"}
 lockheedrustin-drone = { git = "https://github.com/Lockheed-Rustin/drone.git" }
