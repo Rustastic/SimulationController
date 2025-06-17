@@ -91,20 +91,19 @@ impl SimulationController {
         // Add drone to drone list
         self.drones.insert(id, (command_send, packet_send));
 
-        // Add drone to neighbor list
-        self.neighbor
-            .insert(drone.id, drone.connected_node_ids.clone());
-
         // add to neighbor list of neighbor
         for neighbor_id in drone.connected_node_ids.clone() {
             match self.add_sender(id, neighbor_id) {
                 Ok(()) => (),
                 Err(e) => {
-                    log::error!("HERE");
                     return Err(e);
                 }
             }
         }
+
+        // Add drone to neighbor list
+        self.neighbor
+            .insert(drone.id, drone.connected_node_ids.clone());
 
         // Crate drone
         if let Some(factory) = drone_factories.get(rand) {
