@@ -72,18 +72,18 @@ impl SimulationController {
                 if let Some(dest) = packet.routing_header.hops.last() {
                     // Get destination node channel
                     let packet_channel;
-                    if self.drones.contains_key(dest) {
-                        (_, packet_channel) = self.drones.get(dest).unwrap().clone();
-                    } else if self.cclients.contains_key(dest) {
-                        (_, packet_channel) = self.cclients.get(dest).unwrap().clone();
-                    } else if self.mclients.contains_key(dest) {
-                        (_, packet_channel) = self.mclients.get(dest).unwrap().clone();
-                    } else if self.comm_servers.contains_key(dest) {
-                        (_, packet_channel) = self.comm_servers.get(dest).unwrap().clone();
-                    } else if self.text_servers.contains_key(dest) {
-                        (_, packet_channel) = self.text_servers.get(dest).unwrap().clone();
-                    } else if self.media_servers.contains_key(dest) {
-                        (_, packet_channel) = self.media_servers.get(dest).unwrap().clone();
+                    if let Some((_, chan)) = self.drones.get(dest) {
+                        packet_channel = chan.clone();
+                    } else if let Some((_, chan)) = self.cclients.get(dest) {
+                        packet_channel = chan.clone();
+                    } else if let Some((_, chan)) = self.mclients.get(dest) {
+                        packet_channel = chan.clone();
+                    } else if let Some((_, chan)) = self.comm_servers.get(dest) {
+                        packet_channel = chan.clone();
+                    } else if let Some((_, chan)) = self.text_servers.get(dest) {
+                        packet_channel = chan.clone();
+                    } else if let Some((_, chan)) = self.media_servers.get(dest) {
+                        packet_channel = chan.clone();
                     } else {
                         error!(
                             "[ {} ]: failed to find a Sender<Packet> channel for the [ CommunicationServer {} ]",
@@ -96,10 +96,10 @@ impl SimulationController {
                     // Send Packet to destination
                     match packet.pack_type {
                         PacketType::MsgFragment(_) => {
-                            panic!("Impossible how the hell did u do this");
+                            error!("[ {} ] MsgFragment received in controller logic — this should not happen.", "Simulation Controller".red());
                         }
                         _ => {
-                            packet_channel.send(packet.clone()).unwrap();
+                            let _ = packet_channel.send(packet.clone());
                         }
                     }
                 } else {

@@ -20,4 +20,8 @@ pub enum Error {
     ServerRemove,
     #[error("A Client can be connected to maximum of 2 nodes")]
     ClientAdd,
+    #[error("No factory defined for [ Drone {0} ]")]
+    MissingFactory(NodeId),
+    #[error("failed to find a Sender<Packet> channel for the [ Node {0} ]")]
+    NoSender(NodeId),
 }

@@ -1,6 +1,6 @@
 use colored::Colorize;
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use log::{error, info};
+use log::info;
 use rand::Rng;
 use std::collections::HashMap;
 
@@ -53,6 +53,7 @@ impl SimulationController {
         })
     }
 
+    #[allow(clippy::missing_errors_doc)]
     pub fn spawn(
         &mut self,
         id: NodeId,
@@ -97,10 +98,8 @@ impl SimulationController {
         // add to neighbor list of neighbor
         for neighbor_id in drone.connected_node_ids.clone() {
             match self.add_sender(id, neighbor_id) {
-                Ok(_) => (),
-                Err(e) => {
-                    error!("[ {} ] {}", "Simulation Controller".red(), e)
-                }
+                Ok(()) => (),
+                Err(e) => return Err(e),
             }
         }
 
@@ -123,17 +122,14 @@ impl SimulationController {
                 drone.connected_node_ids.clone(),
                 pdr
             );
-        } else {
-            panic!(
-                "[ {} ]: No factory defined for [ Drone {} ]",
-                "Simulation Controller".red(),
-                drone.id
-            );
-        }
 
-        Ok(())
+            Ok(())
+        } else {
+            Err(Error::MissingFactory(id))
+        }
     }
 
+    #[allow(clippy::missing_errors_doc)]
     pub fn crash(&mut self, node_id: NodeId) -> Result<(), Error> {
         // If the drone has any neighbors
         if let Some(neighbor_ids) = self.neighbor.get(&node_id).cloned() {
@@ -172,6 +168,7 @@ impl SimulationController {
         Ok(())
     }
 
+    #[allow(clippy::missing_errors_doc)]
     pub fn remove_sender(&mut self, node_id: NodeId, to_remove: NodeId) -> Result<(), Error> {
         // Check if it exists a neighbor with this id
         match self.has_neighbors(node_id) {
@@ -224,24 +221,27 @@ impl SimulationController {
         }
     }
 
+    #[allow(clippy::missing_errors_doc)]
     pub fn add_sender(&mut self, node_id: NodeId, to_add: NodeId) -> Result<(), Error> {
         // Check if it exists a neighbor with this id
         match self.has_neighbors(node_id) {
             Ok(neighbor) => match super::verify::is_a_neighbor(neighbor, to_add, node_id, true) {
                 Ok(()) => {
                     let packet_send;
-                    if self.drones.contains_key(&node_id) {
-                        (_, packet_send) = self.drones.get(&node_id).unwrap().clone();
-                    } else if self.cclients.contains_key(&node_id) {
-                        (_, packet_send) = self.cclients.get(&node_id).unwrap().clone();
-                    } else if self.mclients.contains_key(&node_id) {
-                        (_, packet_send) = self.mclients.get(&node_id).unwrap().clone();
-                    } else if self.comm_servers.contains_key(&node_id) {
-                        (_, packet_send) = self.comm_servers.get(&node_id).unwrap().clone();
-                    } else if self.text_servers.contains_key(&node_id) {
-                        (_, packet_send) = self.text_servers.get(&node_id).unwrap().clone();
+                    if let Some((_, chan)) = self.drones.get(&node_id) {
+                        packet_send = chan.clone();
+                    } else if let Some((_, chan)) = self.cclients.get(&node_id) {
+                        packet_send = chan.clone();
+                    } else if let Some((_, chan)) = self.mclients.get(&node_id) {
+                        packet_send = chan.clone();
+                    } else if let Some((_, chan)) = self.comm_servers.get(&node_id) {
+                        packet_send = chan.clone();
+                    } else if let Some((_, chan)) = self.text_servers.get(&node_id) {
+                        packet_send = chan.clone();
+                    } else if let Some((_, chan)) = self.media_servers.get(&node_id) {
+                        packet_send = chan.clone();
                     } else {
-                        (_, packet_send) = self.media_servers.get(&node_id).unwrap().clone();
+                        return Err(Error::NoSender(node_id));
                     }
 
                     if self.drones.contains_key(&to_add) {

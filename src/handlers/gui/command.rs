@@ -20,7 +20,7 @@ impl SimulationController {
                         "[ {} ] Can not spawn the drone: drone with the NodeId: {} already exist",
                         "Simulation Controller".red(),
                         id,
-                    )
+                    );
                 } else if !(0.0..=1.0).contains(&pdr) {
                     error!(
                         "[ {} ] Can not spawn the drone: PDR value mus be between 0.0 and 1.0",
@@ -30,7 +30,7 @@ impl SimulationController {
                     // check if can add neighbors
                     for neighbor in &connected_node_ids {
                         match self.check_add(*neighbor) {
-                            Ok(_) => (),
+                            Ok(()) => (),
                             Err(e) => {
                                 error!("[ {} ] {e}", "Simulation Controller".red());
                                 return;
@@ -39,7 +39,7 @@ impl SimulationController {
                     }
                     // Create drone
                     match self.spawn(id, connected_node_ids.clone(), pdr) {
-                        Ok(_) => {
+                        Ok(()) => {
                             // launch global flooding
                             self.global_flooding();
 
@@ -57,12 +57,12 @@ impl SimulationController {
             GUICommands::Crash(drone) => {
                 // check drone existence
                 match self.check_drone_existence(drone) {
-                    Ok(_) => {
+                    Ok(()) => {
                         // Check if the edges can be removed
                         if let Some(neighbors) = self.neighbor.get(&drone) {
                             for neighbor in neighbors {
                                 match self.check_remove(*neighbor) {
-                                    Ok(_) => (),
+                                    Ok(()) => (),
                                     Err(e) => {
                                         error!("[ {} ] {e}", "Simulation Controller".red());
                                         return;
@@ -71,7 +71,7 @@ impl SimulationController {
                             }
                             // Send commands to neighbors
                             match self.crash(drone) {
-                                Ok(_) => {
+                                Ok(()) => {
                                     // send command to drone
                                     self.handle_drone_command(&drone, DroneCommand::Crash);
 
@@ -100,7 +100,7 @@ impl SimulationController {
             }
             GUICommands::RemoveSender(node_id, to_remove) => {
                 match self.check_remove(node_id) {
-                    Ok(_) => (),
+                    Ok(()) => (),
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
                         return;
@@ -108,7 +108,7 @@ impl SimulationController {
                 }
 
                 match self.check_remove(to_remove) {
-                    Ok(_) => (),
+                    Ok(()) => (),
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
                         return;
@@ -146,7 +146,7 @@ impl SimulationController {
             }
             GUICommands::AddSender(node_id, to_add) => {
                 match self.check_add(node_id) {
-                    Ok(_) => (),
+                    Ok(()) => (),
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
                         return;
@@ -154,7 +154,7 @@ impl SimulationController {
                 }
 
                 match self.check_add(to_add) {
-                    Ok(_) => (),
+                    Ok(()) => (),
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
                         return;
@@ -164,18 +164,25 @@ impl SimulationController {
                 match self.add_sender(node_id, to_add) {
                     Ok(()) => {
                         let sender;
-                        if self.drones.contains_key(&to_add) {
-                            (_, sender) = self.drones.get(&to_add).unwrap().clone();
-                        } else if self.cclients.contains_key(&to_add) {
-                            (_, sender) = self.cclients.get(&to_add).unwrap().clone();
-                        } else if self.mclients.contains_key(&to_add) {
-                            (_, sender) = self.mclients.get(&to_add).unwrap().clone();
-                        } else if self.comm_servers.contains_key(&to_add) {
-                            (_, sender) = self.comm_servers.get(&to_add).unwrap().clone();
-                        } else if self.text_servers.contains_key(&to_add) {
-                            (_, sender) = self.text_servers.get(&to_add).unwrap().clone();
+                        if let Some((_, s)) = self.drones.get(&to_add) {
+                            sender = s.clone();
+                        } else if let Some((_, s)) = self.cclients.get(&to_add) {
+                            sender = s.clone();
+                        } else if let Some((_, s)) = self.mclients.get(&to_add) {
+                            sender = s.clone();
+                        } else if let Some((_, s)) = self.comm_servers.get(&to_add) {
+                            sender = s.clone();
+                        } else if let Some((_, s)) = self.text_servers.get(&to_add) {
+                            sender = s.clone();
+                        } else if let Some((_, s)) = self.media_servers.get(&to_add) {
+                            sender = s.clone();
                         } else {
-                            (_, sender) = self.media_servers.get(&to_add).unwrap().clone();
+                            error!(
+                                "[ {} ]: failed to find a Sender<Packet> channel for the [ Node {} ]",
+                                "Simulation Controller".red(),
+                                to_add
+                            );
+                            return;
                         }
 
                         if self.drones.contains_key(&node_id) {
