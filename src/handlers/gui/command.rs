@@ -34,7 +34,7 @@ impl SimulationController {
                             Err(e) => {
                                 error!("[ {} ] {e}", "Simulation Controller".red());
                                 return;
-                            },
+                            }
                         }
                     }
                     // Create drone
@@ -44,7 +44,9 @@ impl SimulationController {
                             self.global_flooding();
 
                             // Send command to GUI
-                            let _ = self.gui_send.send(GUIEvents::Spawn(id, connected_node_ids, pdr));
+                            let _ =
+                                self.gui_send
+                                    .send(GUIEvents::Spawn(id, connected_node_ids, pdr));
                         }
                         Err(e) => {
                             error!("[ {} ] {e}", "Simulation Controller".red());
@@ -97,7 +99,6 @@ impl SimulationController {
                 }
             }
             GUICommands::RemoveSender(node_id, to_remove) => {
-
                 match self.check_remove(node_id) {
                     Ok(_) => (),
                     Err(e) => {

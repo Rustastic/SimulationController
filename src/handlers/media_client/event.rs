@@ -142,12 +142,8 @@ impl SimulationController {
                     );
                 }
             }
-            MediaClientEvent::ServerList(_items) => {
-                ()
-            },
-            MediaClientEvent::ReceveidServerType(_node_id, _server_type) => {
-                ()
-            }
+            MediaClientEvent::ServerList(_items) => (),
+            MediaClientEvent::ReceveidServerType(_node_id, _server_type) => (),
         }
     }
 }

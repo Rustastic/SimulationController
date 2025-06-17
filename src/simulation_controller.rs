@@ -106,42 +106,42 @@ impl SimulationController {
         // Start loop
         loop {
             select! {
-                recv(self.drone_recv) -> msg => {
-                    if let Ok(event) = msg {
-                        self.handle_drone_event(event);
-                    }
-                },
-                recv(self.cclient_recv) -> msg => {
-                    if let Ok(event) = msg {
-                        self.handle_chat_client_event(event);
-                    }
-                },
-                recv(self.mclient_recv) -> msg => {
-                    if let Ok(event) = msg {
-                        self.handle_media_client_event(event);
-                    }
-                },
-                recv(self.comm_server_recv) -> msg => {
-                    if let Ok(event) = msg {
-                        self.handle_communication_server_event(event);
-                    }
-                },
-                recv(self.media_recv) -> msg => {
-                    if let Ok(event) = msg {
-                        self.handle_media_server_event(event);
-                    }
-                },
-                recv(self.text_recv) -> msg => {
-                    if let Ok(event) = msg {
-                        self.handle_text_server_event(event);
-                    }
-                },
-                recv(self.gui_recv) -> msg => {
-                    if let Ok(command) = msg {
-                        self.handle_gui_command(command);
-                    }
-                },
+                    recv(self.drone_recv) -> msg => {
+                        if let Ok(event) = msg {
+                            self.handle_drone_event(event);
+                        }
+                    },
+                    recv(self.cclient_recv) -> msg => {
+                        if let Ok(event) = msg {
+                            self.handle_chat_client_event(event);
+                        }
+                    },
+                    recv(self.mclient_recv) -> msg => {
+                        if let Ok(event) = msg {
+                            self.handle_media_client_event(event);
+                        }
+                    },
+                    recv(self.comm_server_recv) -> msg => {
+                        if let Ok(event) = msg {
+                            self.handle_communication_server_event(event);
+                        }
+                    },
+                    recv(self.media_recv) -> msg => {
+                        if let Ok(event) = msg {
+                            self.handle_media_server_event(event);
+                        }
+                    },
+                    recv(self.text_recv) -> msg => {
+                        if let Ok(event) = msg {
+                            self.handle_text_server_event(event);
+                        }
+                    },
+                    recv(self.gui_recv) -> msg => {
+                        if let Ok(command) = msg {
+                            self.handle_gui_command(command);
+                        }
+                    },
+            }
         }
     }
-}
 }

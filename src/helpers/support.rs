@@ -81,7 +81,7 @@ impl SimulationController {
             Self::drone_factory::<wg_2024_rust::drone::RustDrone>(),
             //Self::drone_factory::<null_pointer_drone::MyDrone>(),
             Self::drone_factory::<lockheedrustin_drone::LockheedRustin>(),
-            ];
+        ];
 
         // create necessary channels
         let (command_send, command_recv) = unbounded::<DroneCommand>();
@@ -99,8 +99,8 @@ impl SimulationController {
             match self.add_sender(id, neighbor_id) {
                 Ok(_) => (),
                 Err(e) => {
-                    error!("[ {} ] {}","Simulation Controller".red(), e)
-                },
+                    error!("[ {} ] {}", "Simulation Controller".red(), e)
+                }
             }
         }
 
@@ -123,7 +123,6 @@ impl SimulationController {
                 drone.connected_node_ids.clone(),
                 pdr
             );
-
         } else {
             panic!(
                 "[ {} ]: No factory defined for [ Drone {} ]",
