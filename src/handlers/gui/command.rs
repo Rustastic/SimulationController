@@ -32,7 +32,6 @@ impl SimulationController {
                         match self.check_add(*neighbor) {
                             Ok(()) => (),
                             Err(e) => {
-                                error!("HERE");
                                 error!("[ {} ] {e}", "Simulation Controller".red());
                                 return;
                             }
