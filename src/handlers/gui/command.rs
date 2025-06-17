@@ -75,9 +75,6 @@ impl SimulationController {
                                     // send command to drone
                                     self.handle_drone_command(&drone, DroneCommand::Crash);
 
-                                    // launch global flooding
-                                    self.global_flooding();
-
                                     // Send command to GUI
                                     let _ = self.gui_send.send(GUIEvents::Crash(drone));
                                 }
