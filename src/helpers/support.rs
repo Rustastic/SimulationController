@@ -96,6 +96,7 @@ impl SimulationController {
             match self.add_sender(id, neighbor_id) {
                 Ok(()) => (),
                 Err(e) => {
+                    log::error!("HERE");
                     return Err(e);
                 }
             }
