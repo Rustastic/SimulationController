@@ -35,10 +35,24 @@ impl SimulationController {
         Box::new(|sim_ctrl, drone, event_send, command_recv, packet_recv| {
             // Create packet send hashmap
             let mut packet_send_hashmap = HashMap::<NodeId, Sender<Packet>>::new();
-            // Fill hashmap with only neighbor
+            // Fill hashmap with only
+            let mut packet_send;
             for neighbor in &drone.connected_node_ids {
-                let (_, neighbor_send_channel) = sim_ctrl.drones.get(neighbor).unwrap();
-                packet_send_hashmap.insert(*neighbor, neighbor_send_channel.clone());
+                if let Some((_, chan)) = sim_ctrl.drones.get(neighbor) {
+                    packet_send = chan.clone();
+                } else if let Some((_, chan)) = sim_ctrl.cclients.get(neighbor) {
+                    packet_send = chan.clone();
+                } else if let Some((_, chan)) = sim_ctrl.mclients.get(neighbor) {
+                    packet_send = chan.clone();
+                } else if let Some((_, chan)) = sim_ctrl.comm_servers.get(neighbor) {
+                    packet_send = chan.clone();
+                } else if let Some((_, chan)) = sim_ctrl.text_servers.get(neighbor) {
+                    packet_send = chan.clone();
+                } else {
+                    let (_, chan) = sim_ctrl.media_servers.get(neighbor).unwrap();
+                    packet_send = chan.clone();
+                }
+                packet_send_hashmap.insert(*neighbor, packet_send);
             }
 
             // Get drone's command receiver channel
@@ -92,8 +106,7 @@ impl SimulationController {
         self.drones.insert(id, (command_send, packet_send));
 
         // Add drone to neighbor list
-        self.neighbor
-            .insert(drone.id, Vec::new());
+        self.neighbor.insert(drone.id, Vec::new());
 
         // add to neighbor list of neighbor
         for neighbor_id in drone.connected_node_ids.clone() {
