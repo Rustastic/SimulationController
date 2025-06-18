@@ -6,7 +6,6 @@ use colored::Colorize;
 
 use wg_2024::{
     controller::{DroneCommand, DroneEvent},
-    drone::Drone,
     network::NodeId,
     packet::Packet,
 };
@@ -24,7 +23,6 @@ pub struct SimulationController {
     pub neighbor: HashMap<NodeId, Vec<NodeId>>,
 
     pub event_send: Sender<DroneEvent>,
-    pub new_drones: Vec<Box<dyn Drone>>,
 
     pub drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
     pub drone_recv: Receiver<DroneEvent>,
@@ -74,7 +72,6 @@ impl SimulationController {
             drone_recv,
             neighbor,
             event_send,
-            new_drones: Vec::new(),
             gui_send,
             gui_recv,
             cclients,

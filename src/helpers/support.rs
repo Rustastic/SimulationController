@@ -1,8 +1,7 @@
 use colored::Colorize;
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use log::{error, info};
+use log::info;
 use rand::Rng;
-use rustbusters_drone::RustBustersDrone;
 use std::{collections::HashMap, thread};
 
 use wg_2024::{
@@ -85,17 +84,7 @@ impl SimulationController {
         // Generate random number to pick a random factory
         let rand = rand::rng().random_range(0..10);
         let drone_factories = [
-            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
-            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
-            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
-            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
-            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
-            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
-            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
-            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
-            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
-            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
-            /*Self::drone_factory::<rusty_drones::RustyDrone>(),
+            Self::drone_factory::<rusty_drones::RustyDrone>(),
             Self::drone_factory::<LeDron_James::Drone>(),
             Self::drone_factory::<dr_ones::Drone>(),
             //Self::drone_factory::<skylink::SkyLinkDrone>(),
@@ -106,7 +95,7 @@ impl SimulationController {
             Self::drone_factory::<rust_do_it::RustDoIt>(),
             Self::drone_factory::<wg_2024_rust::drone::RustDrone>(),
             //Self::drone_factory::<null_pointer_drone::MyDrone>(),
-            Self::drone_factory::<lockheedrustin_drone::LockheedRustin>(),*/
+            Self::drone_factory::<lockheedrustin_drone::LockheedRustin>(),
         ];
 
         // create necessary channels
@@ -123,35 +112,6 @@ impl SimulationController {
                 packet_recv,
             );
 
-            /*let mut packet_send_hashmap = HashMap::<NodeId, Sender<Packet>>::new();
-            let mut a_packet_send;
-            for neighbor in &drone.connected_node_ids {
-                if let Some((_, chan)) = self.drones.get(neighbor) {
-                    a_packet_send = chan.clone();
-                } else if let Some((_, chan)) = self.cclients.get(neighbor) {
-                    a_packet_send = chan.clone();
-                } else if let Some((_, chan)) = self.mclients.get(neighbor) {
-                    a_packet_send = chan.clone();
-                } else if let Some((_, chan)) = self.comm_servers.get(neighbor) {
-                    a_packet_send = chan.clone();
-                } else if let Some((_, chan)) = self.text_servers.get(neighbor) {
-                    a_packet_send = chan.clone();
-                } else {
-                    let (_, chan) = self.media_servers.get(neighbor).unwrap();
-                    a_packet_send = chan.clone();
-                }
-                packet_send_hashmap.insert(*neighbor, a_packet_send);
-            }
-
-            let mut new_drone = RustBustersDrone::new(
-                id,
-                self.event_send.clone(),
-                command_recv,
-                packet_recv,
-                packet_send_hashmap,
-                pdr
-            );*/
-
             thread::spawn(move || {
                 new_drone.run();
             });
@@ -161,8 +121,6 @@ impl SimulationController {
 
             // Add drone to neighbor list
             self.neighbor.insert(drone.id, Vec::new());
-
-            //self.new_drones.push(new_drone);
 
             info!(
                 "[ {} ] Successfully create Drone({}, {:?}, {})",
