@@ -130,13 +130,67 @@ impl SimulationController {
             // add to neighbor list of neighbor
             for neighbor_id in drone.connected_node_ids.clone() {
                 match self.add_sender(drone.id, neighbor_id) {
-                    Ok(()) => (),
-                    Err(e) => {
-                        return Err(e);
-                    }
-                }
-                match self.add_sender(neighbor_id, drone.id) {
-                    Ok(()) => (),
+                    Ok(()) => {
+                        let sender;
+                        if let Some((_, s)) = self.drones.get(&to_add) {
+                            sender = s.clone();
+                        } else if let Some((_, s)) = self.cclients.get(&to_add) {
+                            sender = s.clone();
+                        } else if let Some((_, s)) = self.mclients.get(&to_add) {
+                            sender = s.clone();
+                        } else if let Some((_, s)) = self.comm_servers.get(&to_add) {
+                            sender = s.clone();
+                        } else if let Some((_, s)) = self.text_servers.get(&to_add) {
+                            sender = s.clone();
+                        } else if let Some((_, s)) = self.media_servers.get(&to_add) {
+                            sender = s.clone();
+                        } else {
+                            error!(
+                                "[ {} ]: failed to find a Sender<Packet> channel for the [ Node {} ]",
+                                "Simulation Controller".red(),
+                                to_add
+                            );
+                            return;
+                        }
+
+                        if self.drones.contains_key(&node_id) {
+                            self.handle_drone_command(
+                                &node_id,
+                                DroneCommand::AddSender(to_add, sender),
+                            );
+                        } else if self.cclients.contains_key(&node_id) {
+                            self.handle_chat_client_command(
+                                &node_id,
+                                ChatClientCommand::AddSender(to_add, sender),
+                            );
+                        } else if self.mclients.contains_key(&node_id) {
+                            self.handle_media_client_command(
+                                &node_id,
+                                MediaClientCommand::AddSender(to_add, sender),
+                            );
+                        } else if self.comm_servers.contains_key(&node_id) {
+                            self.handle_communication_server_command(
+                                &node_id,
+                                CommunicationServerCommand::AddSender(to_add, sender),
+                            );
+                        } else if self.text_servers.contains_key(&node_id) {
+                            self.handle_text_server_command(
+                                &node_id,
+                                ContentServerCommand::AddSender(to_add, sender),
+                            );
+                        } else if self.media_servers.contains_key(&node_id) {
+                            self.handle_media_server_command(
+                                &node_id,
+                                ContentServerCommand::AddSender(to_add, sender),
+                            );
+                        } else {
+                            log::error!(
+                                "[ {} ]: failed to send AddSender to [ Node {} ]",
+                                "Simulation Controller".red(),
+                                to_add
+                            );
+                        }
+                    },
                     Err(e) => {
                         return Err(e);
                     }
