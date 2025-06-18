@@ -45,6 +45,52 @@ impl SimulationController {
                                 self.gui_send
                                     .send(GUIEvents::Spawn(id, connected_node_ids, pdr));
 
+                            for neighbor_id in connected_node_ids.clone() {
+                                match self.add_sender(id, neighbor_id) {
+                                    Ok(()) => {
+                                        let sender;
+                                        if let Some((_, s)) = self.drones.get(&neighbor_id) {
+                                            sender = s.clone();
+                                        } else if let Some((_, s)) = self.cclients.get(&neighbor_id) {
+                                            sender = s.clone();
+                                        } else if let Some((_, s)) = self.mclients.get(&neighbor_id) {
+                                            sender = s.clone();
+                                        } else if let Some((_, s)) = self.comm_servers.get(&neighbor_id) {
+                                            sender = s.clone();
+                                        } else if let Some((_, s)) = self.text_servers.get(&neighbor_id) {
+                                            sender = s.clone();
+                                        } else if let Some((_, s)) = self.media_servers.get(&neighbor_id) {
+                                            sender = s.clone();
+                                        } else {
+                                            log::error!(
+                                                "[ {} ]: failed to find a Sender<Packet> channel for the [ Node {} ]",
+                                                "Simulation Controller".red(),
+                                                neighbor_id
+                                            );
+                                            return;
+                                        }
+
+                                        if self.drones.contains_key(&id) {
+                                            self.handle_drone_command(
+                                                &id,
+                                                DroneCommand::AddSender(neighbor_id, sender),
+                                            );
+                                        } else {
+                                            log::error!(
+                                                "[ {} ]: failed to send AddSender to [ Node {} ]",
+                                                "Simulation Controller".red(),
+                                                neighbor_id
+                                            );
+                                            return;
+                                        }
+                                    },
+                                    Err(e) => {
+                                        error!("[ {} ] {}", "Simulation Controller".red(), e);
+                                        return;
+                                    }
+                                }
+                            }
+
                             // launch global flooding
                             self.global_flooding();
                         }

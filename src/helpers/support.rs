@@ -128,78 +128,11 @@ impl SimulationController {
             self.neighbor.insert(drone.id, Vec::new());
 
             // add to neighbor list of neighbor
-            for neighbor_id in drone.connected_node_ids.clone() {
-                match self.add_sender(drone.id, neighbor_id) {
-                    Ok(()) => {
-                        let sender;
-                        if let Some((_, s)) = self.drones.get(&neighbor_id) {
-                            sender = s.clone();
-                        } else if let Some((_, s)) = self.cclients.get(&neighbor_id) {
-                            sender = s.clone();
-                        } else if let Some((_, s)) = self.mclients.get(&neighbor_id) {
-                            sender = s.clone();
-                        } else if let Some((_, s)) = self.comm_servers.get(&neighbor_id) {
-                            sender = s.clone();
-                        } else if let Some((_, s)) = self.text_servers.get(&neighbor_id) {
-                            sender = s.clone();
-                        } else if let Some((_, s)) = self.media_servers.get(&neighbor_id) {
-                            sender = s.clone();
-                        } else {
-                            log::error!(
-                                "[ {} ]: failed to find a Sender<Packet> channel for the [ Node {} ]",
-                                "Simulation Controller".red(),
-                                neighbor_id
-                            );
-                            return Err(Error::ClientOnClient);
-                        }
+            
 
-                        if self.drones.contains_key(&drone.id) {
-                            self.handle_drone_command(
-                                &drone.id,
-                                DroneCommand::AddSender(neighbor_id, sender),
-                            );
-                        } else if self.cclients.contains_key(&drone.id) {
-                            self.handle_chat_client_command(
-                                &drone.id,
-                                ChatClientCommand::AddSender(neighbor_id, sender),
-                            );
-                        } else if self.mclients.contains_key(&drone.id) {
-                            self.handle_media_client_command(
-                                &drone.id,
-                                MediaClientCommand::AddSender(neighbor_id, sender),
-                            );
-                        } else if self.comm_servers.contains_key(&drone.id) {
-                            self.handle_communication_server_command(
-                                &drone.id,
-                                CommunicationServerCommand::AddSender(neighbor_id, sender),
-                            );
-                        } else if self.text_servers.contains_key(&drone.id) {
-                            self.handle_text_server_command(
-                                &drone.id,
-                                ContentServerCommand::AddSender(neighbor_id, sender),
-                            );
-                        } else if self.media_servers.contains_key(&drone.id) {
-                            self.handle_media_server_command(
-                                &drone.id,
-                                ContentServerCommand::AddSender(neighbor_id, sender),
-                            );
-                        } else {
-                            log::error!(
-                                "[ {} ]: failed to send AddSender to [ Node {} ]",
-                                "Simulation Controller".red(),
-                                neighbor_id
-                            );
-                        }
-                    },
-                    Err(e) => {
-                        return Err(e);
-                    }
-                }
-            }
-
-            log::warn!("spawn 1 - drone {} -> neighbor {:?}", drone.id, self.neighbor.get(&drone.id));
+            /*log::warn!("spawn 1 - drone {} -> neighbor {:?}", drone.id, self.neighbor.get(&drone.id));
             self.neighbor.insert(drone.id, drone.connected_node_ids.clone());
-            log::warn!("spawn 2 - drone {} -> neighbor {:?}", drone.id, self.neighbor.get(&drone.id));
+            log::warn!("spawn 2 - drone {} -> neighbor {:?}", drone.id, self.neighbor.get(&drone.id));*/
 
 
             self.new_drones.push(new_drone);
