@@ -26,7 +26,7 @@ impl SimulationController {
                                 .send(GUIEvents::PacketSent(*src, *dest, packet.clone()));
                         
                         if *src == 45 {
-                            warn!("[ Drone 45 ] received {:?}", drone_event);
+                            println!("[ Drone 45 ] received {:?}", drone_event);
                         }
                     }
                 }
