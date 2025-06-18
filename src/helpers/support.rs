@@ -150,6 +150,7 @@ impl SimulationController {
                                 "Simulation Controller".red(),
                                 neighbor_id
                             );
+                            return Err(Error::ClientOnClient);
                         }
 
                         if self.drones.contains_key(&drone.id) {
