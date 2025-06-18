@@ -202,12 +202,12 @@ impl SimulationController {
                                 &node_id,
                                 CommunicationServerCommand::AddSender(to_add, sender),
                             );
-                        } else if self.text_servers.contains_key(&to_add) {
+                        } else if self.text_servers.contains_key(&node_id) {
                             self.handle_text_server_command(
                                 &node_id,
                                 ContentServerCommand::AddSender(to_add, sender),
                             );
-                        } else if self.media_servers.contains_key(&to_add) {
+                        } else if self.media_servers.contains_key(&node_id) {
                             self.handle_media_server_command(
                                 &node_id,
                                 ContentServerCommand::AddSender(to_add, sender),
