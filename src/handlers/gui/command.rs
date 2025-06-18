@@ -137,6 +137,22 @@ impl SimulationController {
                                 &node_id,
                                 CommunicationServerCommand::RemoveSender(to_remove),
                             );
+                        } else if self.text_servers.contains_key(&node_id) {
+                            self.handle_text_server_command(
+                                &node_id,
+                                ContentServerCommand::RemoveSender(to_remove),
+                            );
+                        } else if self.media_servers.contains_key(&node_id) {
+                            self.handle_media_server_command(
+                                &node_id,
+                                ContentServerCommand::RemoveSender(to_remove),
+                            );
+                        } else {
+                            log::error!(
+                                "[ {} ]: failed to send AddSender to [ Node {} ]",
+                                "Simulation Controller".red(),
+                                to_add
+                            );
                         }
 
                         // Launch global flooding

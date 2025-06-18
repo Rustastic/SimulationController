@@ -226,6 +226,12 @@ impl SimulationController {
                                 ContentServerCommand::RemoveSender(node_id),
                             );
                             return Ok(());
+                        } else {
+                            log::error!(
+                                "[ {} ]: failed to send AddSender to [ Node {} ]",
+                                "Simulation Controller".red(),
+                                to_remove
+                            );
                         }
                         Err(Error::ClientOnClient)
                     }
