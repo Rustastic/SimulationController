@@ -113,13 +113,13 @@ impl SimulationController {
             match self.add_sender(id, neighbor_id) {
                 Ok(()) => {
                     // Add drone to neighbor list
-                    self.neighbor.insert(drone.id, drone.connected_node_ids.clone());
                 },
                 Err(e) => {
                     return Err(e);
                 }
             }
         }
+        self.neighbor.insert(drone.id, drone.connected_node_ids.clone());
 
         // Crate drone
         if let Some(factory) = drone_factories.get(rand) {
