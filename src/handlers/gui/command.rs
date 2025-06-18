@@ -212,6 +212,13 @@ impl SimulationController {
                                 &node_id,
                                 ContentServerCommand::AddSender(to_add, sender),
                             );
+                        } else {
+                            error!(
+                                "[ {} ]: failed to send AddSender to [ Node {} ]",
+                                "Simulation Controller".red(),
+                                node_id
+                            );
+                            return;
                         }
                     }
                     Err(e) => error!("{e}"),

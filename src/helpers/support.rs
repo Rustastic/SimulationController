@@ -301,6 +301,12 @@ impl SimulationController {
                         );
 
                         return Ok(());
+                    } else {
+                        log::error!(
+                            "[ {} ]: failed to send AddSender to [ Node {} ]",
+                            "Simulation Controller".red(),
+                            to_add
+                        );
                     }
 
                     Err(Error::ClientOnClient)
