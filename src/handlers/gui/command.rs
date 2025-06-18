@@ -151,7 +151,7 @@ impl SimulationController {
                             log::error!(
                                 "[ {} ]: failed to send AddSender to [ Node {} ]",
                                 "Simulation Controller".red(),
-                                to_add
+                                to_remove
                             );
                         }
 
