@@ -22,8 +22,9 @@ use crate::{helpers::error::Error, SimulationController};
 type DroneFactoryFn = dyn Fn(
     &mut SimulationController,
     &ConfigDrone,
-    &Receiver<DroneCommand>,
-    &Receiver<Packet>,
+    Sender<DroneEvent>,
+    Receiver<DroneCommand>,
+    Receiver<Packet>,
 ) -> Box<dyn Drone>;
 
 impl SimulationController {
@@ -31,7 +32,7 @@ impl SimulationController {
     where
         T: Drone + 'static,
     {
-        Box::new(|sim_ctrl, drone, command_recv, packet_recv| {
+        Box::new(|sim_ctrl, drone, event_send, command_recv, packet_recv| {
             // Create packet send hashmap
             let mut packet_send_hashmap = HashMap::<NodeId, Sender<Packet>>::new();
             // Fill hashmap with only
@@ -57,7 +58,7 @@ impl SimulationController {
             // Get drone's command receiver channel
             Box::new(T::new(
                 drone.id,
-                sim_ctrl.event_send.clone(),
+                event_send.clone(),
                 command_recv.clone(),
                 packet_recv.clone(),
                 packet_send_hashmap,
@@ -117,8 +118,9 @@ impl SimulationController {
             let new_drone = factory(
                 self,
                 &drone,
-                &command_recv,
-                &packet_recv,
+                self.event_send.clone(),
+                command_recv,
+                packet_recv,
             );
 
             // Add drone to drone list
