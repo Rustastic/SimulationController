@@ -136,7 +136,11 @@ impl SimulationController {
                     }
                 }
             }
+
+            log::warn!("spawn 1 - drone {} -> neighbor {:?}", drone, vec);
             self.neighbor.insert(drone.id, drone.connected_node_ids.clone());
+            log::warn!("spawn 2 - drone {} -> neighbor {:?}", drone, vec);
+
 
             self.new_drones.push(new_drone);
 

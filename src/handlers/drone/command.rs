@@ -54,6 +54,7 @@ impl SimulationController {
                     if let Some(vec) = self.neighbor.get_mut(drone) {
                         // Add node to neighbors
                         vec.push(node_id);
+                        error!("drone {} -> neighbor {:?}", drone, vec);
                         // Send command and handle Result
                         match command_channel.send(DroneCommand::AddSender(node_id, sender)) {
                             Ok(()) => {
