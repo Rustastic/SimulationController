@@ -2,14 +2,14 @@ use messages::gui_commands::GUIEvents;
 use wg_2024::{controller::DroneEvent, packet::PacketType};
 
 use colored::Colorize;
-use log::error;
+use log::{error, warn};
 
 use crate::SimulationController;
 
 impl SimulationController {
     #[allow(clippy::too_many_lines)]
     pub fn handle_drone_event(&self, drone_event: DroneEvent) {
-        match drone_event {
+        match drone_event.clone() {
             DroneEvent::PacketSent(packet) => {
                 if let Some(src) = packet
                     .routing_header
@@ -24,6 +24,10 @@ impl SimulationController {
                         let _ =
                             self.gui_send
                                 .send(GUIEvents::PacketSent(*src, *dest, packet.clone()));
+                        
+                        if *src == 45 {
+                            warn!("[ Drone 45 ] received {:?}", drone_event);
+                        }
                     }
                 }
             }
