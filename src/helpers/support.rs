@@ -115,15 +115,15 @@ impl SimulationController {
 
         // Crate drone
         if let Some(factory) = drone_factories.get(rand) {
-            /*let new_drone = factory(
+            let mut new_drone = factory(
                 self,
                 &drone,
                 self.event_send.clone(),
                 command_recv,
                 packet_recv,
-            );*/
+            );
 
-            let mut packet_send_hashmap = HashMap::<NodeId, Sender<Packet>>::new();
+            /*let mut packet_send_hashmap = HashMap::<NodeId, Sender<Packet>>::new();
             let mut a_packet_send;
             for neighbor in &drone.connected_node_ids {
                 if let Some((_, chan)) = self.drones.get(neighbor) {
@@ -150,7 +150,7 @@ impl SimulationController {
                 packet_recv,
                 packet_send_hashmap,
                 pdr
-            );
+            );*/
 
             thread::spawn(move || {
                 new_drone.run();
