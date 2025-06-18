@@ -59,9 +59,6 @@ impl SimulationController {
                                     .gui_send
                                     .send(GUIEvents::AddSender(*comm_server, node_id));
 
-                                // Launch global flooding
-                                self.global_flooding();
-
                                 info!(
                                     "[ {} ]: sent a CommunicationServerCommand::AddSender({}, sender_channel) to [ CommunicationServer {} ]",
                                     "Simulation Controller".green(),
@@ -108,9 +105,6 @@ impl SimulationController {
                                 let _ = self
                                     .gui_send
                                     .send(GUIEvents::RemoveSender(*comm_server, node_id));
-
-                                // Launch global flooding
-                                self.global_flooding();
 
                                 info!(
                                         "[ {} ]: sent a CommunicationServerCommand::RemoveSender({}) to [ CommunicationServer {} ]",

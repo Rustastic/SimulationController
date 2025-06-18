@@ -60,9 +60,6 @@ impl SimulationController {
                                     .gui_send
                                     .send(GUIEvents::RemoveSender(*media_client, node_id));
 
-                                // Launch global flooding
-                                self.global_flooding();
-
                                 info!(
                                         "[ {} ]: sent a MediaClientCommand::RemoveSender({}) to [ Client {} ]",
                                         "Simulation Controller".green(),
@@ -116,9 +113,6 @@ impl SimulationController {
                                 let _ = self
                                     .gui_send
                                     .send(GUIEvents::AddSender(*media_client, node_id));
-
-                                // Launch global flooding
-                                self.global_flooding();
 
                                 info!(
                                         "[ {} ]: sent a MediaClientCommand::AddSender({}, {:?}) to [ Client {} ]",

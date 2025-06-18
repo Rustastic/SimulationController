@@ -77,6 +77,9 @@ impl SimulationController {
 
                                     // Send command to GUI
                                     let _ = self.gui_send.send(GUIEvents::Crash(drone));
+
+                                    // Launch global flooding
+                                    self.global_flooding();
                                 }
                                 Err(e) => {
                                     error!("[ {} ] {e}", "Simulation Controller".red());
@@ -135,6 +138,9 @@ impl SimulationController {
                                 CommunicationServerCommand::RemoveSender(to_remove),
                             );
                         }
+
+                        // Launch global flooding
+                        self.global_flooding();
                     }
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
@@ -212,14 +218,10 @@ impl SimulationController {
                                 &node_id,
                                 ContentServerCommand::AddSender(to_add, sender),
                             );
-                        } else {
-                            error!(
-                                "[ {} ]: failed to send AddSender to [ Node {} ]",
-                                "Simulation Controller".red(),
-                                node_id
-                            );
-                            return;
                         }
+                        
+                        // Launch global flooding
+                        self.global_flooding();
                     }
                     Err(e) => error!("{e}"),
                 }

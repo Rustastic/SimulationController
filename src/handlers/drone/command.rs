@@ -24,9 +24,6 @@ impl SimulationController {
                                 let _ =
                                     self.gui_send.send(GUIEvents::RemoveSender(*drone, node_id));
 
-                                // Launch global flooding
-                                self.global_flooding();
-
                                 info!(
                                     "[ {} ]: sent a DroneCommand::RemoveSender({}) to [ Drone {} ]",
                                     "Simulation Controller".green(),
@@ -62,9 +59,6 @@ impl SimulationController {
                             Ok(()) => {
                                 // Send command to GUI
                                 let _ = self.gui_send.send(GUIEvents::AddSender(*drone, node_id));
-
-                                // Launch global flooding
-                                self.global_flooding();
 
                                 info!(
                                     "[ {} ]: sent a DroneCommand::AddSender({}, sender_channel) to [ Drone {} ]",

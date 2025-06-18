@@ -86,9 +86,6 @@ impl SimulationController {
                                     .gui_send
                                     .send(GUIEvents::RemoveSender(*chat_client, node_id));
 
-                                // Launch global flooding
-                                self.global_flooding();
-
                                 info!(
                                         "[ {} ]: sent a ChatClientCommand::RemoveSender({}) to [ ChatClient {} ]",
                                         "Simulation Controller".green(),
@@ -143,9 +140,6 @@ impl SimulationController {
                                 let _ = self
                                     .gui_send
                                     .send(GUIEvents::AddSender(*chat_client, node_id));
-
-                                // Launch global flooding
-                                self.global_flooding();
 
                                 info!(
                                         "[ {} ]: sent a ChatClientCommand::AddSender({}, {:?}) to [ ChatClient {} ]",
