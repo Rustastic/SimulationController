@@ -22,9 +22,8 @@ use crate::{helpers::error::Error, SimulationController};
 type DroneFactoryFn = dyn Fn(
     &mut SimulationController,
     &ConfigDrone,
-    &Sender<DroneEvent>,
-    &Receiver<DroneCommand>,
-    &Receiver<Packet>,
+    Receiver<DroneCommand>,
+    Receiver<Packet>,
 ) -> Box<dyn Drone>;
 
 impl SimulationController {
@@ -32,7 +31,7 @@ impl SimulationController {
     where
         T: Drone + 'static,
     {
-        Box::new(|sim_ctrl, drone, event_send, command_recv, packet_recv| {
+        Box::new(|sim_ctrl, drone, command_recv, packet_recv| {
             // Create packet send hashmap
             let mut packet_send_hashmap = HashMap::<NodeId, Sender<Packet>>::new();
             // Fill hashmap with only
@@ -58,9 +57,9 @@ impl SimulationController {
             // Get drone's command receiver channel
             Box::new(T::new(
                 drone.id,
-                event_send.clone(),
-                command_recv.clone(),
-                packet_recv.clone(),
+                sim_ctrl.event_send.clone(),
+                command_recv,
+                packet_recv,
                 packet_send_hashmap,
                 drone.pdr,
             ))
@@ -84,7 +83,18 @@ impl SimulationController {
         // Generate random number to pick a random factory
         let rand = rand::rng().random_range(0..10);
         let drone_factories = [
-            Self::drone_factory::<rusty_drones::RustyDrone>(),
+            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
+            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
+            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
+            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
+            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
+            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
+            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
+            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
+            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
+            Self::drone_factory::<rustbusters_drone::RustBustersDrone>(),
+            
+            /*Self::drone_factory::<rusty_drones::RustyDrone>(),
             Self::drone_factory::<LeDron_James::Drone>(),
             Self::drone_factory::<dr_ones::Drone>(),
             //Self::drone_factory::<skylink::SkyLinkDrone>(),
@@ -95,41 +105,38 @@ impl SimulationController {
             Self::drone_factory::<rust_do_it::RustDoIt>(),
             Self::drone_factory::<wg_2024_rust::drone::RustDrone>(),
             //Self::drone_factory::<null_pointer_drone::MyDrone>(),
-            Self::drone_factory::<lockheedrustin_drone::LockheedRustin>(),
+            Self::drone_factory::<lockheedrustin_drone::LockheedRustin>(),*/
         ];
 
         // create necessary channels
         let (command_send, command_recv) = unbounded::<DroneCommand>();
         let (packet_send, packet_recv) = unbounded::<Packet>();
 
-        // Add drone to drone list
-        self.drones.insert(id, (command_send, packet_send));
-
-        // Add drone to neighbor list
-        self.neighbor.insert(drone.id, Vec::new());
-
-        // add to neighbor list of neighbor
-        for neighbor_id in drone.connected_node_ids.clone() {
-            match self.add_sender(id, neighbor_id) {
-                Ok(()) => {
-                    // Add drone to neighbor list
-                },
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        }
-        self.neighbor.insert(drone.id, drone.connected_node_ids.clone());
-
         // Crate drone
         if let Some(factory) = drone_factories.get(rand) {
             let new_drone = factory(
                 self,
                 &drone,
-                &self.event_send.clone(),
-                &command_recv.clone(),
-                &packet_recv.clone(),
+                command_recv,
+                packet_recv,
             );
+
+            // Add drone to drone list
+            self.drones.insert(id, (command_send, packet_send));
+
+            // Add drone to neighbor list
+            self.neighbor.insert(drone.id, Vec::new());
+
+            // add to neighbor list of neighbor
+            for neighbor_id in drone.connected_node_ids.clone() {
+                match self.add_sender(id, neighbor_id) {
+                    Ok(()) => (),
+                    Err(e) => {
+                        return Err(e);
+                    }
+                }
+            }
+            self.neighbor.insert(drone.id, drone.connected_node_ids.clone());
 
             self.new_drones.push(new_drone);
 
