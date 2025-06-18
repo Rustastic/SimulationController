@@ -1,6 +1,6 @@
 use colored::Colorize;
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use log::info;
+use log::{error, info};
 use rand::Rng;
 use std::collections::HashMap;
 
@@ -132,62 +132,61 @@ impl SimulationController {
                 match self.add_sender(drone.id, neighbor_id) {
                     Ok(()) => {
                         let sender;
-                        if let Some((_, s)) = self.drones.get(&to_add) {
+                        if let Some((_, s)) = self.drones.get(&neighbor_id) {
                             sender = s.clone();
-                        } else if let Some((_, s)) = self.cclients.get(&to_add) {
+                        } else if let Some((_, s)) = self.cclients.get(&neighbor_id) {
                             sender = s.clone();
-                        } else if let Some((_, s)) = self.mclients.get(&to_add) {
+                        } else if let Some((_, s)) = self.mclients.get(&neighbor_id) {
                             sender = s.clone();
-                        } else if let Some((_, s)) = self.comm_servers.get(&to_add) {
+                        } else if let Some((_, s)) = self.comm_servers.get(&neighbor_id) {
                             sender = s.clone();
-                        } else if let Some((_, s)) = self.text_servers.get(&to_add) {
+                        } else if let Some((_, s)) = self.text_servers.get(&neighbor_id) {
                             sender = s.clone();
-                        } else if let Some((_, s)) = self.media_servers.get(&to_add) {
+                        } else if let Some((_, s)) = self.media_servers.get(&neighbor_id) {
                             sender = s.clone();
                         } else {
-                            error!(
+                            log::error!(
                                 "[ {} ]: failed to find a Sender<Packet> channel for the [ Node {} ]",
                                 "Simulation Controller".red(),
                                 to_add
                             );
-                            return;
                         }
 
-                        if self.drones.contains_key(&node_id) {
+                        if self.drones.contains_key(&drone.id) {
                             self.handle_drone_command(
-                                &node_id,
-                                DroneCommand::AddSender(to_add, sender),
+                                &drone.id,
+                                DroneCommand::AddSender(neighbor_id, sender),
                             );
-                        } else if self.cclients.contains_key(&node_id) {
+                        } else if self.cclients.contains_key(&drone.id) {
                             self.handle_chat_client_command(
-                                &node_id,
-                                ChatClientCommand::AddSender(to_add, sender),
+                                &drone.id,
+                                ChatClientCommand::AddSender(neighbor_id, sender),
                             );
-                        } else if self.mclients.contains_key(&node_id) {
+                        } else if self.mclients.contains_key(&drone.id) {
                             self.handle_media_client_command(
-                                &node_id,
-                                MediaClientCommand::AddSender(to_add, sender),
+                                &drone.id,
+                                MediaClientCommand::AddSender(neighbor_id, sender),
                             );
-                        } else if self.comm_servers.contains_key(&node_id) {
+                        } else if self.comm_servers.contains_key(&drone.id) {
                             self.handle_communication_server_command(
-                                &node_id,
-                                CommunicationServerCommand::AddSender(to_add, sender),
+                                &drone.id,
+                                CommunicationServerCommand::AddSender(neighbor_id, sender),
                             );
-                        } else if self.text_servers.contains_key(&node_id) {
+                        } else if self.text_servers.contains_key(&drone.id) {
                             self.handle_text_server_command(
-                                &node_id,
-                                ContentServerCommand::AddSender(to_add, sender),
+                                &drone.id,
+                                ContentServerCommand::AddSender(neighbor_id, sender),
                             );
-                        } else if self.media_servers.contains_key(&node_id) {
+                        } else if self.media_servers.contains_key(&drone.id) {
                             self.handle_media_server_command(
-                                &node_id,
-                                ContentServerCommand::AddSender(to_add, sender),
+                                &drone.id,
+                                ContentServerCommand::AddSender(neighbor_id, sender),
                             );
                         } else {
                             log::error!(
                                 "[ {} ]: failed to send AddSender to [ Node {} ]",
                                 "Simulation Controller".red(),
-                                to_add
+                                neighbor_id
                             );
                         }
                     },
