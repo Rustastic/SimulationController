@@ -7,7 +7,7 @@ use crate::SimulationController;
 
 impl SimulationController {
     pub fn global_flooding(&mut self) {
-
+        /* REMOVE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
         thread::sleep(std::time::Duration::from_secs(2));
 
         for (chat_client, (_, _)) in self.cclients.clone() {
