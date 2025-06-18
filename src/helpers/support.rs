@@ -148,7 +148,7 @@ impl SimulationController {
                             log::error!(
                                 "[ {} ]: failed to find a Sender<Packet> channel for the [ Node {} ]",
                                 "Simulation Controller".red(),
-                                to_add
+                                neighbor_id
                             );
                         }
 
