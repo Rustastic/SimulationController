@@ -40,13 +40,13 @@ impl SimulationController {
                     // Create drone
                     match self.spawn(id, connected_node_ids.clone(), pdr) {
                         Ok(()) => {
-                            // launch global flooding
-                            self.global_flooding();
-
                             // Send command to GUI
                             let _ =
                                 self.gui_send
                                     .send(GUIEvents::Spawn(id, connected_node_ids, pdr));
+
+                            // launch global flooding
+                            self.global_flooding();
                         }
                         Err(e) => {
                             error!("[ {} ] {e}", "Simulation Controller".red());
