@@ -68,10 +68,10 @@ impl SimulationController {
         media_recv: Receiver<ContentServerEvent>,
     ) -> Self {
         Self {
-            drones,
-            drone_recv,
             neighbor,
             event_send,
+            drones,
+            drone_recv,
             gui_send,
             gui_recv,
             cclients,
