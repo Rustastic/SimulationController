@@ -22,7 +22,7 @@ use messages::{
 
 pub struct SimulationController {
     pub neighbor: HashMap<NodeId, Vec<NodeId>>,
-    
+
     pub event_send: Sender<DroneEvent>,
     pub new_drones: Vec<Box<dyn Drone>>,
 

@@ -41,9 +41,7 @@ impl SimulationController {
                     match self.spawn(id, connected_node_ids.clone(), pdr) {
                         Ok(()) => {
                             // Send command to GUI
-                            let _ =
-                                self.gui_send
-                                    .send(GUIEvents::Spawn(id, Vec::new(), pdr));
+                            let _ = self.gui_send.send(GUIEvents::Spawn(id, Vec::new(), pdr));
 
                             for neighbor_id in connected_node_ids {
                                 match self.add_sender(id, neighbor_id) {
@@ -51,15 +49,23 @@ impl SimulationController {
                                         let sender;
                                         if let Some((_, s)) = self.drones.get(&neighbor_id) {
                                             sender = s.clone();
-                                        } else if let Some((_, s)) = self.cclients.get(&neighbor_id) {
+                                        } else if let Some((_, s)) = self.cclients.get(&neighbor_id)
+                                        {
                                             sender = s.clone();
-                                        } else if let Some((_, s)) = self.mclients.get(&neighbor_id) {
+                                        } else if let Some((_, s)) = self.mclients.get(&neighbor_id)
+                                        {
                                             sender = s.clone();
-                                        } else if let Some((_, s)) = self.comm_servers.get(&neighbor_id) {
+                                        } else if let Some((_, s)) =
+                                            self.comm_servers.get(&neighbor_id)
+                                        {
                                             sender = s.clone();
-                                        } else if let Some((_, s)) = self.text_servers.get(&neighbor_id) {
+                                        } else if let Some((_, s)) =
+                                            self.text_servers.get(&neighbor_id)
+                                        {
                                             sender = s.clone();
-                                        } else if let Some((_, s)) = self.media_servers.get(&neighbor_id) {
+                                        } else if let Some((_, s)) =
+                                            self.media_servers.get(&neighbor_id)
+                                        {
                                             sender = s.clone();
                                         } else {
                                             log::error!(
@@ -83,7 +89,7 @@ impl SimulationController {
                                             );
                                             return;
                                         }
-                                    },
+                                    }
                                     Err(e) => {
                                         error!("[ {} ] {}", "Simulation Controller".red(), e);
                                         return;
@@ -287,7 +293,7 @@ impl SimulationController {
                                 to_add
                             );
                         }
-                        
+
                         // Launch global flooding
                         self.global_flooding();
                     }
