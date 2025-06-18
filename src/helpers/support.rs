@@ -139,6 +139,7 @@ impl SimulationController {
                     Ok(()) => (),
                     Err(e) => {
                         return Err(e);
+                    }
                 }
             }
 
