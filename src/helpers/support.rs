@@ -127,14 +127,6 @@ impl SimulationController {
             // Add drone to neighbor list
             self.neighbor.insert(drone.id, Vec::new());
 
-            // add to neighbor list of neighbor
-            
-
-            /*log::warn!("spawn 1 - drone {} -> neighbor {:?}", drone.id, self.neighbor.get(&drone.id));
-            self.neighbor.insert(drone.id, drone.connected_node_ids.clone());
-            log::warn!("spawn 2 - drone {} -> neighbor {:?}", drone.id, self.neighbor.get(&drone.id));*/
-
-
             self.new_drones.push(new_drone);
 
             info!(

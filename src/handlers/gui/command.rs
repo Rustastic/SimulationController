@@ -43,7 +43,7 @@ impl SimulationController {
                             // Send command to GUI
                             let _ =
                                 self.gui_send
-                                    .send(GUIEvents::Spawn(id, connected_node_ids.clone(), pdr));
+                                    .send(GUIEvents::Spawn(id, Vec::new(), pdr));
 
                             for neighbor_id in connected_node_ids {
                                 match self.add_sender(id, neighbor_id) {
