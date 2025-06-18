@@ -18,6 +18,8 @@ pub enum Error {
     ClientRemove,
     #[error("A Server must be connected to at least 2 nodes")]
     ServerRemove,
+    #[error("A Drone must be connected to at least 1 nodes")]
+    DroneRemove,
     #[error("A Client can be connected to maximum of 2 nodes")]
     ClientAdd,
     #[error("No factory defined for [ Drone {0} ]")]

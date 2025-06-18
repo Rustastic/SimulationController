@@ -51,7 +51,16 @@ impl SimulationController {
                 }
                 Err(e) => Err(e),
             },
-            NodeType::Drone => Ok(()),
+            NodeType::Drone => match self.has_neighbors(node_id) {
+                Ok(vec) => {
+                    if vec.len() > 1 {
+                        Ok(())
+                    } else {
+                        Err(Error::DroneRemove)
+                    }
+                }
+                Err(e) => Err(e),
+            },
             NodeType::Server => match self.has_neighbors(node_id) {
                 Ok(vec) => {
                     if vec.len() > 2 {
