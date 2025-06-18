@@ -22,8 +22,8 @@ use crate::{helpers::error::Error, SimulationController};
 type DroneFactoryFn = dyn Fn(
     &mut SimulationController,
     &ConfigDrone,
-    Receiver<DroneCommand>,
-    Receiver<Packet>,
+    &Receiver<DroneCommand>,
+    &Receiver<Packet>,
 ) -> Box<dyn Drone>;
 
 impl SimulationController {
@@ -58,8 +58,8 @@ impl SimulationController {
             Box::new(T::new(
                 drone.id,
                 sim_ctrl.event_send.clone(),
-                command_recv,
-                packet_recv,
+                command_recv.clone(),
+                packet_recv.clone(),
                 packet_send_hashmap,
                 drone.pdr,
             ))
@@ -117,8 +117,8 @@ impl SimulationController {
             let new_drone = factory(
                 self,
                 &drone,
-                command_recv,
-                packet_recv,
+                &command_recv,
+                &packet_recv,
             );
 
             // Add drone to drone list
