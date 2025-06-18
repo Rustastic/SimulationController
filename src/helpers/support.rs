@@ -129,11 +129,16 @@ impl SimulationController {
 
             // add to neighbor list of neighbor
             for neighbor_id in drone.connected_node_ids.clone() {
-                match self.add_sender(id, neighbor_id) {
+                match self.add_sender(drone.id, neighbor_id) {
                     Ok(()) => (),
                     Err(e) => {
                         return Err(e);
                     }
+                }
+                match self.add_sender(neighbor_id, drone.id) {
+                    Ok(()) => (),
+                    Err(e) => {
+                        return Err(e);
                 }
             }
 
