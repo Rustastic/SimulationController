@@ -8,7 +8,7 @@ use crate::SimulationController;
 impl SimulationController {
     pub fn global_flooding(&mut self) {
         /* REMOVE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-        std::thread::sleep(std::time::Duration::from_secs(2));
+        // std::thread::sleep(std::time::Duration::from_secs(2));
 
         for (chat_client, (_, _)) in self.cclients.clone() {
             self.handle_chat_client_command(&chat_client, ChatClientCommand::InitFlooding);
