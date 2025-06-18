@@ -56,6 +56,7 @@ impl SimulationController {
                     if vec.len() > 1 {
                         Ok(())
                     } else {
+                        log::error!("drone {} -> neighbors {}", node_id, vec);
                         Err(Error::DroneRemove)
                     }
                 }
