@@ -21,11 +21,13 @@ use messages::{
 };
 
 pub struct SimulationController {
-    pub drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
-    pub drone_recv: Receiver<DroneEvent>,
     pub neighbor: HashMap<NodeId, Vec<NodeId>>,
+    
     pub event_send: Sender<DroneEvent>,
     pub new_drones: Vec<Box<dyn Drone>>,
+
+    pub drones: HashMap<NodeId, (Sender<DroneCommand>, Sender<Packet>)>,
+    pub drone_recv: Receiver<DroneEvent>,
 
     pub gui_send: Sender<GUIEvents>,
     pub gui_recv: Receiver<GUICommands>,
