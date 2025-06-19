@@ -26,6 +26,11 @@ impl SimulationController {
                         "[ {} ] Can not spawn the drone: PDR value mus be between 0.0 and 1.0",
                         "Simulation Controller".red(),
                     );
+                } else if connected_node_ids.is_empty() {
+                    error!(
+                        "[ {} ] Can not spawn the drone: Drone must be connected to at least 1 Node",
+                        "Simulation Controller".red(),
+                    );            
                 } else {
                     // check if can add neighbors
                     for neighbor in &connected_node_ids {
