@@ -101,9 +101,6 @@ impl SimulationController {
                                     }
                                 }
                             }
-
-                            // launch global flooding
-                            //self.global_flooding();
                         }
                         Err(e) => {
                             error!("[ {} ] {e}", "Simulation Controller".red());
@@ -134,9 +131,6 @@ impl SimulationController {
 
                                     // Send command to GUI
                                     let _ = self.gui_send.send(GUIEvents::Crash(drone));
-
-                                    // Launch global flooding
-                                    //self.global_flooding();
                                 }
                                 Err(e) => {
                                     error!("[ {} ] {e}", "Simulation Controller".red());
@@ -211,9 +205,6 @@ impl SimulationController {
                                 to_remove
                             );
                         }
-
-                        // Launch global flooding
-                        //self.global_flooding();
                     }
                     Err(e) => {
                         error!("[ {} ] {e}", "Simulation Controller".red());
@@ -298,9 +289,6 @@ impl SimulationController {
                                 to_add
                             );
                         }
-
-                        // Launch global flooding
-                        //self.global_flooding();
                     }
                     Err(e) => error!("{e}"),
                 }
