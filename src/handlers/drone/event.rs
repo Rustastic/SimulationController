@@ -8,7 +8,7 @@ use crate::SimulationController;
 
 impl SimulationController {
     #[allow(clippy::too_many_lines)]
-    pub fn handle_drone_event(&self, drone_event: DroneEvent) {
+    pub fn handle_drone_event(&mut self, drone_event: DroneEvent) {
         match drone_event {
             DroneEvent::PacketSent(packet) => {
                 if let Some(src) = packet
@@ -24,6 +24,18 @@ impl SimulationController {
                         let _ =
                             self.gui_send
                                 .send(GUIEvents::PacketSent(*src, *dest, packet.clone()));
+                        
+                        match packet.pack_type {
+                            PacketType::Nack(nack) => {
+                                match nack.nack_type {
+                                    wg_2024::packet::NackType::Dropped => {},
+                                    _ => {
+                                        self.global_flooding();
+                                    }
+                                }
+                            },
+                            _ => {},
+                        }
                     }
                 }
             }
