@@ -98,7 +98,7 @@ impl SimulationController {
         // Init ChatClient
         for chat_client in self.cclients.clone().keys() {
             self.handle_chat_client_command(chat_client, ChatClientCommand::InitFlooding);
-            thread::sleep(std::time::Duration::from_secs_f32(2.0));
+            thread::sleep(std::time::Duration::from_secs_f32(5.0));
             self.handle_chat_client_command(chat_client, ChatClientCommand::StartChatClient);
         }
 
