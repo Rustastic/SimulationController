@@ -24,18 +24,15 @@ impl SimulationController {
                         let _ =
                             self.gui_send
                                 .send(GUIEvents::PacketSent(*src, *dest, packet.clone()));
-                        
-                        match packet.pack_type {
-                            PacketType::Nack(nack) => {
+
+                            if let PacketType::Nack(nack) = packet.pack_type {
                                 match nack.nack_type {
-                                    wg_2024::packet::NackType::Dropped => {},
+                                    wg_2024::packet::NackType::Dropped => {}
                                     _ => {
                                         self.global_flooding();
                                     }
                                 }
-                            },
-                            _ => {},
-                        }
+                            }
                     }
                 }
             }
