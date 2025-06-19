@@ -13,15 +13,19 @@ impl SimulationController {
         for (chat_client, (_, _)) in self.cclients.clone() {
             self.handle_chat_client_command(&chat_client, ChatClientCommand::InitFlooding);
         }
+        std::thread::sleep(std::time::Duration::from_secs(5));
         for (media_client, (_, _)) in self.mclients.clone() {
             self.handle_media_client_command(&media_client, MediaClientCommand::InitFlooding);
         }
+        std::thread::sleep(std::time::Duration::from_secs(5));
         for (text_server, (_, _)) in self.text_servers.clone() {
             self.handle_text_server_command(&text_server, ContentServerCommand::InitFlooding);
         }
+        std::thread::sleep(std::time::Duration::from_secs(5));
         for (media_server, (_, _)) in self.media_servers.clone() {
             self.handle_media_server_command(&media_server, ContentServerCommand::InitFlooding);
         }
+        std::thread::sleep(std::time::Duration::from_secs(5));
         for (comm_server, (_, _)) in self.comm_servers.clone() {
             self.handle_communication_server_command(
                 &comm_server,
