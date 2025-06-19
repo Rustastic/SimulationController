@@ -30,7 +30,7 @@ impl SimulationController {
                     error!(
                         "[ {} ] Can not spawn the drone: Drone must be connected to at least 1 Node",
                         "Simulation Controller".red(),
-                    );            
+                    );
                 } else {
                     // check if can add neighbors
                     for neighbor in &connected_node_ids {
